@@ -1,0 +1,25 @@
+{
+  "name": "TestProject",
+  "description": "Test Project",
+  "main": "Main.xaml",
+  "dependencies": {},
+  "schemaVersion": "3.2",
+  "studioVersion": "18.3.0.933",
+  "projectVersion": "1.0.6987.24350",
+  "runtimeOptions": {
+    "autoDispose": false,
+    "excludedLoggedData": [
+      "Private:*",
+      "*password*"
+    ]
+  },
+  "projectType": "Workflow",
+  "libraryOptions": {
+    "includeOriginalXaml": false,
+    "privateWorkflows": []
+  },
+  "arguments": {
+    "input": [],
+    "output": []
+  }
+}
