@@ -5,7 +5,9 @@
 param(
     [String]$saveLocation,
     [String]$powershellVersion,
-    [String]$extensionsVersion
+    [String]$extensionsVersion,
+    [String]$namePowershell,
+    [String]$nameExtensions
 )
 $repoLocation = "https://www.myget.org/F/uipath-dev/api/v2"
 $psRepo = Get-PSRepository |  Where { $_.SourceLocation -eq $repoLocation }
@@ -18,8 +20,6 @@ if (($psRepo | measure).Count -eq 0)
         throw "Couldn't find the required repo, please validate the parameters if it is correct to register"
     }
 }
-$namePowershell = "UiPath.Powershell"
-$nameExtensions = "UiPath.Extensions"
 Write-Host $saveLocation
 if (-Not(Test-Path $saveLocation))
 {

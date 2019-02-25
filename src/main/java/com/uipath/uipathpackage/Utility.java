@@ -12,8 +12,16 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.jar.JarEntry;
+import java.util.jar.JarException;
+import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 /**
  * Utility Class used by UiPathDeploy and UiPathPack
@@ -25,19 +33,19 @@ class Utility {
      */
     File importModules(@Nonnull TaskListener listener, PowerShell powerShell, EnvVars env) throws PowerShellExecutionException, IOException {
         listener.getLogger().println("Importing Powershell and extensions modules");
-        File tempDir= getTempDir();
-        String response = powerShell.executeCommands("cd \""+StringEscapeUtils.escapeJava(tempDir.getAbsolutePath())+"\"");
+        File tempDir = getTempDir();
+        String response = powerShell.executeCommands("cd \"" + StringEscapeUtils.escapeJava(tempDir.getAbsolutePath()) + "\"");
         validateExecutionStatus(powerShell, response, "Error while changing to temp directory: ");
         listener.getLogger().println(response);
         String pluginJarPath = env.expand("${JENKINS_HOME}\\plugins\\uipath-automation-package\\WEB-INF\\lib\\uipath-automation-package.jar");
-        listener.getLogger().println("plugin jar path is : "+pluginJarPath);
+        listener.getLogger().println("plugin jar path is : " + pluginJarPath);
         //Copy relevant files to temp directory
         copyPluginFiles(listener, powerShell, tempDir, pluginJarPath);
         //import robot executor, UiPath package module
         ResourceBundle rb = ResourceBundle.getBundle("config");
-        response = powerShell.executeCommands("Import-Module \"" + StringEscapeUtils.escapeJava(new File(tempDir,"UiPath.Extensions/"+rb.getString("UiPath.Extensions.Version")+"/RobotExecutor-PublicModule.psd1").getAbsolutePath()) + "\" -Force");
+        response = powerShell.executeCommands("Import-Module \"" + StringEscapeUtils.escapeJava(new File(tempDir, "UiPath.Extensions/" + rb.getString("UiPath.Extensions.Version") + "/RobotExecutor-PublicModule.psd1").getAbsolutePath()) + "\" -Force");
         validateExecutionStatus(powerShell, response, "Error while importing module RobotExecutor. :");
-        response = powerShell.executeCommands("Import-Module \"" + StringEscapeUtils.escapeJava(new File(tempDir,"UiPath.Extensions/"+rb.getString("UiPath.Extensions.Version")+"/UiPathPackage-Module.psd1").getAbsolutePath()) + "\" -Force");
+        response = powerShell.executeCommands("Import-Module \"" + StringEscapeUtils.escapeJava(new File(tempDir, "UiPath.Extensions/" + rb.getString("UiPath.Extensions.Version") + "/UiPathPackage-Module.psd1").getAbsolutePath()) + "\" -Force");
         validateExecutionStatus(powerShell, response, "Error while importing module UiPathPackage :");
         listener.getLogger().println("Module imported");
         return tempDir;
@@ -51,56 +59,58 @@ class Utility {
 
     /**
      * Generates the package
+     *
      * @param packagePath Package path
-     * @param outputPath Output Path
-     * @param powerShell Powershell to execute commands
-     * @param version Project Version
+     * @param outputPath  Output Path
+     * @param powerShell  Powershell to execute commands
+     * @param version     Project Version
      * @return String package result
      * @throws PowerShellExecutionException returned while executing commands
-     * @throws IOException returned while executing commands
+     * @throws IOException                  returned while executing commands
      */
     String generatePackage(String packagePath, String outputPath, PowerShell powerShell, String version) throws PowerShellExecutionException, IOException {
         String response;
-        if(version == null)
-            response = powerShell.executeCommands("Pack -projectJsonPath \""+packagePath+"\" -outputFolder \""+outputPath+"\"");
+        if (version == null)
+            response = powerShell.executeCommands("Pack -projectJsonPath \"" + packagePath + "\" -outputFolder \"" + outputPath + "\"");
         else
-            response = powerShell.executeCommands("Pack -projectJsonPath \""+ packagePath+"\" -packageVersion \""+version+"\" -outputFolder \""+ outputPath+"\"");
+            response = powerShell.executeCommands("Pack -projectJsonPath \"" + packagePath + "\" -packageVersion \"" + version + "\" -outputFolder \"" + outputPath + "\"");
         validateExecutionStatus(powerShell, response, "Error while Packaging the project: ");
         return response;
     }
 
     /**
      * Deploys the package to orchestrator address
-     * @param orchestratorAddress Orchestrator Base URL
-     * @param packagePath   Package Path
+     *
+     * @param orchestratorAddress         Orchestrator Base URL
+     * @param packagePath                 Package Path
      * @param orchestratorTenantFormatted Orchestrator Tenant
-     * @param username Orchestrator Username
-     * @param password Orchestrator Password
-     * @param powerShell powershell to execute commands
+     * @param username                    Orchestrator Username
+     * @param password                    Orchestrator Password
+     * @param powerShell                  powershell to execute commands
      * @return String deploy result
      * @throws PowerShellExecutionException returned while executing commands
-     * @throws IOException returned while executing commands
+     * @throws IOException                  returned while executing commands
      */
     String deployPackage(String orchestratorAddress, String packagePath, String orchestratorTenantFormatted, String username, String password, PowerShell powerShell) throws PowerShellExecutionException, IOException {
-        String response = powerShell.executeCommands("Deploy -orchestratorAddress \""+orchestratorAddress+"\" -tenant \""+orchestratorTenantFormatted+"\" -username \""+username+"\" -password \""+password+"\" -packagePath \""+packagePath+"\" -authType UserPass");
+        String response = powerShell.executeCommands("Deploy -orchestratorAddress \"" + orchestratorAddress + "\" -tenant \"" + orchestratorTenantFormatted + "\" -username \"" + username + "\" -password \"" + password + "\" -packagePath \"" + packagePath + "\" -authType UserPass");
         validateExecutionStatus(powerShell, response, "Error while deploying the project: ");
         return response;
     }
 
     /**
      * Validates the param for null or empty check
+     *
      * @param param Param to validate
-     * @param s Error Message
+     * @param s     Error Message
      */
     void validateParams(String param, String s) {
-        if (param == null || param.trim().isEmpty())
-            throw new RuntimeException(s);
+        if (param == null || param.trim().isEmpty()) throw new RuntimeException(s);
     }
 
     private void copyPluginFiles(@Nonnull TaskListener listener, PowerShell powerShell, File tempDir, String pluginJarPath) throws IOException, PowerShellExecutionException {
         String response;
         File jar = new File(pluginJarPath);
-        if(!jar.exists()){
+        if (!jar.exists()) {
             // For snapshot plugin dependencies, an IDE may have replaced ~/.m2/repository/…/${artifactId}.hpi with …/${artifactId}-plugin/target/classes/
             // which unfortunately lacks META-INF/MANIFEST.MF so try to find index.jelly (which every plugin should include) and thus the ${artifactId}.hpi:
             Enumeration<URL> jellies = getClass().getClassLoader().getResources("index.jelly");
@@ -118,32 +128,48 @@ class Utility {
                     if (classes.getName().equals("classes")) {
                         response = powerShell.executeCommands("Copy-Item -Path \"" + StringEscapeUtils.escapeJava(classes.getAbsolutePath()) + "\\*\" -Destination \"" + StringEscapeUtils.escapeJava(tempDir.getAbsolutePath()) + "\" -Recurse -force");
                         validateExecutionStatus(powerShell, response, "Error while copying project to temp: ");
-                        listener.getLogger().println("Files copied to temp "+response);
+                        listener.getLogger().println("Files copied to temp " + response);
                     }
                 }
             }
-        }
-        else {
-            response = powerShell.executeCommands("Copy-Item -Path \"" + StringEscapeUtils.escapeJava(pluginJarPath) + "\" -Destination \"" + StringEscapeUtils.escapeJava(tempDir.getAbsolutePath()) + "\" -force");
-            validateExecutionStatus(powerShell, response, "Error while copying jar to temp: ");
-            listener.getLogger().println(response);
-            String jarPath = new File(tempDir, "uipath-automation-package.jar").getAbsolutePath();
-            response = powerShell.executeCommands("jar -xf \"" + StringEscapeUtils.escapeJava(jarPath) + "\"");
-            validateExecutionStatus(powerShell, response, "Error while extracting the contents of jar to temp: ");
-            listener.getLogger().println("jar copied to temp and extracted "+response);
+        } else {
+            listener.getLogger().println("extracting powershell modules to temp folder");
+            extractResourcesToTempFolder(tempDir, jar, listener);
         }
     }
 
     private File getTempDir() throws IOException {
         File baseDir = new File(System.getProperty("java.io.tmpdir"));
-        File tempDir = new File(baseDir,"UiPath");
-        if(!tempDir.exists()) {
+        File tempDir = new File(baseDir, "UiPath");
+        if (!tempDir.exists()) {
             boolean result = tempDir.mkdir();
-            if(!result){
+            if (!result) {
                 throw new RuntimeException("Failed to create temp directory");
             }
         }
         FileUtils.cleanDirectory(tempDir);
         return tempDir;
+    }
+
+    private void extractResourcesToTempFolder(File tempDir, File jarfile, TaskListener listener) throws IOException {
+        try (JarFile archive = new JarFile(jarfile)) {
+            // sort entries by name to always create folders first
+            List<? extends JarEntry> entries = archive.stream().sorted(Comparator.comparing(JarEntry::getName)).collect(Collectors.toList());
+            for (JarEntry entry : entries) {
+                ResourceBundle rb = ResourceBundle.getBundle("config");
+                if (!entry.getName().startsWith(rb.getString("UiPath.PowerShell.Name")) && !entry.getName().startsWith(rb.getString("UiPath.Extensions.Name")))
+                    continue;
+                Path entryDest = tempDir.toPath().resolve(entry.getName());
+                if (entry.isDirectory()) {
+                    Files.createDirectory(entryDest);
+                    continue;
+                }
+                Files.copy(archive.getInputStream(entry), entryDest);
+                listener.getLogger().println("Extracted file : " + entry.getName());
+            }
+        } catch (JarException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }
