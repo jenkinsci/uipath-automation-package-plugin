@@ -135,6 +135,7 @@ class Utility {
         } else {
             listener.getLogger().println("extracting powershell modules to temp folder");
             extractResourcesToTempFolder(tempDir, jar, listener);
+            listener.getLogger().println("extracted powershell modules to temp folder");
         }
     }
 
@@ -165,7 +166,6 @@ class Utility {
                     continue;
                 }
                 Files.copy(archive.getInputStream(entry), entryDest);
-                listener.getLogger().println("Extracted file : " + entry.getName());
             }
         } catch (JarException e) {
             e.printStackTrace();

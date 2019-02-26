@@ -4,12 +4,12 @@
         <f:textbox default="$${JENKINS_HOME}\jobs\$${JOB_NAME}\builds\$${BUILD_NUMBER}"/>
     </f:entry>
     <f:entry title="${%OrchestratorAddress}" field="orchestratorAddress">
-        <f:textbox />
+        <f:textbox/>
     </f:entry>
     <f:entry title="${%OrchestratorTenant}" field="orchestratorTenant">
-        <f:textbox />
+        <f:textbox/>
     </f:entry>
     <f:entry field="credentialsId" title="${%Credentials}">
-        <c:select />
+        <c:select/>
     </f:entry>
 </j:jelly>
