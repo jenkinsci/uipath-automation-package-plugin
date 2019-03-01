@@ -7,6 +7,7 @@ import com.cloudbees.plugins.credentials.domains.Domain;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
+import hudson.util.FormValidation;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -20,7 +21,9 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-public class UiPathDeployTest{
+import static org.junit.Assert.assertEquals;
+
+public class UiPathDeployTest {
 
     private static String credentialsId;
     @Rule
@@ -38,7 +41,7 @@ public class UiPathDeployTest{
     private FreeStyleProject project;
 
     @BeforeClass
-    public static void setupClass(){
+    public static void setupClass() {
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();
 
         orchestratorAddress = "https://platform.uipath.com";
@@ -60,15 +63,15 @@ public class UiPathDeployTest{
 
     @Test
     public void testDeployConfigRoundtrip() throws Exception {
-        UiPathDeploy publisher = new UiPathDeploy(packagePath,orchestratorAddress,orchestratorTenant,credentialsId);
+        UiPathDeploy publisher = new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, credentialsId);
         project.getPublishersList().add(publisher);
         project = jenkins.configRoundtrip(project);
-        jenkins.assertEqualDataBoundBeans(new UiPathDeploy(packagePath,orchestratorAddress,orchestratorTenant,credentialsId), project.getPublishersList().get(0));
+        jenkins.assertEqualDataBoundBeans(new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, credentialsId), project.getPublishersList().get(0));
     }
 
     @Test
-    public void testPublish() throws Exception{
-        UiPathDeploy publisher = new UiPathDeploy(packagePath,orchestratorAddress,orchestratorTenant,credentialsId);
+    public void testPublish() throws Exception {
+        UiPathDeploy publisher = new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, credentialsId);
         project.getPublishersList().add(publisher);
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
         jenkins.assertLogContains("Deploying", build);
@@ -76,28 +79,79 @@ public class UiPathDeployTest{
     }
 
     @Test
-    public void testPublishWithProjectId() throws Exception{
-        String nugetPackagePath = packagePath + "\\"+packageName;
-        UiPathDeploy publisher = new UiPathDeploy(nugetPackagePath,orchestratorAddress,orchestratorTenant,credentialsId);
+    public void testPublishWithSpecialChar() throws Exception {
+        StandardUsernamePasswordCredentials cred = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsId, description, "admin$admin", "admin$admin123");
+        CredentialsProvider.lookupStores(jenkins).iterator().next().addCredentials(Domain.global(), cred);
+        UiPathDeploy publisher = new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, credentialsId);
         project.getPublishersList().add(publisher);
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
         jenkins.assertLogContains("Deploying", build);
-        jenkins.assertLogContains(packageName+" successfully added", build);
+        jenkins.assertLogContains("nupkg successfully added", build);
+    }
+
+    @Test
+    public void testPublishWithSpecialChar2() throws Exception {
+        StandardUsernamePasswordCredentials cred = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsId, description, "admin'admin", "admin'admin123");
+        CredentialsProvider.lookupStores(jenkins).iterator().next().addCredentials(Domain.global(), cred);
+        UiPathDeploy publisher = new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, credentialsId);
+        project.getPublishersList().add(publisher);
+        FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
+        jenkins.assertLogContains("Deploying", build);
+        jenkins.assertLogContains("nupkg successfully added", build);
+    }
+
+    @Test
+    public void testPublishWithSpecialChar3() throws Exception {
+        StandardUsernamePasswordCredentials cred = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsId, description, "admin\\admin", "admin\\admin123");
+        CredentialsProvider.lookupStores(jenkins).iterator().next().addCredentials(Domain.global(), cred);
+        UiPathDeploy publisher = new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, credentialsId);
+        project.getPublishersList().add(publisher);
+        FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
+        jenkins.assertLogContains("Deploying", build);
+        jenkins.assertLogContains("nupkg successfully added", build);
+    }
+
+    @Test
+    public void testPublishWithProjectId() throws Exception {
+        String nugetPackagePath = packagePath + "\\" + packageName;
+        UiPathDeploy publisher = new UiPathDeploy(nugetPackagePath, orchestratorAddress, orchestratorTenant, credentialsId);
+        project.getPublishersList().add(publisher);
+        FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
+        jenkins.assertLogContains("Deploying", build);
+        jenkins.assertLogContains(packageName + " successfully added", build);
     }
 
     @Test
     public void testPublishWithEnvVar() throws Exception {
         packagePath = "${JENKINS_HOME}\\jobs\\${JOB_NAME}\\builds\\${BUILD_NUMBER}";
-        UiPathDeploy publisher = new UiPathDeploy(packagePath,orchestratorAddress,orchestratorTenant,credentialsId);
+        UiPathDeploy publisher = new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, credentialsId);
         project.getPublishersList().add(publisher);
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
         jenkins.assertLogContains("Deploying", build);
     }
 
+    @Test
+    public void testUiPathDeployClass() {
+        UiPathDeploy uiPathDeploy = new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, credentialsId);
+        assertEquals(packagePath, uiPathDeploy.getPackagePath());
+        assertEquals(orchestratorAddress, uiPathDeploy.getOrchestratorAddress());
+        assertEquals(orchestratorTenant, uiPathDeploy.getOrchestratorTenant());
+        assertEquals(credentialsId, uiPathDeploy.getCredentialsId());
+    }
+
+    @Test
+    public void testDoCheckPackagePath() {
+        UiPathDeploy.DescriptorImpl descriptor = new UiPathDeploy.DescriptorImpl();
+        assertEquals(String.valueOf(FormValidation.error(Messages.UiPathDeploy_DescriptorImpl_errors_missingPackagePath())), String.valueOf(descriptor.doCheckPackagePath("")));
+        assertEquals(String.valueOf(FormValidation.ok()), String.valueOf(descriptor.doCheckPackagePath(packagePath)));
+        assertEquals(String.valueOf(FormValidation.error(Messages.UiPathDeploy_DescriptorImpl_errors_missingOrchestratorAddress())), String.valueOf(descriptor.doCheckOrchestratorAddress("")));
+        assertEquals(FormValidation.ok(), descriptor.doCheckOrchestratorAddress(orchestratorAddress));
+    }
+
     private void deletePackage() throws IOException {
-        URL url = new URL(orchestratorAddress+"/api/Account/Authenticate");
-        String body = "{\"tenancyName\": \""+orchestratorTenant+"\",\"usernameOrEmailAddress\": \""+username+"\",\"password\": \""+password+"\"}";
-        HttpURLConnection postCon = (HttpURLConnection)url.openConnection();
+        URL url = new URL(orchestratorAddress + "/api/Account/Authenticate");
+        String body = "{\"tenancyName\": \"" + orchestratorTenant + "\",\"usernameOrEmailAddress\": \"" + username + "\",\"password\": \"" + password + "\"}";
+        HttpURLConnection postCon = (HttpURLConnection) url.openConnection();
         postCon.setRequestMethod("POST");
         postCon.addRequestProperty("User-Agent", "Mozilla/4.76");
         postCon.setRequestProperty("Content-Type", "application/json");
@@ -112,11 +166,11 @@ public class UiPathDeployTest{
         in.close();
         postCon.disconnect();
 
-        url = new URL(orchestratorAddress+"/odata/Processes('TestProject')");
+        url = new URL(orchestratorAddress + "/odata/Processes('TestProject')");
         HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
         httpCon.setDoOutput(true);
-        httpCon.setRequestProperty("Authorization","Bearer "+token);
-        httpCon.setRequestProperty("Content-Type", "application/json" );
+        httpCon.setRequestProperty("Authorization", "Bearer " + token);
+        httpCon.setRequestProperty("Content-Type", "application/json");
         httpCon.addRequestProperty("User-Agent", "Mozilla/4.76");
         httpCon.setRequestMethod("DELETE");
         int responseCode = httpCon.getResponseCode();

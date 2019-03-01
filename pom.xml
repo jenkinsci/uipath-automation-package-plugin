@@ -61,6 +61,25 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
                     <goals>deploy</goals>
@@ -100,30 +119,7 @@
             <version>2.24.5</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
-    <!-- If you want this to appear on the wiki page:
-    <developers>
-      <developer>
-        <id>TODO</id>
-        <name>Rajeev Ranjan</name>
-        <email>rajeev.ranjan@uipath.com</email>
-      </developer>
-      <developer>
-        <id>TODO</id>
-        <name>Mihai Gheorghe</name>
-        <email>mihai.gheorghe@uipath.com</email>
-      </developer>
-    </developers> -->
-
-    <!-- Assuming you want to host on @jenkinsci: once wiki page is made
-    <url>https://wiki.jenkins.io/display/JENKINS/TODO+Plugin</url>
-    <scm>
-        <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
-    </scm>
-    -->
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>

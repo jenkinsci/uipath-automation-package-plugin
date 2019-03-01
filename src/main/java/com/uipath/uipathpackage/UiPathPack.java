@@ -3,10 +3,7 @@ package com.uipath.uipathpackage;
 import com.github.tuupertunut.powershelllibjava.PowerShell;
 import com.github.tuupertunut.powershelllibjava.PowerShellExecutionException;
 import com.google.common.collect.ImmutableList;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.FilePath;
-import hudson.Launcher;
+import hudson.*;
 import hudson.model.*;
 import hudson.tasks.BuildStep;
 import hudson.tasks.BuildStepDescriptor;
@@ -35,15 +32,16 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
     /**
      * Data bound constructor responsible for setting the values param values to state
-     * @param version Entry version
+     *
+     * @param version         Entry version
      * @param projectJsonPath Project Json Path
-     * @param outputPath Output Path
+     * @param outputPath      Output Path
      */
     @DataBoundConstructor
     public UiPathPack(Entry version, String projectJsonPath, String outputPath) {
         Utility util = new Utility();
-        util.validateParams(projectJsonPath,"Invalid Project(s) Path");
-        util.validateParams(outputPath,"Invalid Output Path");
+        util.validateParams(projectJsonPath, "Invalid Project(s) Path");
+        util.validateParams(outputPath, "Invalid Output Path");
         this.version = version;
         this.projectJsonPath = projectJsonPath;
         this.outputPath = outputPath;
@@ -51,41 +49,43 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
     /**
      * Run this step.
-     * @param run a build this is running as a part of
+     *
+     * @param run       a build this is running as a part of
      * @param workspace a workspace to use for any file operations
-     * @param launcher a way to start processes
-     * @param listener a place to send output
+     * @param launcher  a way to start processes
+     * @param listener  a place to send output
      * @throws InterruptedException if the step is interrupted
-     * @throws IOException if something goes wrong
+     * @throws IOException          if something goes wrong
      */
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         EnvVars env = run.getEnvironment(listener);
         Utility util = new Utility();
-        util.validateParams(projectJsonPath,"Invalid Project Json Path");
-        util.validateParams(outputPath,"Invalid Output Path");
+        util.validateParams(projectJsonPath, "Invalid Project Json Path");
+        util.validateParams(outputPath, "Invalid Output Path");
         String projectPathFormatted = StringEscapeUtils.escapeJava(env.expand(projectJsonPath.trim()));
         String outputPathFormatted = StringEscapeUtils.escapeJava(env.expand(outputPath.trim()));
         listener.getLogger().println("Opening Powershell Session");
         try (PowerShell powerShell = PowerShell.open()) {
-            util.importModules(listener, powerShell,env);
+            util.importModules(listener, powerShell, env);
             String response;
-            if(version instanceof ManualEntry) {
-                String versionFormatted = StringEscapeUtils.escapeJava(env.expand(((ManualEntry) version).getText().trim()));
+            if (version instanceof ManualEntry) {
+                String versionFormatted = env.expand(((ManualEntry) version).getText().trim());
                 response = util.generatePackage(projectPathFormatted, outputPathFormatted, powerShell, versionFormatted);
-            }else {
+            } else {
                 response = util.generatePackage(projectPathFormatted, outputPathFormatted, powerShell, null);
             }
             listener.getLogger().println(response);
             listener.getLogger().println("Exiting Powershell Session");
-        }catch (IOException | PowerShellExecutionException e){
-            e.printStackTrace();
-            throw new RuntimeException(e);
+        } catch (IOException | PowerShellExecutionException e) {
+            e.printStackTrace(listener.getLogger());
+            throw new AbortException(e.getMessage());
         }
     }
 
     /**
      * Provide the project version
+     *
      * @return Entry for versioning
      */
     public Entry getVersion() {
@@ -94,6 +94,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
     /**
      * Provides the project json path
+     *
      * @return String projectJsonPath
      */
     public String getProjectJsonPath() {
@@ -102,6 +103,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
     /**
      * Provides the Output Path
+     *
      * @return String outputPath
      */
     public String getOutputPath() {
@@ -111,7 +113,8 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     /**
      * Partial default implementation of {@link Describable}.
      */
-    public static abstract class Entry extends AbstractDescribableImpl<Entry> {}
+    public abstract static class Entry extends AbstractDescribableImpl<Entry> {
+    }
 
     /**
      * Implementation of the auto versioning method
@@ -122,11 +125,13 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
          * Blank Class to represent auto versioning
          */
         @DataBoundConstructor
-        public AutoEntry() {}
+        public AutoEntry() {
+            //Do nothing because it is implementation for custom version, Hence doing nothin
+        }
 
         @Symbol("AutoVersion")
         @Extension
-        public static class DescriptorImpl extends Descriptor<Entry>{
+        public static class DescriptorImpl extends Descriptor<Entry> {
             @Nonnull
             @Override
             public String getDisplayName() {
@@ -144,20 +149,24 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
         /**
          * Custom Version as text
+         *
          * @param text Custom version value
          */
         @DataBoundConstructor
         public ManualEntry(String text) {
             Utility util = new Utility();
-            util.validateParams(text,"Invalid custom version");
-            this.text=text;
+            util.validateParams(text, "Invalid custom version");
+            this.text = text;
         }
 
         /**
          * Getter for the text
+         *
          * @return String custom version
          */
-        public String getText() { return text; }
+        public String getText() {
+            return text;
+        }
 
         /**
          * Metadata about a configurable instance.
@@ -171,29 +180,33 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
          */
         @Symbol("CustomVersion")
         @Extension
-        public static class DescriptorImpl extends Descriptor<Entry>{
+        public static class DescriptorImpl extends Descriptor<Entry> {
             @Nonnull
             @Override
-            public String getDisplayName(){
+            public String getDisplayName() {
                 return Messages.UiPathPack_ManualEntry_DescriptorImpl_DisplayName();
             }
         }
     }
+
     /**
      * {@link Descriptor} for {@link Builder}
      */
 
     @Symbol("UiPathPack")
     @Extension
-    public static class DescriptorImpl extends BuildStepDescriptor<Builder>{
+    public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
         /**
          * Provides the display name to the build step
+         *
          * @return String display name
          */
         @Nonnull
         @Override
-        public String getDisplayName() { return Messages.UiPathPack_DescriptorImpl_DisplayName(); }
+        public String getDisplayName() {
+            return Messages.UiPathPack_DescriptorImpl_DisplayName();
+        }
 
         /**
          * Returns true if this task is applicable to the given project.
@@ -208,22 +221,22 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
         /**
          * Provides the enlist of descriptors to the choice in hetero-radio
+         *
          * @return list of the Entry descriptors
          */
         public List<Descriptor> getEntryDescriptors() {
             Jenkins jenkins = Jenkins.getInstance();
             List<Descriptor> list = new ArrayList<>();
             Descriptor autoDescriptor = jenkins.getDescriptor(AutoEntry.class);
-            if(autoDescriptor!=null)
-                list.add(autoDescriptor);
+            if (autoDescriptor != null) list.add(autoDescriptor);
             Descriptor manualDescriptor = jenkins.getDescriptor(ManualEntry.class);
-            if(manualDescriptor!=null)
-                list.add(manualDescriptor);
+            if (manualDescriptor != null) list.add(manualDescriptor);
             return ImmutableList.copyOf(list);
         }
 
         /**
          * Validated the Project(s) path
+         *
          * @param value Project Json Path value
          * @return FormValidation
          */
@@ -235,6 +248,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
         /**
          * Validates the output path
+         *
          * @param value Output Path value
          * @return FormValidation
          */
