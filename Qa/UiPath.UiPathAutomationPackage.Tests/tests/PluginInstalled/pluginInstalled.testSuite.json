@@ -1,0 +1,38 @@
+{
+  "Name": null,
+  "Input": null,
+  "BeforeEachTest": null,
+  "AfterEachTest": null,
+  "Tests": [
+    {
+      "TestCaseId": "439070",
+      "TestName": "Plugin should be installed normally with jenkins version 2.3* and Java version 8",
+      "Labels": [
+        "pluginInstalled"
+      ],
+      "Steps": [
+        {
+          "TestStepId": "1",
+          "StepAction": "PluginInstalled",
+          "StepInput": {},
+          "StepOutput": null,
+          "ValidateAction": "",
+          "ValidateInput": {},
+          "ContinueOnError": false,
+          "ExpectedException": null,
+          "Before": null,
+          "After": null,
+          "Description": "Plugin should be installed normally with jenkins version 2.3* and Java version 8"
+        }
+      ],
+      "Input": null,
+      "Before": null,
+      "After": [],
+      "Description": ""
+    }
+  ],
+  "Version": "2",
+  "Before": null,
+  "After": null,
+  "Description": null
+}

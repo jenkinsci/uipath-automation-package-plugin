@@ -1,0 +1,65 @@
+{
+  "Input": null,
+  "TestSuites": [
+    {
+      "Name": "pluginInstalled",
+      "File": "pluginInstalled.testSuite.json",
+      "Input": {}
+    },
+	{
+      "Name": "deployExists",
+      "File": "deployExists.testSuite.json",
+      "Input": {}
+    },
+	{
+      "Name": "missingPackagePath",
+      "File": "missingPackagePath.testSuite.json",
+      "Input": {}
+    },
+	{
+      "Name": "missingOrchestratorAddress",
+      "File": "missingOrchestratorAddress.testSuite.json",
+      "Input": {}
+    },
+	{
+      "Name": "credential",
+      "File": "credential.testSuite.json",
+      "Input": {}
+    },
+	{
+      "Name": "packExists",
+      "File": "packExists.testSuite.json",
+      "Input": {}
+    },
+	{
+      "Name": "missingProjectPath",
+      "File": "missingProjectPath.testSuite.json",
+      "Input": {}
+    },
+	{
+      "Name": "missingOutputFolder",
+      "File": "missingOutputFolder.testSuite.json",
+      "Input": {}
+    },
+	{
+      "File": "tooltip.testSuite.json",
+      "Input": {}
+    },
+	{
+      "Name": "dataSaved",
+      "File": "dataSaved.testSuite.json",
+      "Input": {}
+    }
+  ],
+  "BeforeEachTest": [],
+  "AfterEachTest": [],
+  "Version": "2",
+  "Before": [
+	{
+	  "File": "PrepareForTest",
+	  "Input": {},
+	  "Output": {}
+	}
+  ],
+  "After": []
+}

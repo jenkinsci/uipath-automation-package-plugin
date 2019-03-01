@@ -1,0 +1,38 @@
+{
+  "Name": null,
+  "Input": null,
+  "BeforeEachTest": null,
+  "AfterEachTest": null,
+  "Tests": [
+    {
+      "TestCaseId": "439081",
+      "TestName": "UiPath Deploy should fails when orchestrator address is missing",
+      "Labels": [
+        "MissingOrchestratorAddress"
+      ],
+      "Steps": [
+        {
+          "TestStepId": "1",
+          "StepAction": "MissingOrchestratorAddress",
+          "StepInput": null,
+          "StepOutput": null,
+          "ValidateAction": "",
+          "ValidateInput": {},
+          "ContinueOnError": false,
+          "ExpectedException": null,
+          "Before": null,
+          "After": null,
+          "Description": "UiPath Deploy should fails when orchestrator address is missing"
+        }
+      ],
+      "Input": null,
+      "Before": null,
+      "After": [],
+      "Description": ""
+    }
+  ],
+  "Version": "2",
+  "Before": null,
+  "After": null,
+  "Description": null
+}
