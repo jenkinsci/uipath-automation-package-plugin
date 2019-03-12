@@ -45,12 +45,17 @@ class Utility {
         copyPluginFiles(listener, powerShell, tempDir, pluginJarPath);
         //import robot executor, UiPath package module
         ResourceBundle rb = ResourceBundle.getBundle("config");
-        response = powerShell.executeCommands("Import-Module " + PowerShell.escapePowerShellString(StringEscapeUtils.escapeJava(new File(tempDir, "UiPath.Extensions/" + rb.getString("UiPath.Extensions.Version") + "/RobotExecutor-PublicModule.psd1").getAbsolutePath())) + " -Force");
+        String val = getValue(rb, "UiPath.Extensions.Version");
+        response = powerShell.executeCommands("Import-Module " + PowerShell.escapePowerShellString(StringEscapeUtils.escapeJava(new File(tempDir, "UiPath.Extensions/" + val + "/RobotExecutor-PublicModule.psd1").getAbsolutePath())) + " -Force");
         validateExecutionStatus(powerShell, response, "Error while importing module RobotExecutor. :");
-        response = powerShell.executeCommands("Import-Module " + PowerShell.escapePowerShellString(StringEscapeUtils.escapeJava(new File(tempDir, "UiPath.Extensions/" + rb.getString("UiPath.Extensions.Version") + "/UiPathPackage-Module.psd1").getAbsolutePath())) + " -Force");
+        response = powerShell.executeCommands("Import-Module " + PowerShell.escapePowerShellString(StringEscapeUtils.escapeJava(new File(tempDir, "UiPath.Extensions/" + val + "/UiPathPackage-Module.psd1").getAbsolutePath())) + " -Force");
         validateExecutionStatus(powerShell, response, "Error while importing module UiPathPackage :");
         listener.getLogger().println("Module imported");
         return tempDir;
+    }
+
+    String getValue(ResourceBundle rb, String s) {
+        return rb.getString(s);
     }
 
     void validateExecutionStatus(PowerShell powerShell, String response, String s) throws PowerShellExecutionException, IOException {
@@ -160,7 +165,7 @@ class Utility {
             List<? extends JarEntry> entries = archive.stream().sorted(Comparator.comparing(JarEntry::getName)).collect(Collectors.toList());
             for (JarEntry entry : entries) {
                 ResourceBundle rb = ResourceBundle.getBundle("config");
-                if (!entry.getName().startsWith(rb.getString("UiPath.PowerShell.Name")) && !entry.getName().startsWith(rb.getString("UiPath.Extensions.Name")))
+                if (!entry.getName().startsWith(getValue(rb, "UiPath.PowerShell.Name")) && !entry.getName().startsWith(getValue(rb, "UiPath.Extensions.Name")))
                     continue;
                 Path entryDest = tempDir.toPath().resolve(entry.getName());
                 if (entry.isDirectory()) {

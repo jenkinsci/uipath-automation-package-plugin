@@ -122,7 +122,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         util.validateParams(orchestratorAddress, "Invalid Orchestrator Address");
         util.validateParams(packagePath, "Invalid Package Path");
         String packagePathFormatted = StringEscapeUtils.escapeJava(env.expand(packagePath.trim()));
-        String orchestratorTenantFormatted = env.expand(orchestratorTenant.trim()).isEmpty() ? rb.getString("UiPath.DefaultTenant") : env.expand(orchestratorTenant.trim());
+        String orchestratorTenantFormatted = env.expand(orchestratorTenant.trim()).isEmpty() ? util.getValue(rb, "UiPath.DefaultTenant") : env.expand(orchestratorTenant.trim());
         StandardUsernamePasswordCredentials cred = CredentialsProvider.findCredentialById(credentialsId, StandardUsernamePasswordCredentials.class, run, Collections.emptyList());
         if (cred == null || cred.getUsername().isEmpty() || cred.getPassword().getPlainText().isEmpty())
             throw new AbortException("Invalid credentials");
@@ -131,7 +131,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         listener.getLogger().println("Opening Powershell Session");
         try (PowerShell powerShell = PowerShell.open()) {
             File tempDir = util.importModules(listener, powerShell, env);
-            String tempDirPathFormatted = PowerShell.escapePowerShellString(StringEscapeUtils.escapeJava(new File(tempDir, "UiPath.PowerShell/" + rb.getString("UiPath.PowerShell.Version") + "/UiPath.PowerShell.psd1").getAbsolutePath()));
+            String tempDirPathFormatted = PowerShell.escapePowerShellString(StringEscapeUtils.escapeJava(new File(tempDir, "UiPath.PowerShell/" + util.getValue(rb, "UiPath.PowerShell.Version") + "/UiPath.PowerShell.psd1").getAbsolutePath()));
             String response = powerShell.executeCommands("Import-Module " + tempDirPathFormatted + " -Force");
             util.validateExecutionStatus(powerShell, response, "Error while importing module UiPath.Powershell: ");
             response = util.deployPackage(orchestratorAddress, packagePathFormatted, orchestratorTenantFormatted, username, password, powerShell);

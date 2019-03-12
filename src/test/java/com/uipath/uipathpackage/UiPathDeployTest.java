@@ -79,32 +79,10 @@ public class UiPathDeployTest {
     }
 
     @Test
-    public void testPublishWithSpecialChar() throws Exception {
-        StandardUsernamePasswordCredentials cred = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsId, description, "admin$admin", "admin$admin123");
+    public void testPublishWithSpecialChars() throws Exception {
+        StandardUsernamePasswordCredentials cred = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, "SpecialCredOrchId", description, "admin$\\'admin", "admin$\\'admin123");
         CredentialsProvider.lookupStores(jenkins).iterator().next().addCredentials(Domain.global(), cred);
-        UiPathDeploy publisher = new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, credentialsId);
-        project.getPublishersList().add(publisher);
-        FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
-        jenkins.assertLogContains("Deploying", build);
-        jenkins.assertLogContains("nupkg successfully added", build);
-    }
-
-    @Test
-    public void testPublishWithSpecialChar2() throws Exception {
-        StandardUsernamePasswordCredentials cred = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsId, description, "admin'admin", "admin'admin123");
-        CredentialsProvider.lookupStores(jenkins).iterator().next().addCredentials(Domain.global(), cred);
-        UiPathDeploy publisher = new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, credentialsId);
-        project.getPublishersList().add(publisher);
-        FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
-        jenkins.assertLogContains("Deploying", build);
-        jenkins.assertLogContains("nupkg successfully added", build);
-    }
-
-    @Test
-    public void testPublishWithSpecialChar3() throws Exception {
-        StandardUsernamePasswordCredentials cred = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credentialsId, description, "admin\\admin", "admin\\admin123");
-        CredentialsProvider.lookupStores(jenkins).iterator().next().addCredentials(Domain.global(), cred);
-        UiPathDeploy publisher = new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, credentialsId);
+        UiPathDeploy publisher = new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, "SpecialCredOrchId");
         project.getPublishersList().add(publisher);
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
         jenkins.assertLogContains("Deploying", build);
@@ -123,8 +101,8 @@ public class UiPathDeployTest {
 
     @Test
     public void testPublishWithEnvVar() throws Exception {
-        packagePath = "${JENKINS_HOME}\\jobs\\${JOB_NAME}\\builds\\${BUILD_NUMBER}";
-        UiPathDeploy publisher = new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, credentialsId);
+        String nugetPackagePath = "${JENKINS_HOME}\\jobs\\${JOB_NAME}\\builds\\${BUILD_NUMBER}";
+        UiPathDeploy publisher = new UiPathDeploy(nugetPackagePath, orchestratorAddress, orchestratorTenant, credentialsId);
         project.getPublishersList().add(publisher);
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
         jenkins.assertLogContains("Deploying", build);
