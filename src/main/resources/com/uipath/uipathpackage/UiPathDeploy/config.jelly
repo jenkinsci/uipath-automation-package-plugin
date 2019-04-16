@@ -1,0 +1,15 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:c="/lib/credentials" xmlns:f="/lib/form">
+    <f:entry title="${%PackagePath}" field="packagePath">
+        <f:textbox default="$${JENKINS_HOME}\jobs\$${JOB_NAME}\builds\$${BUILD_NUMBER}"/>
+    </f:entry>
+    <f:entry title="${%OrchestratorAddress}" field="orchestratorAddress">
+        <f:textbox/>
+    </f:entry>
+    <f:entry title="${%OrchestratorTenant}" field="orchestratorTenant">
+        <f:textbox/>
+    </f:entry>
+    <f:entry field="credentialsId" title="${%Credentials}">
+        <c:select/>
+    </f:entry>
+</j:jelly>
