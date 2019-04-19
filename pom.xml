@@ -40,25 +40,33 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.6.0</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
+                        <id>ImportModule</id>
                         <phase>generate-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}"/>
+                                <get dest="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}"
+                                     src="https://www.myget.org/F/uipath-dev/api/v2/package/UiPath.Extensions/${UiPath.Extensions.Version}" />
+                                <unzip src="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}/${UiPath.Extensions.Version}"
+                                       dest="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}"/>
+                                <mkdir dir="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}"/>
+                                <get dest="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}"
+                                     src="https://www.myget.org/F/uipath-dev/api/v2/package/UiPath.PowerShell/${UiPath.PowerShell.Version}" />
+                                <unzip src="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}/${UiPath.PowerShell.Version}"
+                                       dest="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}"/>
+                            </target>
+                            <failOnError>true</failOnError>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <executable>powershell</executable>
-                    <commandlineArgs>
-                        ${project.basedir}\ImportModule.ps1 "${project.build.directory}\classes" -powershellVersion
-                        ${UiPath.PowerShell.Version} -extensionsVersion "${UiPath.Extensions.Version}" -namePowershell
-                        "${UiPath.PowerShell.Name}" -nameExtensions "${UiPath.Extensions.Name}"
-                    </commandlineArgs>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
