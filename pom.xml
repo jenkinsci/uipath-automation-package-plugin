@@ -19,6 +19,7 @@
     <description>
         This plugin allows you to build and deploy UiPath automation processes.
     </description>
+    <url>https://wiki.jenkins.io/display/JENKINS/UiPath+Plugin</url>
     <build>
         <plugins>
             <plugin>
@@ -102,6 +103,11 @@
             <url>https://opensource.org/licenses/MIT</url>
         </license>
     </licenses>
+    <scm>
+        <connection>scm:git:ssh://git@github.com/jenkinsci/uipath-automation-package-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/uipath-automation-package-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/uipath-automation-package-plugin</url>
+    </scm>
     <!-- List of dependencies of the project. -->
     <dependencies>
         <dependency>
@@ -139,15 +145,21 @@
             <id>repo.jenkins-ci.org</id>
             <url>https://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
-        <pluginRepository>
-            <id>sonatype-public-repository</id>
-            <url>https://oss.sonatype.org/content/groups/public</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </pluginRepository>
     </pluginRepositories>
+    <!--
+      The developers show up as current maintainers in the Jenkins wiki.
+      https://wiki.jenkins.io/display/JENKINS/UiPath+Plugin
+      The id should be the jenkinsci.org username and not your GitHub username.
+    -->
+    <developers>
+        <developer>
+            <id>rajeevuipath</id>
+            <name>Rajeev Ranjan</name>
+            <url>https://github.com/rajeevuipath</url>
+            <email>rajeev.ranjan@uipath.com</email>
+            <roles>
+                <role>maintainer</role>
+            </roles>
+        </developer>
+    </developers>
 </project>
