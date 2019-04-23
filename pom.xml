@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
         <version>3.4</version>
-        <relativePath/>
+        <relativePath />
     </parent>
     <artifactId>uipath-automation-package</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
     <packaging>hpi</packaging>
     <properties>
         <jenkins.version>2.60.3</jenkins.version>
@@ -53,16 +52,12 @@
                         </goals>
                         <configuration>
                             <target>
-                                <mkdir dir="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}"/>
-                                <get dest="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}"
-                                     src="https://www.myget.org/F/uipath-dev/api/v2/package/UiPath.Extensions/${UiPath.Extensions.Version}" />
-                                <unzip src="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}/${UiPath.Extensions.Version}"
-                                       dest="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}"/>
-                                <mkdir dir="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}"/>
-                                <get dest="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}"
-                                     src="https://www.myget.org/F/uipath-dev/api/v2/package/UiPath.PowerShell/${UiPath.PowerShell.Version}" />
-                                <unzip src="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}/${UiPath.PowerShell.Version}"
-                                       dest="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}"/>
+                                <mkdir dir="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}" />
+                                <get dest="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}" src="https://www.myget.org/F/uipath-dev/api/v2/package/UiPath.Extensions/${UiPath.Extensions.Version}" />
+                                <unzip src="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}/${UiPath.Extensions.Version}" dest="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}" />
+                                <mkdir dir="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}" />
+                                <get dest="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}" src="https://www.myget.org/F/uipath-dev/api/v2/package/UiPath.PowerShell/${UiPath.PowerShell.Version}" />
+                                <unzip src="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}/${UiPath.PowerShell.Version}" dest="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}" />
                             </target>
                             <failOnError>true</failOnError>
                         </configuration>
@@ -107,7 +102,8 @@
         <connection>scm:git:ssh://git@github.com/jenkinsci/uipath-automation-package-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/uipath-automation-package-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/uipath-automation-package-plugin</url>
-    </scm>
+      <tag>uipath-automation-package-1.0</tag>
+  </scm>
     <!-- List of dependencies of the project. -->
     <dependencies>
         <dependency>
