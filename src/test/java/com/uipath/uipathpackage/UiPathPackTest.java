@@ -1,10 +1,7 @@
 package com.uipath.uipathpackage;
 
-import com.github.tuupertunut.powershelllibjava.PowerShell;
-import hudson.EnvVars;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
-import hudson.model.TaskListener;
 import hudson.util.FormValidation;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -37,7 +34,6 @@ public class UiPathPackTest {
     private static String projectJsonPath = null;
     private static String projectPath = null;
     private static String outputPath = null;
-    private FreeStyleProject project;
 
     @BeforeClass
     public static void setupClass() {
@@ -71,15 +67,13 @@ public class UiPathPackTest {
 
     @Test
     public void testBuildWithJson() throws Exception {
-        project = jenkins.createFreeStyleProject();
+        FreeStyleProject project = jenkins.createFreeStyleProject();
         UiPathPack builder = new UiPathPack(autoEntry, projectJsonPath, outputPath);
         project.getBuildersList().add(builder);
         doNothing().when(util).validateParams(isA(String.class), isA(String.class));
-        when(util.importModules(isA(TaskListener.class), isA(PowerShell.class), isA(EnvVars.class))).thenReturn(new File(""));
-        when(util.generatePackage(isA(String.class), isA(String.class), isA(PowerShell.class), isA(String.class))).thenReturn("Running pack with the arguments: -pack Pack result: Packed project ");
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
         jenkins.assertLogContains("Running pack with the arguments: -pack", build);
-        jenkins.assertLogContains("Pack result: Packed project ", build);
+        jenkins.assertLogContains("Finished: SUCCESS", build);
     }
 
     @Test
@@ -87,12 +81,10 @@ public class UiPathPackTest {
         FreeStyleProject project = jenkins.createFreeStyleProject();
         UiPathPack builder = new UiPathPack(autoEntry, parentProjectPath, outputPath);
         doNothing().when(util).validateParams(isA(String.class), isA(String.class));
-        when(util.importModules(isA(TaskListener.class), isA(PowerShell.class), isA(EnvVars.class))).thenReturn(new File(""));
-        when(util.generatePackage(isA(String.class), isA(String.class), isA(PowerShell.class), isA(String.class))).thenReturn("Running pack with the arguments: -pack Pack result: Packed project ");
         project.getBuildersList().add(builder);
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
         jenkins.assertLogContains("Running pack with the arguments: -pack", build);
-        jenkins.assertLogContains("Pack result: Packed project ", build);
+        jenkins.assertLogContains("Finished: SUCCESS", build);
     }
 
     @Test
@@ -101,23 +93,21 @@ public class UiPathPackTest {
         UiPathPack builder = new UiPathPack(autoEntry, projectPath, outputPath);
         project.getBuildersList().add(builder);
         doNothing().when(util).validateParams(isA(String.class), isA(String.class));
-        when(util.importModules(isA(TaskListener.class), isA(PowerShell.class), isA(EnvVars.class))).thenReturn(new File(""));
-        when(util.generatePackage(isA(String.class), isA(String.class), isA(PowerShell.class), isA(String.class))).thenReturn("Running pack with the arguments: -pack Pack result: Packed project ");
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
-        jenkins.assertLogContains("Packed project ", build);
+        jenkins.assertLogContains("Running pack with the arguments: -pack", build);
+        jenkins.assertLogContains("Finished: SUCCESS", build);
     }
 
     @Test
     public void testBuildWithEnvVar() throws Exception {
-        outputPath = "{WORKSPACE}";
+        outputPath = "${WORKSPACE}";
         FreeStyleProject project = jenkins.createFreeStyleProject();
         UiPathPack builder = new UiPathPack(autoEntry, projectPath, outputPath);
         project.getBuildersList().add(builder);
         doNothing().when(util).validateParams(isA(String.class), isA(String.class));
-        when(util.importModules(isA(TaskListener.class), isA(PowerShell.class), isA(EnvVars.class))).thenReturn(new File(""));
-        when(util.generatePackage(isA(String.class), isA(String.class), isA(PowerShell.class), isA(String.class))).thenReturn("Running pack with the arguments: -pack Pack result: Packed project ");
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
-        jenkins.assertLogContains("Packed project ", build);
+        jenkins.assertLogContains("Running pack with the arguments: -pack", build);
+        jenkins.assertLogContains("Finished: SUCCESS", build);
     }
 
     @Test
@@ -127,10 +117,9 @@ public class UiPathPackTest {
         UiPathPack builder = new UiPathPack(manualEntry, projectPath, outputPath);
         project.getBuildersList().add(builder);
         doNothing().when(util).validateParams(isA(String.class), isA(String.class));
-        when(util.importModules(isA(TaskListener.class), isA(PowerShell.class), isA(EnvVars.class))).thenReturn(new File(""));
-        when(util.generatePackage(isA(String.class), isA(String.class), isA(PowerShell.class), isA(String.class))).thenReturn("Running pack with the arguments: -pack Pack result: Packed project ");
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
-        jenkins.assertLogContains("Packed project ", build);
+        jenkins.assertLogContains("Running pack with the arguments: -pack", build);
+        jenkins.assertLogContains("Finished: SUCCESS", build);
     }
 
     @Test

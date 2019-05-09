@@ -1,18 +1,18 @@
 package com.uipath.uipathpackage;
 
-import com.github.tuupertunut.powershelllibjava.PowerShell;
-import com.github.tuupertunut.powershelllibjava.PowerShellExecutionException;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.model.TaskListener;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringEscapeUtils;
 
 import javax.annotation.Nonnull;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.InvalidParameterException;
@@ -30,78 +30,72 @@ import java.util.stream.Collectors;
  */
 class Utility {
 
-    /*
-    method to create a working directory and import static powershell modules for pack
+    /**
+     * Wraps a string in quotes and escapes all PowerShell special characters.
+     * This is a helper method for creating strings that will be interpreted
+     * literally by PowerShell.
+     *
+     * @param s the string to be escaped.
+     * @return an escaped string.
      */
-    File importModules(@Nonnull TaskListener listener, PowerShell powerShell, EnvVars env) throws PowerShellExecutionException, IOException {
-        listener.getLogger().println("Importing Powershell and extensions modules");
+    static String escapePowerShellString(String s) {
+        return "'" + s.replace("'", "''") + "'";
+    }
+
+    /***
+     * method to create a working directory and get command for static powershell modules for pack
+     * @param listener Task Listener to log the results
+     * @param env Has EnvVars
+     * @return commands which needed to be executed to import modules
+     * @throws IOException when failed to read input or write output in powershell
+     */
+    String importModuleCommands(@Nonnull TaskListener listener, EnvVars env) throws IOException, URISyntaxException {
         File tempDir = getTempDir();
-        String response = powerShell.executeCommands("cd " + PowerShell.escapePowerShellString(StringEscapeUtils.escapeJava(tempDir.getAbsolutePath())));
-        validateExecutionStatus(powerShell, response, "Error while changing to temp directory: ");
-        listener.getLogger().println(response);
         String pluginJarPath = env.expand("${JENKINS_HOME}\\plugins\\uipath-automation-package\\WEB-INF\\lib\\uipath-automation-package.jar");
         listener.getLogger().println("plugin jar path is : " + pluginJarPath);
         //Copy relevant files to temp directory
-        copyPluginFiles(listener, powerShell, tempDir, pluginJarPath);
-        //import robot executor, UiPath package module
+        copyPluginFiles(listener, tempDir, pluginJarPath);
+        //import robot executor, UiPath package module commands
         ResourceBundle rb = ResourceBundle.getBundle("config");
-        String val = getValue(rb, "UiPath.Extensions.Version");
-        response = powerShell.executeCommands("Import-Module " + PowerShell.escapePowerShellString(StringEscapeUtils.escapeJava(new File(tempDir, "UiPath.Extensions/" + val + "/RobotExecutor-PublicModule.psd1").getAbsolutePath())) + " -Force");
-        validateExecutionStatus(powerShell, response, "Error while importing module RobotExecutor. :");
-        response = powerShell.executeCommands("Import-Module " + PowerShell.escapePowerShellString(StringEscapeUtils.escapeJava(new File(tempDir, "UiPath.Extensions/" + val + "/UiPathPackage-Module.psd1").getAbsolutePath())) + " -Force");
-        validateExecutionStatus(powerShell, response, "Error while importing module UiPathPackage :");
-        listener.getLogger().println("Module imported");
-        return tempDir;
+        String robotExecutorModule = "Import-Module " + escapePowerShellString(new File(tempDir, "UiPath.Extensions/" + getValue(rb, "UiPath.Extensions.Version") + "/RobotExecutor-PublicModule.psd1").getAbsolutePath()) + " -Force";
+        String uipathPackageModule = "Import-Module " + escapePowerShellString(new File(tempDir, "UiPath.Extensions/" + getValue(rb, "UiPath.Extensions.Version") + "/UiPathPackage-Module.psd1").getAbsolutePath()) + " -Force";
+        String uipathPowershellModule = "Import-Module " + escapePowerShellString(new File(tempDir, "UiPath.PowerShell/" + getValue(rb, "UiPath.PowerShell.Version") + "/UiPath.PowerShell.psd1").getAbsolutePath()) + " -Force";
+        return getCommand(robotExecutorModule,uipathPackageModule,uipathPowershellModule);
     }
 
-    String getValue(ResourceBundle rb, String s) {
-        return rb.getString(s);
-    }
-
-    void validateExecutionStatus(PowerShell powerShell, String response, String s) throws PowerShellExecutionException, IOException {
-        if ("0".equals(powerShell.executeCommands("$LASTEXITCODE"))) {
-            throw new AbortException(s + response);
+    /**
+     * Executes the list of powershell commands
+     *
+     * @param listener TaskListener to log the results to console output
+     * @param commands powershell commands in string
+     * @throws IOException in case it fails to read/write in buffered stream while executing command
+     */
+    void execute(@Nonnull TaskListener listener, String... commands) throws IOException {
+        boolean successStatus = true;
+        String commandChain = getCommand(commands);
+        String wrappedCommandChain = "powershell.exe -ExecutionPolicy Bypass Invoke-Expression " + escapePowerShellString(commandChain);
+        // Executing the command
+        Process powerShellProcess = Runtime.getRuntime().exec(wrappedCommandChain);
+        // Getting the results
+        powerShellProcess.getOutputStream().close();
+        String line;
+        listener.getLogger().println("Standard Output:");
+        BufferedReader stdout = new BufferedReader(new InputStreamReader(powerShellProcess.getInputStream(), StandardCharsets.UTF_8));
+        while ((line = stdout.readLine()) != null) {
+            listener.getLogger().println(line);
         }
-    }
-
-    /**
-     * Generates the package
-     *
-     * @param packagePath Package path must be java escaped
-     * @param outputPath  Output Path must be java escaped
-     * @param powerShell  Powershell to execute commands
-     * @param version     Project Version must be java escaped
-     * @return String package result
-     * @throws PowerShellExecutionException returned while executing commands
-     * @throws IOException                  returned while executing commands
-     */
-    String generatePackage(String packagePath, String outputPath, PowerShell powerShell, String version) throws PowerShellExecutionException, IOException {
-        String response;
-        if (version == null)
-            response = powerShell.executeCommands("Pack -projectJsonPath " + PowerShell.escapePowerShellString(packagePath) + " -outputFolder " + PowerShell.escapePowerShellString(outputPath));
-        else
-            response = powerShell.executeCommands("Pack -projectJsonPath " + PowerShell.escapePowerShellString(packagePath) + " -packageVersion " + PowerShell.escapePowerShellString(version) + " -outputFolder " + PowerShell.escapePowerShellString(outputPath));
-        validateExecutionStatus(powerShell, response, "Error while Packaging the project: ");
-        return response;
-    }
-
-    /**
-     * Deploys the package to orchestrator address
-     *
-     * @param orchestratorAddress         Orchestrator Base URL
-     * @param packagePath                 Package Path
-     * @param orchestratorTenantFormatted Orchestrator Tenant
-     * @param username                    Orchestrator Username
-     * @param password                    Orchestrator Password
-     * @param powerShell                  powershell to execute commands
-     * @return String deploy result
-     * @throws PowerShellExecutionException returned while executing commands
-     * @throws IOException                  returned while executing commands
-     */
-    String deployPackage(String orchestratorAddress, String packagePath, String orchestratorTenantFormatted, String username, String password, PowerShell powerShell) throws PowerShellExecutionException, IOException {
-        String response = powerShell.executeCommands("Deploy -orchestratorAddress " + PowerShell.escapePowerShellString(orchestratorAddress) + " -tenant " + PowerShell.escapePowerShellString(orchestratorTenantFormatted) + " -username " + PowerShell.escapePowerShellString(username) + " -password " + PowerShell.escapePowerShellString(password) + " -packagePath " + PowerShell.escapePowerShellString(packagePath) + " -authType UserPass");
-        validateExecutionStatus(powerShell, response, "Error while deploying the project: ");
-        return response;
+        stdout.close();
+        BufferedReader stderr = new BufferedReader(new InputStreamReader(powerShellProcess.getErrorStream(), StandardCharsets.UTF_8));
+        StringBuilder error = new StringBuilder();
+        while ((line = stderr.readLine()) != null) {
+            successStatus = false;
+            error.append(line);
+        }
+        stderr.close();
+        listener.getLogger().println("Done");
+        if (!successStatus) {
+            throw new AbortException("Error while executing powershell commands for importing modules and pack/deploy\n" + error);
+        }
     }
 
     /**
@@ -111,11 +105,21 @@ class Utility {
      * @param s     Error Message
      */
     void validateParams(String param, String s) {
-        if (param == null || param.trim().isEmpty()) throw new InvalidParameterException(s);
+        if (param == null || param.trim().isEmpty()){
+            throw new InvalidParameterException(s);
+        }
     }
 
-    private void copyPluginFiles(@Nonnull TaskListener listener, PowerShell powerShell, File tempDir, String pluginJarPath) throws IOException, PowerShellExecutionException {
-        String response;
+    private String getCommand(String... commands) {
+        StringBuilder commandChainBuilder = new StringBuilder();
+        for (String command : commands) {
+            commandChainBuilder.append(command);
+            commandChainBuilder.append(";");
+        }
+        return commandChainBuilder.toString();
+    }
+
+    private void copyPluginFiles(@Nonnull TaskListener listener, File tempDir, String pluginJarPath) throws IOException, URISyntaxException {
         File jar = new File(pluginJarPath);
         if (!jar.exists()) {
             // For snapshot plugin dependencies, an IDE may have replaced ~/.m2/repository/…/${artifactId}.hpi with …/${artifactId}-plugin/target/classes/
@@ -129,13 +133,12 @@ class Utility {
                         jellyF = new File(jellyU.toURI());
                     } catch (URISyntaxException e) {
                         e.printStackTrace(listener.getLogger());
-                        throw new AbortException(e.getMessage());
+                        throw e;
                     }
                     File classes = jellyF.getParentFile();
                     if (classes.getName().equals("classes")) {
-                        response = powerShell.executeCommands("Copy-Item -Path " + PowerShell.escapePowerShellString(StringEscapeUtils.escapeJava(classes.getAbsolutePath() + "\\*")) + " -Destination " + PowerShell.escapePowerShellString(StringEscapeUtils.escapeJava(tempDir.getAbsolutePath())) + " -Recurse -force");
-                        validateExecutionStatus(powerShell, response, "Error while copying project to temp: ");
-                        listener.getLogger().println("Files copied to temp " + response);
+                        execute(listener, "Copy-Item -Path " + escapePowerShellString(classes.getAbsolutePath() + "\\*") + " -Destination " + escapePowerShellString(tempDir.getAbsolutePath()) + " -Recurse -force");
+                        listener.getLogger().println("Files copied to temp");
                     }
                 }
             }
@@ -165,8 +168,9 @@ class Utility {
             List<? extends JarEntry> entries = archive.stream().sorted(Comparator.comparing(JarEntry::getName)).collect(Collectors.toList());
             for (JarEntry entry : entries) {
                 ResourceBundle rb = ResourceBundle.getBundle("config");
-                if (!entry.getName().startsWith(getValue(rb, "UiPath.PowerShell.Name")) && !entry.getName().startsWith(getValue(rb, "UiPath.Extensions.Name")))
+                if (!entry.getName().startsWith(getValue(rb, "UiPath.PowerShell.Name")) && !entry.getName().startsWith(getValue(rb, "UiPath.Extensions.Name"))) {
                     continue;
+                }
                 Path entryDest = tempDir.toPath().resolve(entry.getName());
                 if (entry.isDirectory()) {
                     Files.createDirectory(entryDest);
@@ -179,4 +183,9 @@ class Utility {
             throw e;
         }
     }
+
+    String getValue(ResourceBundle rb, String s) {
+        return rb.getString(s);
+    }
+
 }
