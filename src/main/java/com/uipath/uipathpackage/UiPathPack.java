@@ -1,7 +1,5 @@
 package com.uipath.uipathpackage;
 
-import com.github.tuupertunut.powershelllibjava.PowerShell;
-import com.github.tuupertunut.powershelllibjava.PowerShellExecutionException;
 import com.google.common.collect.ImmutableList;
 import hudson.*;
 import hudson.model.*;
@@ -11,15 +9,17 @@ import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.uipath.uipathpackage.Utility.escapePowerShellString;
 
 /**
  * {@link BuildStep}s that perform the actual build.
@@ -63,21 +63,19 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         Utility util = new Utility();
         util.validateParams(projectJsonPath, "Invalid Project Json Path");
         util.validateParams(outputPath, "Invalid Output Path");
-        String projectPathFormatted = StringEscapeUtils.escapeJava(env.expand(projectJsonPath.trim()));
-        String outputPathFormatted = StringEscapeUtils.escapeJava(env.expand(outputPath.trim()));
-        listener.getLogger().println("Opening Powershell Session");
-        try (PowerShell powerShell = PowerShell.open()) {
-            util.importModules(listener, powerShell, env);
-            String response;
+        String projectPathFormatted = escapePowerShellString(env.expand(projectJsonPath.trim()));
+        String outputPathFormatted = escapePowerShellString(env.expand(outputPath.trim()));
+        try {
+            String importModuleCommands = util.importModuleCommands(listener, env);
+            String generatePackCommand;
             if (version instanceof ManualEntry) {
-                String versionFormatted = env.expand(((ManualEntry) version).getText().trim());
-                response = util.generatePackage(projectPathFormatted, outputPathFormatted, powerShell, versionFormatted);
+                String versionFormatted = escapePowerShellString(env.expand(((ManualEntry) version).getText().trim()));
+                generatePackCommand = String.format("Pack -projectJsonPath %s -packageVersion %s -outputFolder %s", projectPathFormatted, versionFormatted, outputPathFormatted);
             } else {
-                response = util.generatePackage(projectPathFormatted, outputPathFormatted, powerShell, null);
+                generatePackCommand = String.format("Pack -projectJsonPath %s -outputFolder %s", projectPathFormatted, outputPathFormatted);
             }
-            listener.getLogger().println(response);
-            listener.getLogger().println("Exiting Powershell Session");
-        } catch (IOException | PowerShellExecutionException e) {
+            util.execute(listener, importModuleCommands, generatePackCommand);
+        } catch (IOException | URISyntaxException e) {
             e.printStackTrace(listener.getLogger());
             throw new AbortException(e.getMessage());
         }
@@ -126,7 +124,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
          */
         @DataBoundConstructor
         public AutoEntry() {
-            //Do nothing because it is implementation for custom version, Hence doing nothin
+            //Do nothing because it is implementation for custom version, Hence doing nothing
         }
 
         @Symbol("AutoVersion")
@@ -228,9 +226,13 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             Jenkins jenkins = Jenkins.getInstance();
             List<Descriptor> list = new ArrayList<>();
             Descriptor autoDescriptor = jenkins.getDescriptor(AutoEntry.class);
-            if (autoDescriptor != null) list.add(autoDescriptor);
+            if (autoDescriptor != null){
+                list.add(autoDescriptor);
+            }
             Descriptor manualDescriptor = jenkins.getDescriptor(ManualEntry.class);
-            if (manualDescriptor != null) list.add(manualDescriptor);
+            if (manualDescriptor != null){
+                list.add(manualDescriptor);
+            }
             return ImmutableList.copyOf(list);
         }
 
@@ -241,8 +243,9 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
          * @return FormValidation
          */
         public FormValidation doCheckProjectJsonPath(@QueryParameter String value) {
-            if (value.length() == 0)
+            if (value.trim().isEmpty()) {
                 return FormValidation.error(Messages.UiPathPack_DescriptorImpl_errors_missingProjectJsonPath());
+            }
             return FormValidation.ok();
         }
 
@@ -253,8 +256,9 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
          * @return FormValidation
          */
         public FormValidation doCheckOutputPath(@QueryParameter String value) {
-            if (value.length() == 0)
+            if (value.trim().isEmpty()) {
                 return FormValidation.error(Messages.UiPathPack_DescriptorImpl_error_missingOutputPath());
+            }
             return FormValidation.ok();
         }
     }

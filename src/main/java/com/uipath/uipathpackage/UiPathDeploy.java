@@ -3,8 +3,6 @@ package com.uipath.uipathpackage;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-import com.github.tuupertunut.powershelllibjava.PowerShell;
-import com.github.tuupertunut.powershelllibjava.PowerShellExecutionException;
 import hudson.*;
 import hudson.model.*;
 import hudson.security.ACL;
@@ -12,17 +10,18 @@ import hudson.tasks.*;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.tasks.SimpleBuildStep;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.ResourceBundle;
+
+import static com.uipath.uipathpackage.Utility.escapePowerShellString;
 
 /**
  * Class responsible for deploying the nuget package to the orchestrator instance provided by the user.
@@ -121,23 +120,21 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         Utility util = new Utility();
         util.validateParams(orchestratorAddress, "Invalid Orchestrator Address");
         util.validateParams(packagePath, "Invalid Package Path");
-        String packagePathFormatted = StringEscapeUtils.escapeJava(env.expand(packagePath.trim()));
-        String orchestratorTenantFormatted = env.expand(orchestratorTenant.trim()).isEmpty() ? util.getValue(rb, "UiPath.DefaultTenant") : env.expand(orchestratorTenant.trim());
+        String packagePathFormatted = escapePowerShellString(env.expand(packagePath.trim()));
+        String orchestratorTenantFormatted = env.expand(orchestratorTenant.trim()).isEmpty() ? util.getValue(rb, "UiPath.DefaultTenant") : escapePowerShellString(env.expand(orchestratorTenant.trim()));
         StandardUsernamePasswordCredentials cred = CredentialsProvider.findCredentialById(credentialsId, StandardUsernamePasswordCredentials.class, run, Collections.emptyList());
-        if (cred == null || cred.getUsername().isEmpty() || cred.getPassword().getPlainText().isEmpty())
+        if (cred == null || cred.getUsername().isEmpty() || cred.getPassword().getPlainText().isEmpty()) {
             throw new AbortException("Invalid credentials");
-        String username = cred.getUsername(); //not using escapeJava as it will corrupt the username and password
-        String password = cred.getPassword().getPlainText();
+        }
+        String username = escapePowerShellString(cred.getUsername()); //not using escapeJava as it will corrupt the username and password
+        String password = escapePowerShellString(cred.getPassword().getPlainText());
         listener.getLogger().println("Opening Powershell Session");
-        try (PowerShell powerShell = PowerShell.open()) {
-            File tempDir = util.importModules(listener, powerShell, env);
-            String tempDirPathFormatted = PowerShell.escapePowerShellString(StringEscapeUtils.escapeJava(new File(tempDir, "UiPath.PowerShell/" + util.getValue(rb, "UiPath.PowerShell.Version") + "/UiPath.PowerShell.psd1").getAbsolutePath()));
-            String response = powerShell.executeCommands("Import-Module " + tempDirPathFormatted + " -Force");
-            util.validateExecutionStatus(powerShell, response, "Error while importing module UiPath.Powershell: ");
-            response = util.deployPackage(orchestratorAddress, packagePathFormatted, orchestratorTenantFormatted, username, password, powerShell);
-            listener.getLogger().println(response);
+        try {
+            String importModuleCommands = util.importModuleCommands(listener, env);
+            String deployPackCommand = String.format("Deploy -orchestratorAddress %s -tenant %s -username %s -password %s -packagePath %s -authType UserPass", escapePowerShellString(orchestratorAddress), orchestratorTenantFormatted, username, password, packagePathFormatted);
+            util.execute(listener, importModuleCommands, deployPackCommand);
             listener.getLogger().println("Exiting Powershell Session");
-        } catch (IOException | PowerShellExecutionException e) {
+        } catch (IOException | URISyntaxException e) {
             e.printStackTrace(listener.getLogger());
             throw new AbortException(e.getMessage());
         }
@@ -207,8 +204,9 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
          * @return FormValidation
          */
         public FormValidation doCheckPackagePath(@QueryParameter String value) {
-            if (value.length() == 0)
+            if (value.trim().isEmpty()) {
                 return FormValidation.error(Messages.UiPathDeploy_DescriptorImpl_errors_missingPackagePath());
+            }
             return FormValidation.ok();
         }
 
@@ -219,8 +217,9 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
          * @return FormValidation
          */
         public FormValidation doCheckOrchestratorAddress(@QueryParameter String value) {
-            if (value.length() == 0)
+            if (value.trim().isEmpty()) {
                 return FormValidation.error(Messages.UiPathDeploy_DescriptorImpl_errors_missingOrchestratorAddress());
+            }
             return FormValidation.ok();
         }
     }

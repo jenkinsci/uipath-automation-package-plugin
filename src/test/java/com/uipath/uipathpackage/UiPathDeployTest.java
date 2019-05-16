@@ -29,8 +29,6 @@ public class UiPathDeployTest {
     @Rule
     public final JenkinsRule jenkins = new JenkinsRule();
 
-    private final String packageName = "TestProject.1.0.6987.24350.nupkg";
-
     private static String orchestratorAddress = "https://platform.uipath.com";
     private static String orchestratorTenant = null;
     private static String username = null;
@@ -91,6 +89,7 @@ public class UiPathDeployTest {
 
     @Test
     public void testPublishWithProjectId() throws Exception {
+        String packageName = "TestProject.1.0.6987.24350.nupkg";
         String nugetPackagePath = packagePath + "\\" + packageName;
         UiPathDeploy publisher = new UiPathDeploy(nugetPackagePath, orchestratorAddress, orchestratorTenant, credentialsId);
         project.getPublishersList().add(publisher);
