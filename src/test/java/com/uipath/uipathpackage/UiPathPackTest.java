@@ -15,18 +15,10 @@ import java.io.File;
 import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.isA;
 
 public class UiPathPackTest {
-
-    @Rule
-    public final JenkinsRule jenkins = new JenkinsRule();
-
-    @Mock
-    Utility util;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private static UiPathPack.AutoEntry autoEntry = null;
     private static UiPathPack.ManualEntry manualEntry = null;
@@ -34,6 +26,12 @@ public class UiPathPackTest {
     private static String projectJsonPath = null;
     private static String projectPath = null;
     private static String outputPath = null;
+    @Rule
+    public final JenkinsRule jenkins = new JenkinsRule();
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Mock
+    Utility util;
 
     @BeforeClass
     public static void setupClass() {

@@ -26,23 +26,21 @@ import static org.junit.Assert.assertEquals;
 public class UiPathDeployTest {
 
     private static String credentialsId;
-    @Rule
-    public final JenkinsRule jenkins = new JenkinsRule();
-
-    private static String orchestratorAddress = "https://platform.uipath.com";
+    private static String orchestratorAddress = "null";
     private static String orchestratorTenant = null;
     private static String username = null;
     private static String description;
     private static String password;
     private static String packagePath = null;
-
+    @Rule
+    public final JenkinsRule jenkins = new JenkinsRule();
     private FreeStyleProject project;
 
     @BeforeClass
     public static void setupClass() {
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();
 
-        orchestratorAddress = "https://platform.uipath.com";
+        orchestratorAddress = "https://platform.uipath.com/JenkinsTenant/JenkinsTenant";
         orchestratorTenant = "JenkinsTenant";
         username = "admin";
         password = "admin123";
