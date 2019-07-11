@@ -2,6 +2,7 @@ package com.uipath.uipathpackage;
 
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
+import hudson.slaves.DumbSlave;
 import hudson.util.FormValidation;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -112,6 +113,21 @@ public class UiPathPackTest {
     public void testBuildWithEnvVarManualEntry() throws Exception {
         outputPath = "${WORKSPACE}";
         FreeStyleProject project = jenkins.createFreeStyleProject();
+        UiPathPack builder = new UiPathPack(manualEntry, projectPath, outputPath);
+        project.getBuildersList().add(builder);
+        doNothing().when(util).validateParams(isA(String.class), isA(String.class));
+        FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
+        jenkins.assertLogContains("Running pack with the arguments: -pack", build);
+        jenkins.assertLogContains("Finished: SUCCESS", build);
+    }
+
+
+    @Test
+    public void testBuildOnSlave() throws Exception {
+        outputPath = "${WORKSPACE}";
+        DumbSlave node = jenkins.createSlave("aNode", "", null);
+        FreeStyleProject project = jenkins.createFreeStyleProject();
+        project.setAssignedNode(node);
         UiPathPack builder = new UiPathPack(manualEntry, projectPath, outputPath);
         project.getBuildersList().add(builder);
         doNothing().when(util).validateParams(isA(String.class), isA(String.class));

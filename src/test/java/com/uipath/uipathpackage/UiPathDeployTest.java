@@ -7,6 +7,7 @@ import com.cloudbees.plugins.credentials.domains.Domain;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
+import hudson.slaves.DumbSlave;
 import hudson.util.FormValidation;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -22,6 +23,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doNothing;
 
 public class UiPathDeployTest {
 
@@ -100,6 +103,18 @@ public class UiPathDeployTest {
     public void testPublishWithEnvVar() throws Exception {
         String nugetPackagePath = "${JENKINS_HOME}\\jobs\\${JOB_NAME}\\builds\\${BUILD_NUMBER}";
         UiPathDeploy publisher = new UiPathDeploy(nugetPackagePath, orchestratorAddress, orchestratorTenant, credentialsId);
+        project.getPublishersList().add(publisher);
+        FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
+        jenkins.assertLogContains("Deploying", build);
+    }
+
+    @Test
+    public void testDeployOnSlave() throws Exception {
+        String nugetPackagePath = "${JENKINS_HOME}\\jobs\\${JOB_NAME}\\builds\\${BUILD_NUMBER}";
+        UiPathDeploy publisher = new UiPathDeploy(nugetPackagePath, orchestratorAddress, orchestratorTenant, credentialsId);
+
+        DumbSlave node = jenkins.createSlave("aNode", "", null);
+        project.setAssignedNode(node);
         project.getPublishersList().add(publisher);
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
         jenkins.assertLogContains("Deploying", build);
