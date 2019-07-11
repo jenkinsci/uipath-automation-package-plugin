@@ -5,6 +5,7 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import hudson.*;
 import hudson.model.*;
+import hudson.plugins.powershell.PowerShell;
 import hudson.security.ACL;
 import hudson.tasks.*;
 import hudson.util.FormValidation;
@@ -16,12 +17,14 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
-import static com.uipath.uipathpackage.Utility.escapePowerShellString;
+import static hudson.slaves.WorkspaceList.tempDir;
 
 /**
  * Class responsible for deploying the nuget package to the orchestrator instance provided by the user.
@@ -106,37 +109,52 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
     /**
      * Run this step.
      *
-     * @param run      a build this is running as a part of
-     * @param filePath a workspace to use for any file operations
-     * @param launcher a way to start processes
-     * @param listener a place to send output
+     * @param run       a build this is running as a part of
+     * @param workspace a workspace to use for any file operations
+     * @param launcher  a way to start processes
+     * @param listener  a place to send output
      * @throws InterruptedException if the step is interrupted
      * @throws IOException          if something goes wrong
      */
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath filePath, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
-        EnvVars env = run.getEnvironment(listener);
-        ResourceBundle rb = ResourceBundle.getBundle("config");
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         Utility util = new Utility();
         util.validateParams(orchestratorAddress, "Invalid Orchestrator Address");
         util.validateParams(packagePath, "Invalid Package Path");
-        String packagePathFormatted = escapePowerShellString(env.expand(packagePath.trim()));
-        String orchestratorTenantFormatted = env.expand(orchestratorTenant.trim()).isEmpty() ? util.getValue(rb, "UiPath.DefaultTenant") : escapePowerShellString(env.expand(orchestratorTenant.trim()));
-        StandardUsernamePasswordCredentials cred = CredentialsProvider.findCredentialById(credentialsId, StandardUsernamePasswordCredentials.class, run, Collections.emptyList());
-        if (cred == null || cred.getUsername().isEmpty() || cred.getPassword().getPlainText().isEmpty()) {
-            throw new AbortException("Invalid credentials");
-        }
-        String username = escapePowerShellString(cred.getUsername()); //not using escapeJava as it will corrupt the username and password
-        String password = escapePowerShellString(cred.getPassword().getPlainText());
-        listener.getLogger().println("Opening Powershell Session");
+        FilePath tempRemoteDir = null;
         try {
-            String importModuleCommands = util.importModuleCommands(listener, env);
-            String deployPackCommand = String.format("Deploy -orchestratorAddress %s -tenant %s -username %s -password %s -packagePath %s -authType UserPass", escapePowerShellString(orchestratorAddress), orchestratorTenantFormatted, username, password, packagePathFormatted);
-            util.execute(listener, importModuleCommands, deployPackCommand);
-            listener.getLogger().println("Exiting Powershell Session");
-        } catch (IOException | URISyntaxException e) {
+            tempRemoteDir = tempDir(workspace);
+            tempRemoteDir.mkdirs();
+            EnvVars envVars = run.getEnvironment(listener);
+            FilePath packagePathFormatted = new FilePath(new File(envVars.expand(packagePath.trim())));
+            if (packagePathFormatted.isDirectory()) {
+                packagePathFormatted.copyRecursiveTo(tempRemoteDir);
+            } else {
+                packagePathFormatted.getParent().copyRecursiveTo(packagePathFormatted.getName(), tempRemoteDir);
+            }
+            ResourceBundle rb = ResourceBundle.getBundle("config");
+            String orchestratorTenantFormatted = envVars.expand(orchestratorTenant.trim()).isEmpty() ? util.getValue(rb, "UiPath.DefaultTenant") : util.escapePowerShellString(envVars.expand(orchestratorTenant.trim()));
+            StandardUsernamePasswordCredentials cred = CredentialsProvider.findCredentialById(credentialsId, StandardUsernamePasswordCredentials.class, run, Collections.emptyList());
+            if (cred == null || cred.getUsername().isEmpty() || cred.getPassword().getPlainText().isEmpty()) {
+                throw new AbortException("Invalid credentials");
+            }
+            String username = util.escapePowerShellString(cred.getUsername());
+            String password = util.escapePowerShellString(cred.getPassword().getPlainText());
+            String importModuleCommands = util.importModuleCommands(tempRemoteDir, listener, envVars);
+            String deployPackCommand = String.format("Deploy -orchestratorAddress %s -tenant %s -username %s -password %s -packagePath %s -authType UserPass", util.escapePowerShellString(orchestratorAddress), orchestratorTenantFormatted, username, password, util.escapePowerShellString(tempRemoteDir.getRemote()));
+            if (!(new PowerShell(util.getCommand(importModuleCommands, deployPackCommand)).perform((AbstractBuild<?, ?>) run, launcher, listener))) {
+                throw new AbortException("Failed to execute powershell session while importing the module and deploying. Command : " + importModuleCommands + " " + deployPackCommand);
+            }
+        } catch (URISyntaxException e) {
             e.printStackTrace(listener.getLogger());
             throw new AbortException(e.getMessage());
+        } finally {
+            try{
+                Objects.requireNonNull(tempRemoteDir).deleteRecursive();
+            }catch(Exception e){
+                listener.getLogger().println("Failed to delete temp remote directory in UiPath Deploy "+ e.getMessage());
+                e.printStackTrace(listener.getLogger());
+            }
         }
     }
 

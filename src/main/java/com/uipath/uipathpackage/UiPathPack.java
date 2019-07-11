@@ -3,7 +3,7 @@ package com.uipath.uipathpackage;
 import com.google.common.collect.ImmutableList;
 import hudson.*;
 import hudson.model.*;
-import hudson.tasks.BuildStep;
+import hudson.plugins.powershell.PowerShell;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
@@ -14,15 +14,17 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-import static com.uipath.uipathpackage.Utility.escapePowerShellString;
+import static hudson.slaves.WorkspaceList.tempDir;
 
 /**
- * {@link BuildStep}s that perform the actual build.
+ * Performs the actual build.
  */
 public class UiPathPack extends Builder implements SimpleBuildStep {
 
@@ -59,25 +61,41 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      */
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
-        EnvVars env = run.getEnvironment(listener);
         Utility util = new Utility();
         util.validateParams(projectJsonPath, "Invalid Project Json Path");
         util.validateParams(outputPath, "Invalid Output Path");
-        String projectPathFormatted = escapePowerShellString(env.expand(projectJsonPath.trim()));
-        String outputPathFormatted = escapePowerShellString(env.expand(outputPath.trim()));
+        FilePath tempRemoteDir = null;
         try {
-            String importModuleCommands = util.importModuleCommands(listener, env);
+            tempRemoteDir = tempDir(workspace);
+            tempRemoteDir.mkdirs();
+            FilePath tempOutputDir = tempRemoteDir.child("Output");
+            tempOutputDir.mkdirs();
+            EnvVars envVars = run.getEnvironment(listener);
+            String importModuleCommands = util.importModuleCommands(tempRemoteDir, listener, envVars);
             String generatePackCommand;
+            FilePath projectPath = new FilePath(new File(envVars.expand(projectJsonPath)));
             if (version instanceof ManualEntry) {
-                String versionFormatted = escapePowerShellString(env.expand(((ManualEntry) version).getText().trim()));
-                generatePackCommand = String.format("Pack -projectJsonPath %s -packageVersion %s -outputFolder %s", projectPathFormatted, versionFormatted, outputPathFormatted);
+                String versionFormatted = util.escapePowerShellString(envVars.expand(((ManualEntry) version).getText().trim()));
+                generatePackCommand = String.format("Pack -projectJsonPath %s -packageVersion %s -outputFolder %s", util.escapePowerShellString(projectPath.getRemote()), versionFormatted, util.escapePowerShellString(tempOutputDir.getRemote()));
             } else {
-                generatePackCommand = String.format("Pack -projectJsonPath %s -outputFolder %s", projectPathFormatted, outputPathFormatted);
+                generatePackCommand = String.format("Pack -projectJsonPath %s -outputFolder %s", util.escapePowerShellString(projectPath.getRemote()), util.escapePowerShellString(tempOutputDir.getRemote()));
             }
-            util.execute(listener, importModuleCommands, generatePackCommand);
-        } catch (IOException | URISyntaxException e) {
+            if (!new PowerShell(util.getCommand(importModuleCommands, generatePackCommand)).perform((AbstractBuild<?, ?>) run, launcher, listener)) {
+                throw new AbortException("Failed to execute powershell session while importing the module and packing. Command : " + importModuleCommands + " " + generatePackCommand);
+            }
+            //copy result to outputDir
+            FilePath outputDir = new FilePath(new File(envVars.expand(outputPath)));
+            tempRemoteDir.child("Output").copyRecursiveTo(outputDir);
+        } catch (URISyntaxException e) {
             e.printStackTrace(listener.getLogger());
             throw new AbortException(e.getMessage());
+        } finally {
+            try{
+                Objects.requireNonNull(tempRemoteDir).deleteRecursive();
+            }catch(Exception e){
+                listener.getLogger().println("Failed to delete temp remote directory in UiPath Pack "+ e.getMessage());
+                e.printStackTrace(listener.getLogger());
+            }
         }
     }
 
@@ -168,7 +186,6 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
         /**
          * Metadata about a configurable instance.
-         *
          * <p>
          * {@link Descriptor} is an object that has metadata about a {@link Describable}
          * object, and also serves as a factory (in a way this relationship is similar
@@ -190,21 +207,9 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     /**
      * {@link Descriptor} for {@link Builder}
      */
-
     @Symbol("UiPathPack")
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Builder> {
-
-        /**
-         * Provides the display name to the build step
-         *
-         * @return String display name
-         */
-        @Nonnull
-        @Override
-        public String getDisplayName() {
-            return Messages.UiPathPack_DescriptorImpl_DisplayName();
-        }
 
         /**
          * Returns true if this task is applicable to the given project.
@@ -226,11 +231,11 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             Jenkins jenkins = Jenkins.getInstance();
             List<Descriptor> list = new ArrayList<>();
             Descriptor autoDescriptor = jenkins.getDescriptor(AutoEntry.class);
-            if (autoDescriptor != null){
+            if (autoDescriptor != null) {
                 list.add(autoDescriptor);
             }
             Descriptor manualDescriptor = jenkins.getDescriptor(ManualEntry.class);
-            if (manualDescriptor != null){
+            if (manualDescriptor != null) {
                 list.add(manualDescriptor);
             }
             return ImmutableList.copyOf(list);
@@ -260,6 +265,17 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
                 return FormValidation.error(Messages.UiPathPack_DescriptorImpl_error_missingOutputPath());
             }
             return FormValidation.ok();
+        }
+
+        /**
+         * Provides the display name to the build step
+         *
+         * @return String display name
+         */
+        @Nonnull
+        @Override
+        public String getDisplayName() {
+            return Messages.UiPathPack_DescriptorImpl_DisplayName();
         }
     }
 }
