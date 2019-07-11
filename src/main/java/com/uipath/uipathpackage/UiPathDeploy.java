@@ -121,8 +121,9 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         Utility util = new Utility();
         util.validateParams(orchestratorAddress, "Invalid Orchestrator Address");
         util.validateParams(packagePath, "Invalid Package Path");
-        FilePath tempRemoteDir = tempDir(workspace);
+        FilePath tempRemoteDir = null;
         try {
+            tempRemoteDir = tempDir(workspace);
             tempRemoteDir.mkdirs();
             EnvVars envVars = run.getEnvironment(listener);
             FilePath packagePathFormatted = new FilePath(new File(envVars.expand(packagePath.trim())));
