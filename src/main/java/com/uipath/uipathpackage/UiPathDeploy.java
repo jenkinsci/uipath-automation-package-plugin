@@ -5,7 +5,6 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import hudson.*;
 import hudson.model.*;
-import hudson.plugins.powershell.PowerShell;
 import hudson.security.ACL;
 import hudson.tasks.*;
 import hudson.util.FormValidation;
@@ -142,17 +141,18 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
             String password = util.escapePowerShellString(cred.getPassword().getPlainText());
             String importModuleCommands = util.importModuleCommands(tempRemoteDir, listener, envVars);
             String deployPackCommand = String.format("Deploy -orchestratorAddress %s -tenant %s -username %s -password %s -packagePath %s -authType UserPass", util.escapePowerShellString(orchestratorAddress), orchestratorTenantFormatted, username, password, util.escapePowerShellString(tempRemoteDir.getRemote()));
-            if (!(new PowerShell(util.getCommand(importModuleCommands, deployPackCommand)).perform((AbstractBuild<?, ?>) run, launcher, listener))) {
+            util.command = util.getCommand(importModuleCommands, deployPackCommand);
+            if(!util.execute(workspace, listener, envVars, launcher)){
                 throw new AbortException("Failed to execute powershell session while importing the module and deploying. Command : " + importModuleCommands + " " + deployPackCommand);
             }
         } catch (URISyntaxException e) {
             e.printStackTrace(listener.getLogger());
             throw new AbortException(e.getMessage());
         } finally {
-            try{
+            try {
                 Objects.requireNonNull(tempRemoteDir).deleteRecursive();
-            }catch(Exception e){
-                listener.getLogger().println("Failed to delete temp remote directory in UiPath Deploy "+ e.getMessage());
+            } catch (Exception e) {
+                listener.getLogger().println("Failed to delete temp remote directory in UiPath Deploy " + e.getMessage());
                 e.printStackTrace(listener.getLogger());
             }
         }

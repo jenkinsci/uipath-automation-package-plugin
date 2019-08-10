@@ -1,9 +1,8 @@
 package com.uipath.uipathpackage;
 
-import hudson.AbortException;
-import hudson.EnvVars;
-import hudson.FilePath;
+import hudson.*;
 import hudson.model.TaskListener;
+import hudson.tasks.Messages;
 import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nonnull;
@@ -24,6 +23,8 @@ import java.util.stream.Collectors;
  * Utility Class used by UiPathDeploy and UiPathPack
  */
 public class Utility {
+
+    protected String command;
 
     /**
      * Validates the param for null or empty check
@@ -125,6 +126,36 @@ public class Utility {
             commandChainBuilder.append(";");
         }
         return commandChainBuilder.toString();
+    }
+
+    public boolean execute(FilePath ws, TaskListener listener, EnvVars envVars, Launcher launcher) throws IOException, InterruptedException{
+        FilePath script = null;
+        try {
+            script = this.createScriptFile(ws);
+            int r = -1;
+            r = launcher.launch().cmds(this.buildCommandLine(script)).envs(envVars).stdout(listener).pwd(ws).start().join();
+            return r == 0;
+        } finally {
+            try {
+                if (script != null) {
+                    script.delete();
+                }
+            } catch (Exception var22) {
+                Functions.printStackTrace(var22, listener.fatalError(Messages.CommandInterpreter_UnableToDelete(script)));
+            }
+        }
+    }
+
+    private String[] buildCommandLine(FilePath script) {
+        return new String[] { "powershell.exe", "-NonInteractive", "-ExecutionPolicy", "ByPass", "& \'" + script.getRemote() + "\'"};
+    }
+
+    public FilePath createScriptFile(@Nonnull FilePath dir) throws IOException, InterruptedException {
+        return dir.createTextTempFile("jenkins", ".ps1", this.getContents(), false);
+    }
+
+    protected String getContents() {
+        return command + "\r\nexit $LastExitCode";
     }
 
     private void extractResourcesToTempFolder(FilePath targetDir, File jarfile, TaskListener listener, ResourceBundle rb) throws IOException, InterruptedException {
