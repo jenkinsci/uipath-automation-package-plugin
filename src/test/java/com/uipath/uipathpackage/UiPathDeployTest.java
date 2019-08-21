@@ -7,6 +7,7 @@ import com.cloudbees.plugins.credentials.domains.Domain;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
+import hudson.slaves.DumbSlave;
 import hudson.util.FormValidation;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -22,27 +23,27 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doNothing;
 
 public class UiPathDeployTest {
 
     private static String credentialsId;
-    @Rule
-    public final JenkinsRule jenkins = new JenkinsRule();
-
-    private static String orchestratorAddress = "https://platform.uipath.com";
+    private static String orchestratorAddress = "null";
     private static String orchestratorTenant = null;
     private static String username = null;
     private static String description;
     private static String password;
     private static String packagePath = null;
-
+    @Rule
+    public final JenkinsRule jenkins = new JenkinsRule();
     private FreeStyleProject project;
 
     @BeforeClass
     public static void setupClass() {
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();
 
-        orchestratorAddress = "https://platform.uipath.com";
+        orchestratorAddress = "https://platform.uipath.com/JenkinsTenant/JenkinsTenant";
         orchestratorTenant = "JenkinsTenant";
         username = "admin";
         password = "admin123";
@@ -102,6 +103,18 @@ public class UiPathDeployTest {
     public void testPublishWithEnvVar() throws Exception {
         String nugetPackagePath = "${JENKINS_HOME}\\jobs\\${JOB_NAME}\\builds\\${BUILD_NUMBER}";
         UiPathDeploy publisher = new UiPathDeploy(nugetPackagePath, orchestratorAddress, orchestratorTenant, credentialsId);
+        project.getPublishersList().add(publisher);
+        FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
+        jenkins.assertLogContains("Deploying", build);
+    }
+
+    @Test
+    public void testDeployOnSlave() throws Exception {
+        String nugetPackagePath = "${JENKINS_HOME}\\jobs\\${JOB_NAME}\\builds\\${BUILD_NUMBER}";
+        UiPathDeploy publisher = new UiPathDeploy(nugetPackagePath, orchestratorAddress, orchestratorTenant, credentialsId);
+
+        DumbSlave node = jenkins.createSlave("aNode", "", null);
+        project.setAssignedNode(node);
         project.getPublishersList().add(publisher);
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
         jenkins.assertLogContains("Deploying", build);
