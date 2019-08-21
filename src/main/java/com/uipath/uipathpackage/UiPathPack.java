@@ -3,7 +3,6 @@ package com.uipath.uipathpackage;
 import com.google.common.collect.ImmutableList;
 import hudson.*;
 import hudson.model.*;
-import hudson.plugins.powershell.PowerShell;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
@@ -80,7 +79,8 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             } else {
                 generatePackCommand = String.format("Pack -projectJsonPath %s -outputFolder %s", util.escapePowerShellString(projectPath.getRemote()), util.escapePowerShellString(tempOutputDir.getRemote()));
             }
-            if (!new PowerShell(util.getCommand(importModuleCommands, generatePackCommand)).perform((AbstractBuild<?, ?>) run, launcher, listener)) {
+            util.command = util.getCommand(importModuleCommands, generatePackCommand);
+            if(!util.execute(workspace, listener, envVars, launcher)){
                 throw new AbortException("Failed to execute powershell session while importing the module and packing. Command : " + importModuleCommands + " " + generatePackCommand);
             }
             //copy result to outputDir
@@ -90,10 +90,10 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             e.printStackTrace(listener.getLogger());
             throw new AbortException(e.getMessage());
         } finally {
-            try{
+            try {
                 Objects.requireNonNull(tempRemoteDir).deleteRecursive();
-            }catch(Exception e){
-                listener.getLogger().println("Failed to delete temp remote directory in UiPath Pack "+ e.getMessage());
+            } catch (Exception e) {
+                listener.getLogger().println("Failed to delete temp remote directory in UiPath Pack " + e.getMessage());
                 e.printStackTrace(listener.getLogger());
             }
         }
