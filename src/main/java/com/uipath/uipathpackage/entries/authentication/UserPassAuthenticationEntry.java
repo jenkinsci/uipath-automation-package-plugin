@@ -89,7 +89,7 @@ public class UserPassAuthenticationEntry extends SelectEntry {
                 return FormValidation.ok();
             }
 
-            if (CredentialsProvider.listCredentials(StandardUsernamePasswordCredentials.class, item, ACL.SYSTEM, Collections.emptyList(), CredentialsMatchers.withId(value)).isEmpty()) {
+            if (value == null || CredentialsProvider.listCredentials(StandardUsernamePasswordCredentials.class, item, ACL.SYSTEM, Collections.emptyList(), CredentialsMatchers.withId(value)).isEmpty()) {
                 return FormValidation.error(Messages.GenericErrors_MissingCredentialSet());
             }
 
