@@ -1,133 +1,182 @@
-# UiPath Plugin
-This plugin allows you to build and deploy UiPath automation processes.
+UiPath Jenkins Plugin
+====================
 
-##UiPath Pack
-Can be used within a build sequence or a pipeline and does the packaging of one or more UiPath projects given their source code.
+[![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/uipath-automation-package.svg)](https://plugins.jenkins.io/uipath-automation-package)
+[![GitHub release](https://img.shields.io/github/release/jenkinsci/uipath-automation-package-plugin.svg?label=changelog)](https://github.com/jenkinsci/uipath-automation-package-plugin/releases/latest)
+[![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/uipath-automation-package.svg?color=blue)](https://plugins.jenkins.io/uipath-automation-package)
 
-###Versioning Method
-The versioning of the package or packages that are created in this task can be done in two ways:
-* Using the Auto-generate the package version option that will pseudo-randomly generate a version following the same algorithm that UiPath Studio uses when publishing to Orchestrator.
-* Using custom versioning like {MAJOR}.${MINOR}.${BUILD_NUMBER}. Semantic versioning is supported.
+## About this plugin
 
-### Project(s) Path
-Here you can specify either a path to a single project or a path to a directory that contains multiple other projects. You can have the following situations: 
-1. path\to\invoice_processing\project.json - it packages invoice_processing;
-2. path\to\invoice_processing - it packages invoice_processing;
-3. path\to\invoicing_projects\ where this folder contains the following:
-    * path\to\invoicing_projects\PROJECT_A\
-    * path\to\invoicing_projects\PROJECT_B\
-    * path\to\invoicing_projects\directory_with_other_projects\
-In this case, the plugin packages individually only PROJECT_A and PROJECT_B, the result being one NuGet package for each one of them.
+This plugin allows you to build and deploy UiPath automation processes, as well as run UiPath automated test cases.
 
-### Output Folder
-This is where the NuGet packages that were produced by the plugin are going to be stored.<br>
-One possible path could be: ${JENKINS_HOME}\jobs\${JOB_NAME}\builds\${BUILD_NUMBER}\.<br>
-In this case, each build folder contains the NuGet package(s) that the build yelds.
+## Prerequisites
 
-##UiPath Deploy
-Enables you to deploy a process automation package or multiple to a specific Orchestrator tenant. The task requires the following information: the path from where to take the packages and of course Orchestrator related information: URL, tenant name, and user credentials to perform the API calls.<br>
-An example of Package(s) path is: ${JENKINS_HOME}\jobs\${JOB_NAME}\builds\${BUILD_NUMBER}\.<br>
-The UiPath Deploy task takes the latest version of each NuGet package from the specified folder and deletes the older ones.  keeping in the folder only the ones with the latest versions.
+* Jenkins server running on Windows or Linux
+* At least one Jenkins slave running on Windows (required for step execution)
+* Orchestrator instance (basic, federated or cloud authentication are supported)
+  * Testing features require Orchestrator version 20.4 or newer
+  * When using an on-premise Orchestrator under HTTPS, make sure to import the SSL Certificate so that the HTTPS calls to Orchestrator can be trusted
 
-##Using Environment Variables
-You can use environment variables in all text boxes of both Pack and Deploy tasks. Use the following format: ${WORKSPACE}, ${JENKINS_HOME}, etc.
+## Installing and enabling the plugin
 
-##Prerequisites for the Build Agent Machine
-1. A reachable Orchestrator instance at which the packages are to be deployed;
-2. SSL Certificate should be imported so the HTTPS calls to Orchestrator can be trusted;
-3. UiPath Robot, minimum version 18.3.2, installed in C:\Program Files (x86)\UiPath\Studio.
+The Jenkins plugin can be installed from any Jenkins installation connected to the Internet using the **Plugin Manager** screen.
 
-##Known Limitations
-* Blue Ocean pipelines
+## Steps
 
-## Example of usage #1: Packing and deploying a build job
-This example is meant to showcase the UiPath Jenkins Plugin capabilities but also the scenario can be replicated for the following use-case:
+### 📦 UiPath Pack
 
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_0-26-41.png?version=1&modificationDate=1555705364000&api=v2)
+**Application:** RPA
 
-These are the steps to set up a simple pack and deploy build job:
-1. Create a new item.<br>
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_1-30-55.png?version=1&modificationDate=1555705363000&api=v2)
-2. Choose Freestyle Project<br>
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_1-31-54.png?version=1&modificationDate=1555705362000&api=v2)
-3. Specify the source code repository of the project you want to pack and deploy.This UiPath project has its own repository. You need to create upfront your set of credentials for this operation. For configuring credentials in Jenkins please follow this guide<br>
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_1-33-13.png?version=1&modificationDate=1555705362000&api=v2)
-4. Add UiPath Pack as a build step.<br>
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_1-35-3.png?version=1&modificationDate=1555705361000&api=v2)
-5. Configure UiPath Pack as follows:<br>
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_1-35-37.png?version=1&modificationDate=1555705361000&api=v2)
-    * Specify the package versioning pattern to help track packages back to their build jobs and sources. In this example, ${BUILD_NUMBER} is a Jenkins environment variable which gets incremented with each build for this project. The first two numbers of the version, MAJOR and MINOR, can also be configured depending on the project status.
-    * Sources from the GIT repository are checked-out in the ${WORKSPACE} folder, so that should be the Project path. Remember, in this example we’re packaging and deploying only one project.
-    * The result of this operation is stored in the specified Output folder. In Jenkins, each build has its own folder so it’s best to have the results placed in: ${JENKINS_HOME}\jobs\${JOB_NAME}\builds\${BUILD_NUMBER}\.
-6. Add UiPath Deploy as a post-build step.<br>
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_1-35-56.png?version=1&modificationDate=1555705361000&api=v2)
-7. Configure UiPath Deploy as shown below. For Package(s) path it is recommended to use the same folder given as Output for the Pack task. Also, the credentials for Orchestrator should be defined separately in Jenkins Credentials Manager.<br>
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_1-36-17.png?version=1&modificationDate=1555705360000&api=v2)
-8. Run the build job. As a result, the latest version of the project is taken from source control, a NuGet package is  created and deployed to the specified Orchestrator
+**Type:** Build task
 
-## Example of usage #2: Creating a Jenkins pipeline that packages a UiPath project and deploys it across multiple stages
-This example showcases how the UiPath Jenkins Plugin works with Jenkins Pipelines. However, please note that it can also be replicated for an RPA development context that involves multiple stages with approvals for package promotion.<br>
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_1-37-1.png?version=1&modificationDate=1555705360000&api=v2)
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_1-37-31.png?version=1&modificationDate=1555705359000&api=v2)
+UiPath Pack is available in standard jobs and pipelines, and lets you package an existing UiPath project into a NuGet package.
 
-Here are the steps for creating such a pipeline:
-1. Create a new pipeline.<br>
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_1-37-58.png?version=2&modificationDate=1555705359000&api=v2)
-2. Parametrize the pipeline so that you can repurpose it later on with other projects, as displayed below:<br>
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_1-38-54.png?version=1&modificationDate=1555705359000&api=v2)
-3. Set-up the best-fit build triggers for your project depending on your governance model and project life-cycle:<br>
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_1-39-10.png?version=1&modificationDate=1555705358000&api=v2)
-4. Configure the stages in the pipeline and what should be executed in each of them. This is done by writing code. The code can be defined at pipeline level in Jenkins (Pipeline script) or kept in the source control repository (Pipeline script from SCM). In this example we’re gonna use Pipeline script option:<br>
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_1-39-38.png?version=1&modificationDate=1555705358000&api=v2)<br>
-    And here’s the sample code for it:<br>
-    ```groovy
-    pipeline {
-       agent any
-       environment {
-           MAJOR = '1'
-           MINOR = '0'
-       }
-       stages {
-           stage('Build') {
-               steps {
-                   checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: env.GIT_CREDENTIALS_ID, url: env.GIT_URL]]])
-                   UiPathPack (outputPath: "${env.JENKINS_HOME}\\jobs\\${env.JOB_NAME}\\builds\\${env.BUILD_NUMBER}", projectJsonPath: "${env.WORKSPACE}", version: [$class: 'ManualEntry', text: "${MAJOR}.${MINOR}.${env.BUILD_NUMBER}"])
-               }
-           }
-           stage('Staging Environment') {
-               steps {
-                   //mail bcc: '', body: "Please check ${env.JOB_NAME} for approving deployment into Staging En stage.", cc: '', from: '', replyTo: '', subject: 'Jenkins Pipeline Approval Required', to: 'user.name@company.com'
-                   timeout(time: 14, unit: 'DAYS') {
-                       input message: 'Please approve the deployment of this package into Staging', submitter: env.APPROVERS
-                   }
-                   build job: 'deploy-in-staging', parameters: [string(name: 'PACKAGE_PATH', value: "${env.JENKINS_HOME}\\jobs\\${env.JOB_NAME}\\builds\\${env.BUILD_NUMBER}")]
-               }
-           }
-           stage('Production Environment') {
-               steps {
-                   //mail bcc: '', body: 'Please check ${env.JOB_NAME} for approving deployment into Test stage.', cc: '', from: '', replyTo: '', subject: 'Jenkins Pipeline Approval Required', to: 'user.name@company.com'
-                   timeout(time: 14, unit: 'DAYS') {
-                       input message: 'Please approve the deployment of this package into Production', submitter: env.APPROVERS
-                   }
-                   build job: 'deploy-in-production', parameters: [string(name: 'PACKAGE_PATH', value: "${env.JENKINS_HOME}\\jobs\\${env.JOB_NAME}\\builds\\${env.BUILD_NUMBER}")]
-               }
-           }
+[![UiPath Pack](.github/pack.png)](.github/pack.png)
+
+**⚙️ Configuration**
+
+| Job parameter                 | Description           |
+| ----------------------------- | -------------         |
+| Choose versioning method      | UiPath packages are versioned. With UiPath pack you can choose between 3 different options: (1) Auto generate (2) Define custom version (3) Use the current version set in the project. |
+| Project(s) path               | The location of the project(s) to be packaged. It can be a direct path to a project.json file or a directory with one or multiple projects. In the latter case, each level one project is packaged individually. |
+| Output folder                 | Path to a folder, where the created package should be placed. |
+
+**📖 Pipeline Example:**
+
+```Groovy
+pipeline {
+  agent any
+  environment {
+      MAJOR = '1'
+      MINOR = '0'
+  }
+  stages {
+    stage ('Build') {
+      steps {
+        UiPathPack (
+          outputPath: "Output\\${env.BUILD_NUMBER}",
+          projectJsonPath: "UiBank\\project.json",
+          version: [$class: 'ManualVersionEntry', version: "${MAJOR}.${MINOR}.${env.BUILD_NUMBER}"]
+        )
       }
-      post {
-           success {
-               echo "Process ${env.GIT_URL} with version ${MAJOR}.${MINOR}.${env.BUILD_NUMBER} was successfully deployed into Production."
-           }
-       }
     }
-    ```
-5. Save this generic pipeline. It you want to use it for a different project, just clone the generic one and customize the following information: pipeline name, git project repository, git credentials id, and the list of approvers.
+  }
+}
+```
 
-Please note that within the pipeline script, UiPathPack is directly invoked to create the NuGet package after checking-out the sources from SCM. However, the Orchestrator publishing part is done by invoking dedicated jobs:
+### 🚀 UiPath Deploy
 
-build job: 'deploy-in-staging' or 'deploy-in-production'
+**Application:** RPA
 
-This job needs to be created and configured properly for interacting with Orchestrator instances/tenants:
+**Type:** Post-Build task
 
-![](https://wiki.jenkins.io/download/attachments/173703269/image2019-4-20_1-47-19.png?version=1&modificationDate=1555705357000&api=v2)
+UiPath Deploy is available in standard jobs and pipelines, and lets you deploy a UiPath NuGet package onto UiPath Orchestrator.
 
-The advantage for externalizing the publishing part is that the Orchestrator Address, Tenant, and Credentials are handled separately from the build pipeline, reducing the risk of unauthorized users getting this information.
+[![UiPath Deploy](.github/deploy.png)](.github/deploy.png)
+
+**⚙️ Configuration**
+
+| Job parameter                 | Description           |
+| ----------------------------- | -------------         |
+| Package(s) path               | The folder that holds your UiPath nuget package(s). |
+| Orchestrator address          | The address of the Orchestrator instance onto which the package(s) will be deployed. |
+| Orchestrator tenant           | The Orchestrator tenant onto which the package(s) will be deployed. |
+| Orchestrator folder           | The folder to deploy to. If the folder is a classic folder, you will also need to set the environments field. For modern folders, setting the environments is not required. |
+| Environments                  | The environment onto which the package will be deployed as a process. For the project and environment with existing processes, the processes will be updated to use the latest project version. Specify the environment onto which the package will be deployed as a process. For the project and environment with existing processes, the processes will be updated to use the latest project version. Required when using a classic folder, otherwise not applicable. |
+| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this). |
+
+**📖 Pipeline Example:**
+
+```Groovy
+pipeline {
+  agent any
+  environment {
+      MAJOR = '1'
+      MINOR = '0'
+  }
+  stages {
+    stage ('PostBuild') {
+      steps {
+        UiPathDeploy (
+          packagePath: "path\\to\NuGetpackage",
+          orchestratorAddress: "OrchestratorUrl",
+          orchestratorTenant: "tenant name",
+          folderName: "folder name",
+          environments: "environment",
+          credentials: [$class: 'UserPassAuthenticationEntry', credentialsId: “credentialsId”]
+        )
+      }
+    }
+  }
+}
+```
+
+### ▶ UiPath Run tests
+
+**Application:** Testing
+
+**Type:** Post-Build task
+
+UiPath Run tests is available in standard jobs and pipelines, and lets you *(1)* run an existing Test Set on Orchestrator, or *(2)* package, deploy and run test cases, by specifying the path to a UiPath test project.
+
+After the test run has finished, the Test Result tab will be published to the Jenkins build, showing the detailed results. Additionally, a JUnit test results file will be output to the test result output path, when specified, or to the workspace root if not specified.
+
+Depending on the result, the build will be either marked as successful (all test cases are passed), or unstable (at least one test case failed).
+
+[![UiPath Run tests](.github/run-tests.png)](.github/run-tests.png)
+
+**⚙️ Configuration**
+
+| Job parameter                 | Description           |
+| ----------------------------- | -------------         |
+| Target                        | *(1)* Execute test set (specify an existing test set on UiPath Orchestrator) or *(2)* Execute test project (provide the project.json path of a UiPath Testing project) |
+| Test result output path       | The executed test set returns the test result as junit.xml. Specify the path where the result should be stored, relative to the Jenkins workspace directory (e.g. result.xml). *Optional* |
+| Orchestrator address          | The address of the Orchestrator instance onto which the package(s) will be deployed. |
+| Orchestrator tenant           | The Orchestrator tenant onto which the package(s) will be deployed. |
+| Orchestrator folder           | The folder to deploy to. If the folder is a classic folder, you will also need to set the environments field. For modern folders, setting the environments is not required. |
+| Environments                  | The environment onto which the package will be deployed as a process. For the project and environment with existing processes, the processes will be updated to use the latest project version. Specify the environment onto which the package will be deployed as a process. For the project and environment with existing processes, the processes will be updated to use the latest project version. Required when using a classic folder, otherwise not applicable. |
+| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this). |
+| Timeout (seconds)             | The execution timeout for the test run. The default value is 7200 seconds. If the timeout exceeds before the execution on Orchestrator is finished and returned the final result, the built will cancel and be marked as failed. |
+
+**📖 Pipeline Example:**
+
+```Groovy
+pipeline {
+  agent any
+  environment {
+    MAJOR = '1'
+    MINOR = '0'
+  }
+  stages {
+    stage ('PostBuild') {
+      steps {
+        UiPathTest (
+          testTarget: [$class: 'TestSetEntry', testSet: "My Test Set"],
+          orchestratorAddress: "OrchestratorUrl",
+          orchestratorTenant: "tenant name",
+          folderName: "folder name",
+          timeout: "10000",
+          testResultsOutputPath: "result.xml",
+          credentials: [$class: 'UserPassAuthenticationEntry', credentialsId: "credentialsId"]
+        )
+      }
+    }
+  }
+}
+```
+
+## Obtaining the Cloud Orchestrator API Key
+
+[![How to obtain the Cloud Orchestrator API Key](.github/cloud-orchestrator-howto.png)](.github/cloud-orchestrator-howto.png)
+
+## Additional information
+
+All paths specified should be local to the current workspace. You can use environment variables in paths, though you should ensure that they result in paths that are local to the workspace. All paths
+
+## Questions
+
+Do you have any questions regarding the plugin? Ask them [here](https://connect.uipath.com/marketplace/components/jenkins-plugin-for-uipath-public-preview/questions).
+
+## License
+
+[UiPath Open Platform License Agreement – V.20190913](./LICENSE.md)

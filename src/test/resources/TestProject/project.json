@@ -1,25 +1,51 @@
 {
   "name": "TestProject",
-  "description": "Test Project",
-  "main": "Main.xaml",
-  "dependencies": {},
-  "schemaVersion": "3.2",
-  "studioVersion": "18.3.0.933",
-  "projectVersion": "1.0.6987.24350",
+  "description": "Tests used to validate that Jenkins & Azure DevOps plugins are working as expected",
+  "main": "FailTestCase.xaml",
+  "dependencies": {
+    "UiPath.System.Activities": "[19.12.0-preview]",
+    "UiPath.Testing.Activities": "0.9.0-alpha.752076",
+    "UiPath.UIAutomation.Activities": "[19.12.0-preview]"
+  },
+  "webServices": [],
+  "schemaVersion": "4.0",
+  "studioVersion": "19.13.0.194",
+  "projectVersion": "1.0.34779990",
   "runtimeOptions": {
     "autoDispose": false,
+    "isPausable": true,
+    "requiresUserInteraction": true,
+    "supportsPersistence": false,
     "excludedLoggedData": [
       "Private:*",
       "*password*"
+    ],
+    "executionType": "Workflow"
+  },
+  "designOptions": {
+    "projectProfile": "Developement",
+    "outputType": "Tests",
+    "libraryOptions": {
+      "includeOriginalXaml": false,
+      "privateWorkflows": []
+    },
+    "fileInfoCollection": [
+      {
+        "editingStatus": "Publishable",
+        "testCaseId": "0868cec0-29ab-41a3-a5f7-aa8f2ae27bbb",
+        "fileName": "FailTestCase.xaml"
+      },
+      {
+        "editingStatus": "Publishable",
+        "testCaseId": "bb2f94cf-6fad-49fd-82df-cc8f2ae27ddd",
+        "fileName": "PassTestCase.xaml"
+      },
+      {
+        "editingStatus": "Publishable",
+        "testCaseId": "4124b374-4e08-4a48-b4f5-ee8f2ae27fff",
+        "fileName": "FaultTestCase.xaml"
+      }
     ]
   },
-  "projectType": "Workflow",
-  "libraryOptions": {
-    "includeOriginalXaml": false,
-    "privateWorkflows": []
-  },
-  "arguments": {
-    "input": [],
-    "output": []
-  }
+  "expressionLanguage": "VisualBasic"
 }
