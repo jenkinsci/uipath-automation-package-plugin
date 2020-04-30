@@ -1,0 +1,41 @@
+{
+  "name": "TestProjectAllPassed",
+  "description": "Test Automation Project",
+  "main": "Main.xaml",
+  "dependencies": {
+    "UiPath.System.Activities": "[20.4.0-alpha.827829]",
+    "UiPath.Testing.Activities": "[0.9.0-alpha.795749]",
+    "UiPath.UIAutomation.Activities": "[20.3.0-alpha]"
+  },
+  "webServices": [],
+  "schemaVersion": "4.0",
+  "studioVersion": "20.4.0.0",
+  "projectVersion": "1.0.0",
+  "runtimeOptions": {
+    "autoDispose": false,
+    "isPausable": true,
+    "requiresUserInteraction": true,
+    "supportsPersistence": false,
+    "excludedLoggedData": [
+      "Private:*",
+      "*password*"
+    ],
+    "executionType": "Workflow"
+  },
+  "designOptions": {
+    "projectProfile": "Developement",
+    "outputType": "Tests",
+    "libraryOptions": {
+      "includeOriginalXaml": false,
+      "privateWorkflows": []
+    },
+    "fileInfoCollection": [
+      {
+        "editingStatus": "Publishable",
+        "testCaseId": "72f57223-c24b-4f63-92c6-f265a34dd7a6",
+        "fileName": "PassTestCase.xaml"
+      }
+    ]
+  },
+  "expressionLanguage": "VisualBasic"
+}

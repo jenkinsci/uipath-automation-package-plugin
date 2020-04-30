@@ -6,3 +6,7 @@ target
 .settings
 work
 .local
+.vscode/
+.factorypath
+.DS_Store
+*.orig

@@ -1,67 +1,74 @@
 package com.uipath.uipathpackage;
 
-import com.cloudbees.plugins.credentials.CredentialsMatchers;
-import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.google.common.collect.ImmutableList;
+import com.uipath.uipathpackage.entries.SelectEntry;
+import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
+import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
+import com.uipath.uipathpackage.models.DeployOptions;
+import com.uipath.uipathpackage.util.Utility;
 import hudson.*;
 import hudson.model.*;
-import hudson.security.ACL;
 import hudson.tasks.*;
 import hudson.util.FormValidation;
-import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
-import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.security.InvalidParameterException;
+import java.util.*;
 
 import static hudson.slaves.WorkspaceList.tempDir;
 
 /**
- * Class responsible for deploying the nuget package to the orchestrator instance provided by the user.
+ * Class responsible for deploying the nuget package to the orchestrator
+ * instance provided by the user.
  */
 public class UiPathDeploy extends Recorder implements SimpleBuildStep {
-
+    private final Utility util = new Utility();
     private final String packagePath;
     private final String orchestratorAddress;
     private final String orchestratorTenant;
-    private final String credentialsId;
+    private final SelectEntry credentials;
+    private final String environments;
+    private final String folderName;
 
     /**
-     * Data bound constructor which is responsible for setting/saving of the values provided by the user
+     * Data bound constructor which is responsible for setting/saving of the values
+     * provided by the user
      *
      * @param packagePath         Package Path
-     * @param orchestratorAddress UiPath Orchestrator base URL
-     * @param orchestratorTenant  UiPath Orchestrator base URL
-     * @param credentialsId       UiPath Orchestrator Credential Id
+     * @param orchestratorAddress Orchestrator base URL
+     * @param orchestratorTenant  Orchestrator tenant
+     * @param folderName          Orchestrator folder
+     * @param credentials         Orchestrator credentials
+     * @param environments        Environments on which to deploy
      */
     @DataBoundConstructor
-    public UiPathDeploy(String packagePath, String orchestratorAddress, String orchestratorTenant, String credentialsId) {
-        Utility util = new Utility();
-        util.validateParams(packagePath, "Invalid Package(s) Path");
-        util.validateParams(orchestratorAddress, "Invalid Orchestrator Address");
-        util.validateParams(credentialsId, "Invalid Credentials");
+    public UiPathDeploy(String packagePath, String orchestratorAddress, String orchestratorTenant,
+            String folderName, String environments, SelectEntry credentials) {
         this.packagePath = packagePath;
         this.orchestratorAddress = orchestratorAddress;
         this.orchestratorTenant = orchestratorTenant;
-        this.credentialsId = credentialsId;
+        this.credentials = credentials;
+        this.folderName = folderName;
+        this.environments = environments;
     }
 
     /**
-     * Credentials ID, appearing as choice and will be responsible to extract credentials and use for orchestrator connection
+     * Credentials ID, appearing as choice and will be responsible to extract
+     * credentials and use for orchestrator connection
      *
-     * @return String credentialsId
+     * @return SelectEntry credentials
      */
-    public String getCredentialsId() {
-        return credentialsId;
+    public SelectEntry getCredentials() {
+        return credentials;
     }
 
     /**
@@ -74,7 +81,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
     }
 
     /**
-     * Provides base orchestrator URL
+     * Base orchestrator URL
      *
      * @return String orchestratorAddress
      */
@@ -89,6 +96,23 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
      */
     public String getOrchestratorTenant() {
         return orchestratorTenant;
+    }
+
+    /**
+     * Orchestrator Folder
+     *
+     * @return String folderName
+     */
+    public String getFolderName() {
+        return folderName;
+    }
+
+    /**
+     * The comma-separated list of environments which should be assigned to the process or test cases in the package.
+     * @return The environments on which to deploy
+     */
+    public String getEnvironments() {
+        return environments;
     }
 
     /**
@@ -117,44 +141,72 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
      */
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
-        Utility util = new Utility();
-        util.validateParams(orchestratorAddress, "Invalid Orchestrator Address");
-        util.validateParams(packagePath, "Invalid Package Path");
-        FilePath tempRemoteDir = null;
+        validateParameters();
+        PrintStream logger = listener.getLogger();
+
+        FilePath tempRemoteDir = tempDir(workspace);
+        tempRemoteDir.mkdirs();
+
         try {
-            tempRemoteDir = tempDir(workspace);
-            tempRemoteDir.mkdirs();
             EnvVars envVars = run.getEnvironment(listener);
-            FilePath packagePathFormatted = new FilePath(new File(envVars.expand(packagePath.trim())));
-            if (packagePathFormatted.isDirectory()) {
-                packagePathFormatted.copyRecursiveTo(tempRemoteDir);
-            } else {
-                packagePathFormatted.getParent().copyRecursiveTo(packagePathFormatted.getName(), tempRemoteDir);
-            }
+
+            FilePath expandedPackagePath = packagePath.contains("${WORKSPACE}") ?
+                    new FilePath(launcher.getChannel(), envVars.expand(packagePath)) :
+                    workspace.child(envVars.expand(packagePath));
+
+            DeployOptions deployOptions = new DeployOptions();
+            deployOptions.setPackagesPath(expandedPackagePath.getRemote());
+            deployOptions.setOrchestratorUrl(orchestratorAddress);
+            deployOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
+
             ResourceBundle rb = ResourceBundle.getBundle("config");
-            String orchestratorTenantFormatted = envVars.expand(orchestratorTenant.trim()).isEmpty() ? util.getValue(rb, "UiPath.DefaultTenant") : util.escapePowerShellString(envVars.expand(orchestratorTenant.trim()));
-            StandardUsernamePasswordCredentials cred = CredentialsProvider.findCredentialById(credentialsId, StandardUsernamePasswordCredentials.class, run, Collections.emptyList());
-            if (cred == null || cred.getUsername().isEmpty() || cred.getPassword().getPlainText().isEmpty()) {
-                throw new AbortException("Invalid credentials");
+            String orchestratorTenantFormatted = envVars.expand(orchestratorTenant.trim()).isEmpty() ? util.getConfigValue(rb, "UiPath.DefaultTenant") : envVars.expand(orchestratorTenant.trim());
+            deployOptions.setOrchestratorTenant(orchestratorTenantFormatted);
+
+            util.setCredentialsFromCredentialsEntry(credentials, deployOptions, run);
+
+            if (this.environments != null && !this.environments.isEmpty())
+            {
+                String[] deploymentEnvironments = envVars.expand(this.environments).split(",");
+                deployOptions.setEnvironments(Arrays.asList(deploymentEnvironments));
             }
-            String username = util.escapePowerShellString(cred.getUsername());
-            String password = util.escapePowerShellString(cred.getPassword().getPlainText());
-            String importModuleCommands = util.importModuleCommands(tempRemoteDir, listener, envVars);
-            String deployPackCommand = String.format("Deploy -orchestratorAddress %s -tenant %s -username %s -password %s -packagePath %s -authType UserPass", util.escapePowerShellString(orchestratorAddress), orchestratorTenantFormatted, username, password, util.escapePowerShellString(tempRemoteDir.getRemote()));
-            util.command = util.getCommand(importModuleCommands, deployPackCommand);
-            if(!util.execute(workspace, listener, envVars, launcher)){
-                throw new AbortException("Failed to execute powershell session while importing the module and deploying. Command : " + importModuleCommands + " " + deployPackCommand);
+            else
+            {
+                deployOptions.setEnvironments(new ArrayList<>());
+            }
+
+            int result = util.execute("deploy", deployOptions, tempRemoteDir, listener, envVars, launcher);
+
+            if (result != 0) {
+                throw new AbortException("Failed to run the command");
             }
         } catch (URISyntaxException e) {
-            e.printStackTrace(listener.getLogger());
+            e.printStackTrace(logger);
             throw new AbortException(e.getMessage());
         } finally {
-            try {
+            try{
                 Objects.requireNonNull(tempRemoteDir).deleteRecursive();
-            } catch (Exception e) {
-                listener.getLogger().println("Failed to delete temp remote directory in UiPath Deploy " + e.getMessage());
-                e.printStackTrace(listener.getLogger());
+            }catch(Exception e){
+                logger.println("Failed to delete temp remote directory in UiPath Deploy "+ e.getMessage());
+                e.printStackTrace(logger);
             }
+        }
+    }
+
+    private void validateParameters() throws AbortException {
+        util.validateParams(packagePath, "Invalid Package(s) Path");
+        util.validateParams(orchestratorAddress, "Invalid Orchestrator Address");
+        util.validateParams(folderName, "Invalid Orchestrator Folder");
+
+        if (credentials == null)
+        {
+            throw new InvalidParameterException("You must specify either a set of credentials or an authentication token");
+        }
+
+        credentials.validateParameters();
+
+        if (packagePath.toUpperCase().contains("${JENKINS_HOME}")) {
+            throw new AbortException("Paths containing JENKINS_HOME are not allowed, use the Archive Artifacts plugin to copy the required files to the build output.");
         }
     }
 
@@ -173,7 +225,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         @Nonnull
         @Override
         public String getDisplayName() {
-            return Messages.UiPathDeploy_DescriptorImpl_DisplayName();
+            return com.uipath.uipathpackage.Messages.UiPathDeploy_DescriptorImpl_DisplayName();
         }
 
         /**
@@ -188,34 +240,6 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         }
 
         /**
-         * Returns the list of StandardUsernamePasswordCredentials to be filled in choice
-         * If item is null or doesn't have configure permission it will return empty list
-         *
-         * @param item Basic configuration unit in Hudson
-         * @return ListBoxModel list of StandardUsernamePasswordCredentials
-         */
-        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item) {
-            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
-                return new ListBoxModel();
-            }
-            return CredentialsProvider.listCredentials(StandardUsernamePasswordCredentials.class, item, ACL.SYSTEM, Collections.emptyList(), CredentialsMatchers.always());
-        }
-
-        /**
-         * Validates Credentials if exists
-         *
-         * @param item  Basic configuration unit in Hudson
-         * @param value Any conditional parameter(here id of the credential selected)
-         * @return FormValidation
-         */
-        public FormValidation doCheckCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
-            if (CredentialsProvider.listCredentials(StandardUsernamePasswordCredentials.class, item, ACL.SYSTEM, Collections.emptyList(), CredentialsMatchers.withId(value)).isEmpty()) {
-                return FormValidation.error(Messages.UiPathDeploy_DescriptorImpl_errors_missingCredentialsId());
-            }
-            return FormValidation.ok();
-        }
-
-        /**
          * Validates Package(s) Path
          *
          * @param value value of package path
@@ -223,8 +247,13 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
          */
         public FormValidation doCheckPackagePath(@QueryParameter String value) {
             if (value.trim().isEmpty()) {
-                return FormValidation.error(Messages.UiPathDeploy_DescriptorImpl_errors_missingPackagePath());
+                return FormValidation.error(com.uipath.uipathpackage.Messages.UiPathDeploy_DescriptorImpl_Errors_MissingPackagePath());
             }
+
+            if (value.trim().toUpperCase().contains("${JENKINS_HOME}")) {
+                return FormValidation.error(com.uipath.uipathpackage.Messages.GenericErrors_MustUseSlavePaths());
+            }
+
             return FormValidation.ok();
         }
 
@@ -236,9 +265,41 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
          */
         public FormValidation doCheckOrchestratorAddress(@QueryParameter String value) {
             if (value.trim().isEmpty()) {
-                return FormValidation.error(Messages.UiPathDeploy_DescriptorImpl_errors_missingOrchestratorAddress());
+                return FormValidation.error(com.uipath.uipathpackage.Messages.GenericErrors_MissingOrchestratorAddress());
             }
             return FormValidation.ok();
+        }
+
+        /**
+         * Validates Orchestrator Folder
+         *
+         * @param value value of orchestrator folder
+         * @return FormValidation
+         */
+        public FormValidation doCheckFolderName(@QueryParameter String value) {
+            if (value.trim().isEmpty()) {
+                return FormValidation.error(com.uipath.uipathpackage.Messages.GenericErrors_MissingFolder());
+            }
+            return FormValidation.ok();
+        }
+
+        /**
+         * Provides the list of descriptors to the choice in hetero-radio
+         *
+         * @return list of the authentication descriptors
+         */
+        public List<Descriptor> getAuthenticationDescriptors() {
+            Jenkins jenkins = Jenkins.getInstance();
+            List<Descriptor> list = new ArrayList<>();
+            Descriptor userPassDescriptor = jenkins.getDescriptor(UserPassAuthenticationEntry.class);
+            if (userPassDescriptor != null) {
+                list.add(userPassDescriptor);
+            }
+            Descriptor tokenDescriptor = jenkins.getDescriptor(TokenAuthenticationEntry.class);
+            if (tokenDescriptor != null) {
+                list.add(tokenDescriptor);
+            }
+            return ImmutableList.copyOf(list);
         }
     }
 }

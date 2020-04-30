@@ -8,17 +8,17 @@
         <relativePath />
     </parent>
     <artifactId>uipath-automation-package</artifactId>
-    <version>1.0.3-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <properties>
-        <jenkins.version>2.60.3</jenkins.version>
+        <jenkins.version>2.138.4</jenkins.version>
         <java.level>8</java.level>
     </properties>
     <name>UiPath Plugin</name>
     <description>
         This plugin allows you to build and deploy UiPath automation processes.
     </description>
-    <url>https://wiki.jenkins.io/display/JENKINS/UiPath+Plugin</url>
+    <url>https://github.com/jenkinsci/uipath-automation-package-plugin</url>
     <build>
         <plugins>
             <plugin>
@@ -52,12 +52,9 @@
                         </goals>
                         <configuration>
                             <target>
-                                <mkdir dir="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}" />
-                                <get dest="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}" src="https://www.myget.org/F/uipath-dev/api/v2/package/UiPath.Extensions/${UiPath.Extensions.Version}" />
-                                <unzip src="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}/${UiPath.Extensions.Version}" dest="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}" />
-                                <mkdir dir="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}" />
-                                <get dest="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}" src="https://www.myget.org/F/uipath-dev/api/v2/package/UiPath.PowerShell/${UiPath.PowerShell.Version}" />
-                                <unzip src="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}/${UiPath.PowerShell.Version}" dest="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}" />
+                                <mkdir dir="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}" />
+                                <get dest="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}" src="https://www.myget.org/F/uipath-dev/api/v2/package/UiPath.CLI/${UiPath.CLI.Version}" />
+                                <unzip src="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}/${UiPath.CLI.Version}" dest="${project.build.directory}/classes/cli-${UiPath.CLI.Version}" />
                             </target>
                             <failOnError>true</failOnError>
                         </configuration>
@@ -107,21 +104,48 @@
     <!-- List of dependencies of the project. -->
     <dependencies>
         <dependency>
+            <groupId>pl.pragmatists</groupId>
+            <artifactId>JUnitParams</artifactId>
+            <version>1.0.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>junit</artifactId>
+            <version>1.28</version>
+        </dependency>
+        <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>credentials</artifactId>
-            <version>2.1.10</version>
+            <version>2.1.16</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20180813</version>
-            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>plain-credentials</artifactId>
+            <version>1.5</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>2.24.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>powershell</artifactId>
+            <version>1.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>envinject</artifactId>
+            <version>2.3.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -143,6 +167,15 @@
       The id should be the jenkinsci.org username and not your GitHub username.
     -->
     <developers>
+        <developer>
+            <id>alvinstanescu</id>
+            <name>Alvin Stanescu</name>
+            <url>https://github.com/alvinstanescu</url>
+            <email>alvin.stanescu@uipath.com</email>
+            <roles>
+                <role>maintainer</role>
+            </roles>
+        </developer>
         <developer>
             <id>rajeevuipath</id>
             <name>Rajeev Ranjan</name>

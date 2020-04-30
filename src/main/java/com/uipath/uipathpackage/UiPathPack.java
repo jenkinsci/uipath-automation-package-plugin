@@ -1,8 +1,15 @@
 package com.uipath.uipathpackage;
 
 import com.google.common.collect.ImmutableList;
+import com.uipath.uipathpackage.entries.SelectEntry;
+import com.uipath.uipathpackage.entries.versioning.AutoVersionEntry;
+import com.uipath.uipathpackage.entries.versioning.CurrentVersionEntry;
+import com.uipath.uipathpackage.entries.versioning.ManualVersionEntry;
+import com.uipath.uipathpackage.models.PackOptions;
+import com.uipath.uipathpackage.util.Utility;
 import hudson.*;
 import hudson.model.*;
+import hudson.remoting.Channel;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
@@ -16,6 +23,7 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -26,8 +34,8 @@ import static hudson.slaves.WorkspaceList.tempDir;
  * Performs the actual build.
  */
 public class UiPathPack extends Builder implements SimpleBuildStep {
-
-    private final Entry version;
+    private final Utility util = new Utility();
+    private final SelectEntry version;
     private final String projectJsonPath;
     private final String outputPath;
 
@@ -39,10 +47,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      * @param outputPath      Output Path
      */
     @DataBoundConstructor
-    public UiPathPack(Entry version, String projectJsonPath, String outputPath) {
-        Utility util = new Utility();
-        util.validateParams(projectJsonPath, "Invalid Project(s) Path");
-        util.validateParams(outputPath, "Invalid Output Path");
+    public UiPathPack(SelectEntry version, String projectJsonPath, String outputPath) {
         this.version = version;
         this.projectJsonPath = projectJsonPath;
         this.outputPath = outputPath;
@@ -60,40 +65,46 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      */
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
-        Utility util = new Utility();
-        util.validateParams(projectJsonPath, "Invalid Project Json Path");
-        util.validateParams(outputPath, "Invalid Output Path");
-        FilePath tempRemoteDir = null;
+        validateParameters();
+
+        FilePath tempRemoteDir = tempDir(workspace);
+        tempRemoteDir.mkdirs();
+
         try {
-            tempRemoteDir = tempDir(workspace);
-            tempRemoteDir.mkdirs();
-            FilePath tempOutputDir = tempRemoteDir.child("Output");
-            tempOutputDir.mkdirs();
             EnvVars envVars = run.getEnvironment(listener);
-            String importModuleCommands = util.importModuleCommands(tempRemoteDir, listener, envVars);
-            String generatePackCommand;
-            FilePath projectPath = new FilePath(new File(envVars.expand(projectJsonPath)));
-            if (version instanceof ManualEntry) {
-                String versionFormatted = util.escapePowerShellString(envVars.expand(((ManualEntry) version).getText().trim()));
-                generatePackCommand = String.format("Pack -projectJsonPath %s -packageVersion %s -outputFolder %s", util.escapePowerShellString(projectPath.getRemote()), versionFormatted, util.escapePowerShellString(tempOutputDir.getRemote()));
-            } else {
-                generatePackCommand = String.format("Pack -projectJsonPath %s -outputFolder %s", util.escapePowerShellString(projectPath.getRemote()), util.escapePowerShellString(tempOutputDir.getRemote()));
+
+            FilePath expandedOutputPath = outputPath.contains("${WORKSPACE}") ?
+                    new FilePath(launcher.getChannel(), envVars.expand(outputPath)) :
+                    workspace.child(envVars.expand(outputPath));
+            expandedOutputPath.mkdirs();
+
+            FilePath expandedProjectJsonPath = projectJsonPath.contains("${WORKSPACE}") ?
+                    new FilePath(launcher.getChannel(), envVars.expand(projectJsonPath)) :
+                    workspace.child(envVars.expand(projectJsonPath));
+
+            PackOptions packOptions = new PackOptions();
+
+            packOptions.setDestinationFolder(expandedOutputPath.getRemote());
+            packOptions.setProjectPath(expandedProjectJsonPath.getRemote());
+
+            if (version instanceof ManualVersionEntry) {
+                packOptions.setVersion(envVars.expand(((ManualVersionEntry) version).getVersion().trim()));
+            } else if (version instanceof AutoVersionEntry) {
+                packOptions.setAutoVersion(true);
             }
-            util.command = util.getCommand(importModuleCommands, generatePackCommand);
-            if(!util.execute(workspace, listener, envVars, launcher)){
-                throw new AbortException("Failed to execute powershell session while importing the module and packing. Command : " + importModuleCommands + " " + generatePackCommand);
+
+            int result = util.execute("pack", packOptions, tempRemoteDir, listener, envVars, launcher);
+            if (result != 0) {
+                throw new AbortException("Failed to run the command");
             }
-            //copy result to outputDir
-            FilePath outputDir = new FilePath(new File(envVars.expand(outputPath)));
-            tempRemoteDir.child("Output").copyRecursiveTo(outputDir);
         } catch (URISyntaxException e) {
             e.printStackTrace(listener.getLogger());
             throw new AbortException(e.getMessage());
         } finally {
-            try {
+            try{
                 Objects.requireNonNull(tempRemoteDir).deleteRecursive();
-            } catch (Exception e) {
-                listener.getLogger().println("Failed to delete temp remote directory in UiPath Pack " + e.getMessage());
+            }catch(Exception e){
+                listener.getLogger().println("Failed to delete temp remote directory in UiPath Pack "+ e.getMessage());
                 e.printStackTrace(listener.getLogger());
             }
         }
@@ -104,7 +115,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      *
      * @return Entry for versioning
      */
-    public Entry getVersion() {
+    public SelectEntry getVersion() {
         return version;
     }
 
@@ -126,81 +137,17 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         return outputPath;
     }
 
-    /**
-     * Partial default implementation of {@link Describable}.
-     */
-    public abstract static class Entry extends AbstractDescribableImpl<Entry> {
-    }
-
-    /**
-     * Implementation of the auto versioning method
-     */
-    public static class AutoEntry extends Entry {
-
-        /**
-         * Blank Class to represent auto versioning
-         */
-        @DataBoundConstructor
-        public AutoEntry() {
-            //Do nothing because it is implementation for custom version, Hence doing nothing
+    private void validateParameters() throws AbortException {
+        if (version == null)
+        {
+            throw new InvalidParameterException(com.uipath.uipathpackage.Messages.GenericErrors_MissingVersioningMethod());
         }
 
-        @Symbol("AutoVersion")
-        @Extension
-        public static class DescriptorImpl extends Descriptor<Entry> {
-            @Nonnull
-            @Override
-            public String getDisplayName() {
-                return Messages.UiPathPack_AutoEntry_DescriptorImpl_DisplayName();
-            }
-        }
-    }
+        util.validateParams(projectJsonPath, "Invalid Project(s) Path");
+        util.validateParams(outputPath, "Invalid Output Path");
 
-    /**
-     * Implementation of the Custom Versioning method, providing the text as input
-     */
-    public static class ManualEntry extends Entry {
-
-        private final String text;
-
-        /**
-         * Custom Version as text
-         *
-         * @param text Custom version value
-         */
-        @DataBoundConstructor
-        public ManualEntry(String text) {
-            Utility util = new Utility();
-            util.validateParams(text, "Invalid custom version");
-            this.text = text;
-        }
-
-        /**
-         * Getter for the text
-         *
-         * @return String custom version
-         */
-        public String getText() {
-            return text;
-        }
-
-        /**
-         * Metadata about a configurable instance.
-         * <p>
-         * {@link Descriptor} is an object that has metadata about a {@link Describable}
-         * object, and also serves as a factory (in a way this relationship is similar
-         * to {@link Object}/{@link Class} relationship.
-         *
-         * @see Describable
-         */
-        @Symbol("CustomVersion")
-        @Extension
-        public static class DescriptorImpl extends Descriptor<Entry> {
-            @Nonnull
-            @Override
-            public String getDisplayName() {
-                return Messages.UiPathPack_ManualEntry_DescriptorImpl_DisplayName();
-            }
+        if (outputPath.toUpperCase().contains("${JENKINS_HOME}")) {
+            throw new AbortException("Paths containing JENKINS_HOME are not allowed, use the Archive Artifacts plugin to copy the required files to the build output.");
         }
     }
 
@@ -223,20 +170,24 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         }
 
         /**
-         * Provides the enlist of descriptors to the choice in hetero-radio
+         * Provides the list of descriptors to the choice in hetero-radio
          *
          * @return list of the Entry descriptors
          */
         public List<Descriptor> getEntryDescriptors() {
             Jenkins jenkins = Jenkins.getInstance();
             List<Descriptor> list = new ArrayList<>();
-            Descriptor autoDescriptor = jenkins.getDescriptor(AutoEntry.class);
+            Descriptor autoDescriptor = jenkins.getDescriptor(AutoVersionEntry.class);
             if (autoDescriptor != null) {
                 list.add(autoDescriptor);
             }
-            Descriptor manualDescriptor = jenkins.getDescriptor(ManualEntry.class);
+            Descriptor manualDescriptor = jenkins.getDescriptor(ManualVersionEntry.class);
             if (manualDescriptor != null) {
                 list.add(manualDescriptor);
+            }
+            Descriptor currentEntryDescriptor = jenkins.getDescriptor(CurrentVersionEntry.class);
+            if (currentEntryDescriptor != null) {
+                list.add(currentEntryDescriptor);
             }
             return ImmutableList.copyOf(list);
         }
@@ -249,8 +200,13 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
          */
         public FormValidation doCheckProjectJsonPath(@QueryParameter String value) {
             if (value.trim().isEmpty()) {
-                return FormValidation.error(Messages.UiPathPack_DescriptorImpl_errors_missingProjectJsonPath());
+                return FormValidation.error(com.uipath.uipathpackage.Messages.UiPathPack_DescriptorImpl_Error_MissingProjectJsonPath());
             }
+
+            if (value.trim().toUpperCase().contains("${JENKINS_HOME}")) {
+                return FormValidation.error(com.uipath.uipathpackage.Messages.GenericErrors_MustUseSlavePaths());
+            }
+
             return FormValidation.ok();
         }
 
@@ -262,7 +218,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
          */
         public FormValidation doCheckOutputPath(@QueryParameter String value) {
             if (value.trim().isEmpty()) {
-                return FormValidation.error(Messages.UiPathPack_DescriptorImpl_error_missingOutputPath());
+                return FormValidation.error(com.uipath.uipathpackage.Messages.UiPathPack_DescriptorImpl_Error_MissingOutputPath());
             }
             return FormValidation.ok();
         }
@@ -275,7 +231,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         @Nonnull
         @Override
         public String getDisplayName() {
-            return Messages.UiPathPack_DescriptorImpl_DisplayName();
+            return com.uipath.uipathpackage.Messages.UiPathPack_DescriptorImpl_DisplayName();
         }
     }
 }
