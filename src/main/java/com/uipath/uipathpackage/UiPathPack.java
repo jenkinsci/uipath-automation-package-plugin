@@ -2,25 +2,28 @@ package com.uipath.uipathpackage;
 
 import com.google.common.collect.ImmutableList;
 import com.uipath.uipathpackage.entries.SelectEntry;
+import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
+import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
 import com.uipath.uipathpackage.entries.versioning.AutoVersionEntry;
 import com.uipath.uipathpackage.entries.versioning.CurrentVersionEntry;
 import com.uipath.uipathpackage.entries.versioning.ManualVersionEntry;
 import com.uipath.uipathpackage.models.PackOptions;
+import com.uipath.uipathpackage.util.OutputType;
 import com.uipath.uipathpackage.util.Utility;
 import hudson.*;
 import hudson.model.*;
-import hudson.remoting.Channel;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.InvalidParameterException;
@@ -37,20 +40,37 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     private final Utility util = new Utility();
     private final SelectEntry version;
     private final String projectJsonPath;
+    private final String orchestratorAddress;
+    private final String orchestratorTenant;
+    private final String folderName;
+    private final SelectEntry credentials;
     private final String outputPath;
+    private final String outputType;
 
     /**
      * Data bound constructor responsible for setting the values param values to state
-     *
-     * @param version         Entry version
-     * @param projectJsonPath Project Json Path
-     * @param outputPath      Output Path
+     * @param version               Entry version
+     * @param projectJsonPath       Project Json Path
+     * @param orchestratorAddress   Orchestrator base URL
+     * @param orchestratorTenant    Orchestrator tenant
+     * @param folderName          Orchestrator folder
+     * @param credentials           Orchestrator credentials
+     * @param outputPath            Output Path
+     * @param outputType            Output Type
      */
     @DataBoundConstructor
-    public UiPathPack(SelectEntry version, String projectJsonPath, String outputPath) {
+    public UiPathPack(SelectEntry version, String projectJsonPath, String orchestratorAddress, String orchestratorTenant,
+                      String folderName, SelectEntry credentials, String outputPath, String outputType) {
         this.version = version;
         this.projectJsonPath = projectJsonPath;
+
+        this.orchestratorAddress = orchestratorAddress;
+        this.orchestratorTenant = orchestratorTenant;
+        this.credentials = credentials;
+        this.folderName = folderName;
+
         this.outputPath = outputPath;
+        this.outputType = outputType;
     }
 
     /**
@@ -86,12 +106,18 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
             packOptions.setDestinationFolder(expandedOutputPath.getRemote());
             packOptions.setProjectPath(expandedProjectJsonPath.getRemote());
+            packOptions.setOutputType(OutputType.outputTypes.get(outputType));
 
             if (version instanceof ManualVersionEntry) {
                 packOptions.setVersion(envVars.expand(((ManualVersionEntry) version).getVersion().trim()));
             } else if (version instanceof AutoVersionEntry) {
                 packOptions.setAutoVersion(true);
             }
+
+            packOptions.setOrchestratorUrl(orchestratorAddress);
+            packOptions.setOrchestratorTenant(orchestratorTenant);
+
+            util.setCredentialsFromCredentialsEntry(credentials, packOptions, run);
 
             int result = util.execute("pack", packOptions, tempRemoteDir, listener, envVars, launcher);
             if (result != 0) {
@@ -129,12 +155,49 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     }
 
     /**
+     * Base orchestrator URL
+     *
+     * @return String orchestratorAddress
+     */
+    public String getOrchestratorAddress() {
+        return orchestratorAddress;
+    }
+
+    /**
+     * Orchestrator Tenant
+     *
+     * @return String orchestratorTenant
+     */
+    public String getOrchestratorTenant() {
+        return orchestratorTenant;
+    }
+
+    /**
+     * Credentials ID, appearing as choice and will be responsible to extract
+     * credentials and use for orchestrator connection
+     *
+     * @return SelectEntry credentials
+     */
+    public SelectEntry getCredentials() {
+        return credentials;
+    }
+
+    /**
      * Provides the Output Path
      *
      * @return String outputPath
      */
     public String getOutputPath() {
         return outputPath;
+    }
+
+    /**
+     * Provides the Output Type
+     *
+     * @return String outputType
+     */
+    public String getOutputType() {
+        return outputType;
     }
 
     private void validateParameters() throws AbortException {
@@ -144,7 +207,17 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         }
 
         util.validateParams(projectJsonPath, "Invalid Project(s) Path");
+
+        util.validateParams(orchestratorAddress, "Invalid Orchestrator Address");
+
+        if (credentials == null)
+        {
+            throw new InvalidParameterException("You must specify either a set of credentials or an authentication token");
+        }
+
         util.validateParams(outputPath, "Invalid Output Path");
+
+        credentials.validateParameters();
 
         if (outputPath.toUpperCase().contains("${JENKINS_HOME}")) {
             throw new AbortException("Paths containing JENKINS_HOME are not allowed, use the Archive Artifacts plugin to copy the required files to the build output.");
@@ -211,6 +284,32 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         }
 
         /**
+         * Validates Orchestrator Address
+         *
+         * @param value value of orchestrator address
+         * @return FormValidation
+         */
+        public FormValidation doCheckOrchestratorAddress(@QueryParameter String value) {
+            if (value.trim().isEmpty()) {
+                return FormValidation.error(com.uipath.uipathpackage.Messages.GenericErrors_MissingOrchestratorAddress());
+            }
+            return FormValidation.ok();
+        }
+
+        /**
+         * Validates Orchestrator Folder
+         *
+         * @param value value of orchestrator folder
+         * @return FormValidation
+         */
+        public FormValidation doCheckFolderName(@QueryParameter String value) {
+            if (value.trim().isEmpty()) {
+                return FormValidation.error(com.uipath.uipathpackage.Messages.GenericErrors_MissingFolder());
+            }
+            return FormValidation.ok();
+        }
+
+        /**
          * Validates the output path
          *
          * @param value Output Path value
@@ -232,6 +331,46 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         @Override
         public String getDisplayName() {
             return com.uipath.uipathpackage.Messages.UiPathPack_DescriptorImpl_DisplayName();
+        }
+
+        /**
+         * Returns the list of Strings to be filled in choice
+         * If item is null or doesn't have configure permission it will return empty list
+         *
+         * @param item Basic configuration unit in Hudson
+         * @return ListBoxModel list of String
+         */
+        public ListBoxModel doFillOutputTypeItems(@AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
+
+            ListBoxModel result= new ListBoxModel();
+            for (String v: OutputType.outputTypes.keySet())
+            {
+                result.add(v);
+            }
+
+            return result;
+        }
+
+        /**
+         * Provides the list of descriptors to the choice in hetero-radio
+         *
+         * @return list of the authentication descriptors
+         */
+        public List<Descriptor> getAuthenticationDescriptors() {
+            Jenkins jenkins = Jenkins.getInstance();
+            List<Descriptor> list = new ArrayList<>();
+            Descriptor userPassDescriptor = jenkins.getDescriptor(UserPassAuthenticationEntry.class);
+            if (userPassDescriptor != null) {
+                list.add(userPassDescriptor);
+            }
+            Descriptor tokenDescriptor = jenkins.getDescriptor(TokenAuthenticationEntry.class);
+            if (tokenDescriptor != null) {
+                list.add(tokenDescriptor);
+            }
+            return ImmutableList.copyOf(list);
         }
     }
 }

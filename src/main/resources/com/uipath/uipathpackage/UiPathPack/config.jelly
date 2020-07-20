@@ -42,7 +42,24 @@
     <f:entry title="${%ProjectJsonPath}" field="projectJsonPath">
         <f:textbox default="$${WORKSPACE}"/>
     </f:entry>
+
+     <f:entry field="orchestratorAddress" title="${%OrchestratorAddress}">
+            <f:textbox/>
+     </f:entry>
+     <f:entry field="orchestratorTenant" title="${%OrchestratorTenant}">
+        <f:textbox/>
+     </f:entry>
+     <f:entry title="${%OrchestratorFolder}" field="folderName">
+         <f:textbox/>
+     </f:entry>
+     <f:entry title="${%ChooseAuthenticationMethod}" field="credentialsEntry">
+        <f:hetero-radio field="credentials" descriptors="${descriptor.authenticationDescriptors}"/>
+     </f:entry>
+
     <f:entry title="${%OutputPath}" field="outputPath">
         <f:textbox default="$${WORKSPACE}\Output"/>
+    </f:entry>
+    <f:entry title="${%OutputType}" field="outputType">
+        <f:select/>
     </f:entry>
 </j:jelly>

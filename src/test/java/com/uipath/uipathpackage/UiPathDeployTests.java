@@ -37,8 +37,6 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doNothing;
 
 @RunWith(Parameterized.class)
 public class UiPathDeployTests {
@@ -73,8 +71,8 @@ public class UiPathDeployTests {
     public static Iterable<Object[]> data() throws Throwable
     {
         return Arrays.asList(new Object[][] {
-            { new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("ProcessPackage")).getPath()).getAbsolutePath(), "ProcessProjectJenkins" },
-            { new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("TestPackage")).getPath()).getAbsolutePath(), "TestProject" }
+                { new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("ProcessPackage")).getPath()).getAbsolutePath(), "ProcessProjectJenkins" },
+                { new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("TestPackage")).getPath()).getAbsolutePath(), "TestProject" }
         });
     }
 
@@ -211,10 +209,11 @@ public class UiPathDeployTests {
     @Test
     public void testPublishWithEnvVar() throws Exception {
         String nugetPackagePath = "${WORKSPACE}";
+        String outputType = null;
 
         File projectJson = new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("TestProject/project.json")).getPath());
         String projectJsonPath = projectJson.getAbsolutePath();
-        UiPathPack builder = new UiPathPack(new AutoVersionEntry(), projectJsonPath, nugetPackagePath);
+        UiPathPack builder = new UiPathPack(new AutoVersionEntry(), projectJsonPath, orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, nugetPackagePath, outputType);
 
         project.getBuildersList().add(builder);
         UiPathDeploy publisher = new UiPathDeploy(nugetPackagePath, orchestratorAddress, orchestratorTenant, folderName, environments, userPassCredentials);
