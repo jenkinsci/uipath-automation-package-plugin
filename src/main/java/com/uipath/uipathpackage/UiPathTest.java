@@ -119,12 +119,6 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
                 {
                     testOptions.setEnvironment(environments);
                 }
-
-                if (timeout != null) {
-                    testOptions.setTimeout(timeout);
-                } else {
-                    testOptions.setTimeout(0);
-                }
             }
             else {
                 testOptions.setTestSet(((TestSetEntry)testTarget).getTestSet());
@@ -136,17 +130,16 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             testOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
 
             testOptions.setTestReportType("junit");
-            String resultsOutputPath = testResultsOutputPath;
-            if (testResultsOutputPath == null || testResultsOutputPath.isEmpty())
-            {
-                resultsOutputPath = "UiPathResults.xml";
-            }
+
+            String resultsOutputPath = testResultsOutputPath != null && !testResultsOutputPath.trim().isEmpty()
+                    ? testResultsOutputPath : "UiPathResults.xml";
 
             FilePath expandedTestResultsOutputPath = resultsOutputPath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(resultsOutputPath)) :
                     workspace.child(envVars.expand(resultsOutputPath));
 
             testOptions.setTestReportDestination(expandedTestResultsOutputPath.getRemote());
+            testOptions.setTimeout(timeout != null ? timeout : 0);
 
             util.setCredentialsFromCredentialsEntry(credentials, testOptions, run);
 
