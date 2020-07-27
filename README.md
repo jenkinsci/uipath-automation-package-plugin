@@ -40,6 +40,11 @@ UiPath Pack is available in standard jobs and pipelines, and lets you package an
 | Choose versioning method      | UiPath packages are versioned. With UiPath pack you can choose between 3 different options: (1) Auto generate (2) Define custom version (3) Use the current version set in the project. |
 | Project(s) path               | The location of the project(s) to be packaged. It can be a direct path to a project.json file or a directory with one or multiple projects. In the latter case, each level one project is packaged individually. |
 | Output folder                 | Path to a folder, where the created package should be placed. |
+| Output type                   | The output type of the project(s). There are 5 options for the project(s) type: *(1)* Output type of the project *(2)* Pack a process project *(3)* Pack a library project *(4)* Pack a tests project *(5)* Pack an objects project. |
+| Use orchestrator              | Use Orchestrator feed when packaging libraries. |
+| Orchestrator address          | The address of the Orchestrator instance from which library dependencies should be restored. |
+| Orchestrator tenant           | The Orchestrator tenant from which library dependencies should be restored. |
+| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this). |
 
 **📖 Pipeline Example:**
 
@@ -57,6 +62,10 @@ pipeline {
           outputPath: "Output\\${env.BUILD_NUMBER}",
           projectJsonPath: "UiBank\\project.json",
           version: [$class: 'ManualVersionEntry', version: "${MAJOR}.${MINOR}.${env.BUILD_NUMBER}"]
+          useOrchestrator: true,
+          orchestratorAddress: "OrchestratorUrl",
+          orchestratorTenant: "tenant name",
+          credentials: [$class: 'UserPassAuthenticationEntry', credentialsId: “credentialsId”]
         )
       }
     }

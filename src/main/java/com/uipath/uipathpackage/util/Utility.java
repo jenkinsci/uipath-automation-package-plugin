@@ -8,28 +8,27 @@ import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEnt
 import com.uipath.uipathpackage.models.AuthenticatedOptions;
 import com.uipath.uipathpackage.models.RunOptions;
 import com.uipath.uipathpackage.models.SerializableCliOptions;
-import hudson.*;
+import hudson.AbortException;
+import hudson.EnvVars;
+import hudson.FilePath;
+import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import jnr.ffi.Struct;
-import org.apache.commons.io.FileUtils;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.InvalidParameterException;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarException;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
-
-import static hudson.slaves.WorkspaceList.tempDir;
 
 /**
  * Utility Class used by UiPathDeploy and UiPathPack

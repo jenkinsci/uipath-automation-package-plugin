@@ -11,8 +11,10 @@ import com.uipath.uipathpackage.util.Utility;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.*;
-import hudson.tasks.junit.*;
-import hudson.tasks.test.PipelineTestDetails;
+import hudson.tasks.junit.JUnitResultArchiver;
+import hudson.tasks.junit.JUnitTask;
+import hudson.tasks.junit.TestDataPublisher;
+import hudson.tasks.junit.TestResultAction;
 import hudson.tasks.test.TestResultProjectAction;
 import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
@@ -23,9 +25,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.URISyntaxException;
 import java.security.InvalidParameterException;
 import java.util.*;
@@ -45,6 +45,8 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private final Integer timeout;
     private final String testResultsOutputPath;
     private String expandedTestResultsOutputPath;
+
+    private final int TimeoutDefault = 7200;
 
     /**
      * Gets the timeout.
@@ -119,12 +121,6 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
                 {
                     testOptions.setEnvironment(environments);
                 }
-
-                if (timeout != null) {
-                    testOptions.setTimeout(timeout);
-                } else {
-                    testOptions.setTimeout(0);
-                }
             }
             else {
                 testOptions.setTestSet(((TestSetEntry)testTarget).getTestSet());
@@ -136,17 +132,16 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             testOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
 
             testOptions.setTestReportType("junit");
-            String resultsOutputPath = testResultsOutputPath;
-            if (testResultsOutputPath == null || testResultsOutputPath.isEmpty())
-            {
-                resultsOutputPath = "UiPathResults.xml";
-            }
+
+            String resultsOutputPath = testResultsOutputPath != null && !testResultsOutputPath.trim().isEmpty()
+                                       ? testResultsOutputPath : "UiPathResults.xml";
 
             FilePath expandedTestResultsOutputPath = resultsOutputPath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(resultsOutputPath)) :
                     workspace.child(envVars.expand(resultsOutputPath));
 
             testOptions.setTestReportDestination(expandedTestResultsOutputPath.getRemote());
+            testOptions.setTimeout(timeout != null ? timeout : TimeoutDefault);
 
             util.setCredentialsFromCredentialsEntry(credentials, testOptions, run);
 

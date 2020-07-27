@@ -1,0 +1,105 @@
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+    - develop    
+    - release/*
+
+pr:
+  branches:
+    include:
+    - master
+    - develop    
+    - release/*
+
+parameters:
+- name: runLongRunningTests
+  displayName: Run all tests
+  type: boolean
+  default: false
+
+variables:
+  JENKINS_HOME: 'C:\Windows\System32\config\systemprofile\.jenkins'
+  MavenPOMFile: '$(Build.SourcesDirectory)\pom.xml'
+  AlphaBetaPluginVersionCounter: $[ format('{0}', counter('uipjenkinstaskversion', 1)) ]
+  TestProjectPath: '$(Build.SourcesDirectory)\Qa\UiPath.JenkinsAutomationPackage.Tests\project.json'
+  TestConfigurationData: "{\"Publishers\":[{\"Type\":\"JUnit\",\"Arguments\":\"outputFile=junitResults.xml;reportSkippedTestSuite=False\"}], \"VideoRecorderType\": \"ffmpeg\", \"VideoRecorderPath\": \"C:\\\\\\\\ffmpeg\\\\\\\\ffmpeg.exe\"}"
+
+stages:
+- stage: Build
+  displayName: "Build CLI package"
+  jobs:
+  - job: BuildAndPublishArtifacts
+    displayName: 'Build and run unit tests'
+    timeoutInMinutes: 90
+    workspace:
+      clean: outputs
+    variables:
+      MavenPOMFile: '$(Build.SourcesDirectory)/pom.xml'
+    pool:
+      vmImage: vs2017-win2016
+      demands:
+        - maven
+    steps:
+    - template: job.ci.build.yml
+
+- stage: Deploy
+  displayName: "Deploy on Jenkins server & run"
+  dependsOn: Build
+  jobs:
+  - job: DeployJenkinsPlugin
+    displayName: 'Deploy the new jenkins plugin'
+    timeoutInMinutes: 90
+    workspace:
+      clean: outputs
+    variables:
+      MavenPOMFile: '$(Build.SourcesDirectory)/pom.xml'
+    pool:
+      name: JenkinsTest
+    steps:
+    - checkout: none
+
+    - download: current
+      displayName: 'Download Packages'
+      artifact: Packages
+  
+    - powershell: |
+        az storage blob upload -f $(Agent.BuildDirectory)/Packages/uipath-automation-package.hpi -c plugins -n $(Build.BuildNumber)/uipath-automation-package.hpi --account-name $(AzureAccountName) --auth-mode key --account-key $(StorageAccountKey)
+      displayName: "Upload plugin package to blob storage"
+
+    - bash: |
+        wget $(JenkinsUrl)/jnlpJars/jenkins-cli.jar
+        java -jar jenkins-cli.jar -s $(JenkinsUrlHttp) -auth $(JenkinsUsername):$(JenkinsAuthToken) install-plugin https://$(AzureAccountName).blob.core.windows.net/plugins/$(Build.BuildNumber)/uipath-automation-package.hpi -restart
+        timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' $(JenkinsUrl)/login)" != "200" ]]; do sleep 5; done'
+      displayName: "Install package on Jenkins server"
+
+  - template: job.ci.test.template.yml
+    parameters:
+      configurations:
+      - jobName: 'Orchestrator_v2018_4_TC1'
+        configurationName: 'Orchestrator v2018.4 - TC 1'
+      - jobName: 'Orchestrator_v2018_4_TC2'
+        configurationName: 'Orchestrator v2018.4 - TC 2'
+      - jobName: 'Orchestrator_v2018_4_TC3'
+        configurationName: 'Orchestrator v2018.4 - TC 3'
+      
+      - jobName: 'Orchestrator_2019_10_TC1'
+        configurationName: 'Orchestrator v2019.10 - TC 1'
+      - jobName: 'Orchestrator_2019_10_TC2'
+        configurationName: 'Orchestrator v2019.10 - TC 2'
+      - jobName: 'Orchestrator_2019_10_TC3'
+        configurationName: 'Orchestrator v2019.10 - TC 3'
+
+      - jobName: 'Orchestrator_2020_4_2_TC1'
+        configurationName: 'Orchestrator v2020.4.2 - TC 1'
+      - jobName: 'Orchestrator_2020_4_2_TC2'
+        configurationName: 'Orchestrator v2020.4.2 - TC 2'
+      - jobName: 'Orchestrator_2020_4_2_TC3'
+        configurationName: 'Orchestrator v2020.4.2 - TC 3'
+
+      - ${{ if eq(parameters.runLongRunningTests, 'true') }}:
+        - jobName: 'Orchestrator_2020_4_2_TC4'
+          configurationName: 'Orchestrator v2020.4.2 - TC 4'
+        - jobName: 'Orchestrator_2020_4_2_TC5'
+          configurationName: 'Orchestrator v2020.4.2 - TC 5'
