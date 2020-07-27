@@ -3,9 +3,9 @@
   "description": "Test Automation Project",
   "main": "Main.xaml",
   "dependencies": {
-    "UiPath.System.Activities": "[20.4.0-alpha.827829]",
-    "UiPath.Testing.Activities": "[0.9.0-alpha.795749]",
-    "UiPath.UIAutomation.Activities": "[20.3.0-alpha]"
+    "UiPath.System.Activities": "[20.4.0]",
+    "UiPath.Testing.Activities": "[1.0.0]",
+    "UiPath.UIAutomation.Activities": "[20.4.1]"
   },
   "webServices": [],
   "schemaVersion": "4.0",
@@ -32,10 +32,18 @@
     "fileInfoCollection": [
       {
         "editingStatus": "Publishable",
-        "testCaseId": "72f57223-c24b-4f63-92c6-f265a34dd7a6",
+        "testCaseId": "72f57223-c24b-4f63-92c6-f265a34dd7ce",
         "fileName": "PassTestCase.xaml"
       }
     ]
   },
-  "expressionLanguage": "VisualBasic"
+  "expressionLanguage": "VisualBasic",
+  "entryPoints": [
+    {
+      "filePath": "PassTestCase.xaml",
+      "uniqueId": "72f57223-c24b-4f63-92c6-f265a34dd7ce",
+      "input": [],
+      "output": []
+    }
+  ]
 }
