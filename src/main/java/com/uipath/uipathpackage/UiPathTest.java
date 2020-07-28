@@ -46,7 +46,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private final String testResultsOutputPath;
     private String expandedTestResultsOutputPath;
 
-    private final int TimeoutDefault = 7200;
+    private static int TimeoutDefault = 7200;
 
     /**
      * Gets the timeout.
