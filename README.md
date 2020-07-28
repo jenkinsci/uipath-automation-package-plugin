@@ -182,6 +182,10 @@ pipeline {
 
 All paths specified should be local to the current workspace. You can use environment variables in paths, though you should ensure that they result in paths that are local to the workspace. All paths
 
+In order to deploy packages or run tests, ensure that the authenticated user has the Folders View (or OrganizationUnits View) and (20.4+ only) Background Tasks View permissions.
+
+In order to package libraries when connected to an Orchestrator instance, ensure that the authenticated user has the Libraries View permission.
+
 ## Questions
 
 Do you have any questions regarding the plugin? Ask them [here](https://connect.uipath.com/marketplace/components/jenkins-plugin-for-uipath-public-preview/questions).
