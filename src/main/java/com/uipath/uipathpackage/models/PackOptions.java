@@ -1,8 +1,9 @@
 package com.uipath.uipathpackage.models;
 
-public class PackOptions implements SerializableCliOptions {
+public class PackOptions extends AuthenticatedOptions {
     private String projectPath;
     private String destinationFolder;
+    private String outputType;
     private String version;
     private boolean autoVersion;
 
@@ -28,6 +29,14 @@ public class PackOptions implements SerializableCliOptions {
 
     public void setDestinationFolder(String destinationFolder) {
         this.destinationFolder = destinationFolder;
+    }
+
+    public String getOutputType() {
+        return outputType;
+    }
+
+    public void setOutputType(String outputType) {
+        this.outputType = outputType;
     }
 
     public String getVersion() {
