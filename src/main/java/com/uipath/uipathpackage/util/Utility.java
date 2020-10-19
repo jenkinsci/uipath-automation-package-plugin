@@ -5,7 +5,10 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 import com.uipath.uipathpackage.entries.SelectEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
+import com.uipath.uipathpackage.entries.job.DynamicallyEntry;
+import com.uipath.uipathpackage.entries.job.RobotEntry;
 import com.uipath.uipathpackage.models.AuthenticatedOptions;
+import com.uipath.uipathpackage.models.JobOptions;
 import com.uipath.uipathpackage.models.RunOptions;
 import com.uipath.uipathpackage.models.SerializableCliOptions;
 import hudson.AbortException;
@@ -117,6 +120,34 @@ public class Utility {
 
             options.setRefreshToken(cred.getSecret().getPlainText());
             options.setAccountName(((TokenAuthenticationEntry) credentials).getAccountName());
+        }
+    }
+
+    public void setJobRunFromStrategyEntry(SelectEntry strategy, JobOptions options) {
+        if (strategy == null)
+        {
+            options.setJobsCount(1);
+            options.setUser("");
+            options.setMachine("");
+
+            return;
+        }
+
+        if (strategy instanceof DynamicallyEntry) {
+            options.setJobsCount(((DynamicallyEntry) strategy).getJobsCount());
+            options.setUser(((DynamicallyEntry) strategy).getUser());
+            options.setMachine(((DynamicallyEntry) strategy).getMachine());
+            options.setRobots(new String[]{});
+        }else {
+            String robotNames = ((RobotEntry) strategy).getRobotsIds();
+            if (robotNames != null)
+            {
+                options.setRobots(robotNames.split(","));
+            }
+            else
+            {
+                options.setRobots(new String[]{});
+            }
         }
     }
 

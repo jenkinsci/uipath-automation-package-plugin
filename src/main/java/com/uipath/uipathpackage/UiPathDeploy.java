@@ -180,6 +180,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
             }
 
             util.execute("DeployOptions", deployOptions, tempRemoteDir, listener, envVars, launcher, true);
+
         } catch (URISyntaxException e) {
             e.printStackTrace(logger);
             throw new AbortException(e.getMessage());
