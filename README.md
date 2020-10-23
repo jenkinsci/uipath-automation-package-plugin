@@ -9,6 +9,8 @@ UiPath Jenkins Plugin
 
 This plugin allows you to build and deploy UiPath automation processes, as well as run UiPath automated test cases.
 
+In order to pack projects created with UiPath Studio starting from 20.10, you need to use a version starting from 2.1 of this extension.
+
 ## Prerequisites
 
 * Jenkins server running on Windows or Linux
