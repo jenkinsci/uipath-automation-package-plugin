@@ -192,6 +192,75 @@ In order to package libraries when connected to an Orchestrator instance, ensure
 
 Do you have any questions regarding the plugin? Ask them [here](https://connect.uipath.com/marketplace/components/jenkins-plugin-for-uipath-public-preview/questions).
 
+## Troubleshooting
+#### [Unauthorized error](#unauthorized-error)
+#### [Forbidden error](#forbidden-error)
+#### [Folder/environment not found](#folder/environment-not-found)
+#### [Package already exists (Conflict)](#package-already-exists-conflict)
+#### [Failed to run the command (Generic error)](#failed-to-run-the-command-generic-error))
+#### [Jenkins fails to process paths containing non-Latin characters](#jenkins-fails-to-process-paths-containing-non-latin-characters)
+
+### Unauthorized error
+If using basic authentication:
+* ensure the correctness of the username-password combination on the web login
+* if federated authentication is enabled, make sure your write the username in the task as “DOMAIN\user”
+
+If using token authentication:
+* Regenerate the token and use new credentials
+* Revoke the token from the API access panel, generate a new one
+* Ensure that the user that generated the key has can access the Orchestrator and has a user on the Orchestrator instance
+
+If authenticating against on an on-premise Orchestrator you might receive this error as a result of the certificate used for the Orchestrator not being valid. This might mean that it has the wrong CN or other validation issues. Ensure that the Orchestrator certificate is valid and that the machine running the job trusts the Orchestrator certificate in case you are using a self-signed certificate.
+
+### Forbidden error
+Likely, the user does not have the permission to perform the action.
+
+Ensure that the user has permissions to read folders, upload packages, create and update processes, read test sets and test cases, create and run test sets, read background tasks.
+
+### Folder/environment not found
+Ensure that the authenticated user used by CI/CD plugins has the Folders.View and (20.4 only) BackgroundTask.View permissions.
+
+### Package already exists (Conflict)
+Ensure that the package that you are trying to deploy does not exist with the same version already. If it does, consider using automatic package versioning, so that the new version is bumped up every time we deploy.
+
+### Failed to run the command (Generic error)
+If the Jenkins workspace is inside a location on disk (like C:\Windows or C:\Program Files) to which the user does not have permissions, ensure that the workspace is placed on a path that can be accessed smoothly by the user
+
+### Jenkins fails to process paths containing non-Latin characters
+Jenkins is not able to pass correctly non-standard encoded characters when invoking the UiPath Plugin. The unknown characters will be replaced by ???.
+
+The solution depends on how Jenkins is deployed on both the server and the agent host machines, but involves setting "file.encoding" to UTF-8 in Java options:
+* Windows
+	* Running Jenkins in Windows as a Service
+	In the service configuration file add the arguments into the <arguments> tag. It should look like this:
+	```
+	<arguments>-Xrs -Xmx512m -Dhudson.lifecycle=hudson.lifecycle.WindowsServiceLifecycle -Dfile.encoding=UTF-8 -jar "%BASE%\jenkins.war" --httpPort=8080 --webroot="%BASE%\war"</arguments>
+	```
+	
+	* Running Jenkins inside Docker
+	The JAVA_OPTS should be passed to the container via --env JAVA_OPTS="..." like the following:
+	```
+	docker run --name myjenkins -p 8080:8080 -p 50000:50000 --env JAVA_OPTS=-Dhudson.lifecycle=hudson.lifecycle.WindowsServiceLifecycle -Dfile.encoding=UTF-8 jenkins/jenkins:lts
+	```
+	
+	* Running Jenkins inside Tomcat
+	Use environment variable CATALINA_OPTS:
+	```
+	export CATALINA_OPTS="-DJENKINS_HOME=/path/to/jenkins_home/ -Dhudson.lifecycle=hudson.lifecycle.WindowsServiceLifecycle -Dfile.encoding=UTF-8 -Xmx512m"
+	```
+* Linux
+	* Debian / Ubuntu based Linux distributions
+	In the configuration file search for the argument JAVA_ARGS and add the file enconding. It might look like this:
+	```
+	JAVA_ARGS="-Dfile.encoding=UTF-8 -Xmx512m"
+	```
+	
+	* RedHat Linux based distributions
+	In the configuration file search for the argument JENKINS_JAVA_OPTIONS and add the file enconding. It might look like this:
+	```
+	JENKINS_JAVA_OPTIONS="-Dfile.encoding=UTF-8 -Xmx512m"
+	```
+
 ## License
 
 [UiPath Open Platform License Agreement – V.20190913](./LICENSE.md)
