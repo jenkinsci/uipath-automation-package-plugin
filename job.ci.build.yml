@@ -28,7 +28,10 @@ steps:
     scannerMode: Other
 
 - task: Maven@3
-  displayName: 'Build plugin package & run unit tests (Java 8)'
+  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+    displayName: 'Build plugin package (Java 8)'
+  ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+    displayName: 'Build plugin package & run unit tests (Java 8)'
   inputs:
     mavenPomFile: $(MavenPOMFile)
     testResultsFiles: '**/TEST-*.xml'
@@ -51,17 +54,12 @@ steps:
     PathtoPublish: '$(system.defaultworkingdirectory)/target/uipath-automation-package.hpi'
     ArtifactName: Packages
 
-- task: JavaToolInstaller@0
-  inputs:
-    versionSpec: '11'
-    jdkArchitectureOption: 'x64'
-    jdkSourceOption: 'PreInstalled'
-
 # The output of this task should not be published as it is only used for testing - Java 8 is still required for Jenkins, but it now also supports Java 11.
 # The reason for not using only Java 8 is that Sonar does not support Java 8 any longer.
 - task: Maven@3
-  displayName: 'Build plugin package & run unit tests (Java 11)'
+  displayName: 'Run unit tests (Java 11)'
   inputs:
+    jdkVersionOption: 1.11
     mavenPomFile: $(MavenPOMFile)
     testResultsFiles: '**/TEST-*.xml'
     sonarQubeRunAnalysis: true
