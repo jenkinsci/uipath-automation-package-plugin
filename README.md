@@ -206,8 +206,7 @@ If using basic authentication:
 * if federated authentication is enabled, make sure your write the username in the task as “DOMAIN\user”
 
 If using token authentication:
-* Regenerate the token and use new credentials
-* Revoke the token from the API access panel, generate a new one
+* Revoke the token from the API access panel and generate a new one
 * Ensure that the user that generated the key has can access the Orchestrator and has a user on the Orchestrator instance
 
 If authenticating against on an on-premise Orchestrator you might receive this error as a result of the certificate used for the Orchestrator not being valid. This might mean that it has the wrong CN or other validation issues. Ensure that the Orchestrator certificate is valid and that the machine running the job trusts the Orchestrator certificate in case you are using a self-signed certificate.
