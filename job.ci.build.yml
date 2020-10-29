@@ -28,14 +28,14 @@ steps:
     scannerMode: Other
 
 - task: Maven@3
-  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-    displayName: 'Build plugin package (Java 8)'
   ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+    displayName: 'Build plugin package (Java 8)'
+  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
     displayName: 'Build plugin package & run unit tests (Java 8)'
   inputs:
     mavenPomFile: $(MavenPOMFile)
     testResultsFiles: '**/TEST-*.xml'
-    sonarQubeRunAnalysis: true
+    sonarQubeRunAnalysis: false
     findBugsRunAnalysis: true
     sqMavenPluginVersionChoice: 'latest'
     ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
@@ -49,7 +49,7 @@ steps:
     TestOrchestratorFolderName: $(TestOrchestratorFolderName)
 
 - task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact: Maven Package'
+  displayName: 'Publish package'
   inputs:
     PathtoPublish: '$(system.defaultworkingdirectory)/target/uipath-automation-package.hpi'
     ArtifactName: Packages
