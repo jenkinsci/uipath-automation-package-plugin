@@ -94,6 +94,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         FilePath tempRemoteDir = tempDir(workspace);
         tempRemoteDir.mkdirs();
 
+        if (launcher.isUnix()) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
+        }
+
         try {
             ResourceBundle rb = ResourceBundle.getBundle("config");
             EnvVars envVars = run.getEnvironment(listener);
@@ -145,7 +149,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
             util.setCredentialsFromCredentialsEntry(credentials, testOptions, run);
 
-            int result = util.execute("test", testOptions, tempRemoteDir, listener, envVars, launcher);
+            int result = util.execute("RunTestsOptions", testOptions, tempRemoteDir, listener, envVars, launcher, false);
 
             if (result != 0 && !expandedTestResultsOutputPath.exists()) {
                 throw new AbortException("Failed to run the command");
