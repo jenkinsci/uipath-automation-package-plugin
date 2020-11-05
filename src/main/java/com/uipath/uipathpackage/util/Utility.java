@@ -56,11 +56,20 @@ public class Utility {
         return rb.getString(s);
     }
 
-    public int execute(@Nonnull String command, @Nonnull SerializableCliOptions options, @Nonnull FilePath remoteTempDir, @Nonnull TaskListener listener, @Nonnull EnvVars envVars, @Nonnull Launcher launcher) throws IOException, InterruptedException, URISyntaxException {
+    public int execute(@Nonnull String command, @Nonnull SerializableCliOptions options, @Nonnull FilePath remoteTempDir, @Nonnull TaskListener listener, @Nonnull EnvVars envVars, @Nonnull Launcher launcher, boolean throwExceptionOnFailure) throws IOException, InterruptedException, URISyntaxException {
+        if (remoteTempDir.getRemote().toUpperCase().contains(":\\WINDOWS\\SYSTEM32")) {
+            throw new AbortException("The plugin cannot be executed in a workspace path inside the WINDOWS folder. Please use a custom workspace folder that is outside the WINDOWS folder for this build definition or reinstall Jenkins and use a local user account instead.");
+        }
+
         FilePath cliPath = extractCliApp(remoteTempDir, listener, envVars);
         FilePath commandOptionsFile = remoteTempDir.createTextTempFile("uipcliargs", "", new JSONObject(new RunOptions(command, options)).toString());
 
-        return launcher.launch().cmds(this.buildCommandLine(cliPath, commandOptionsFile)).envs(envVars).stdout(listener).pwd(cliPath.getParent()).start().join();
+        int result = launcher.launch().cmds(this.buildCommandLine(cliPath, commandOptionsFile)).envs(envVars).stdout(listener).pwd(cliPath.getParent()).start().join();
+        if (throwExceptionOnFailure && result != 0) {
+            throw new AbortException("Failed to run the command, the CLI failed with error code " + result);
+        }
+
+        return result;
     }
 
 
@@ -78,7 +87,7 @@ public class Utility {
 
         String pluginJarPath;
 
-        if (isCurrentOSWindows()) {
+        if (isServerOSWindows()) {
             pluginJarPath = env.expand("${JENKINS_HOME}\\plugins\\uipath-automation-package\\WEB-INF\\lib\\uipath-automation-package.jar");
         } else {
             pluginJarPath = env.expand("${JENKINS_HOME}/plugins/uipath-automation-package/WEB-INF/lib/uipath-automation-package.jar");
@@ -163,7 +172,7 @@ public class Utility {
         }
     }
 
-    private boolean isCurrentOSWindows() {
+    private boolean isServerOSWindows() {
         return System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH).contains("win");
     }
 

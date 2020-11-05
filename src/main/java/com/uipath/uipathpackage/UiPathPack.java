@@ -86,6 +86,10 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         FilePath tempRemoteDir = tempDir(workspace);
         tempRemoteDir.mkdirs();
 
+        if (launcher.isUnix()) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
+        }
+
         try {
             EnvVars envVars = run.getEnvironment(listener);
 
@@ -117,10 +121,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
                 util.setCredentialsFromCredentialsEntry(credentials, packOptions, run);
             }
 
-            int result = util.execute("pack", packOptions, tempRemoteDir, listener, envVars, launcher);
-            if (result != 0) {
-                throw new AbortException("Failed to run the command");
-            }
+            util.execute("PackOptions", packOptions, tempRemoteDir, listener, envVars, launcher, true);
         } catch (URISyntaxException e) {
             e.printStackTrace(listener.getLogger());
             throw new AbortException(e.getMessage());

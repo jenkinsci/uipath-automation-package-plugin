@@ -115,7 +115,7 @@ public class UiPathPackTests {
         builder.setOrchestratorTenant(orchestratorTenant);
         builder.setOutputType(outputType);
 
-        jenkins.assertLogContains(String.format("Packing project at path %s", projectJsonPath), build);
+        jenkins.assertLogContains(String.format("Packing project(s) at path %s", projectJsonPath), build);
         jenkins.assertLogContains(String.format("saved to %s", outputPath), build);
         assertThat(new File(outputPath).exists(), CoreMatchers.is(true));
     }
@@ -132,7 +132,7 @@ public class UiPathPackTests {
         doNothing().when(util).validateParams(isA(String.class), isA(String.class));
         project.getBuildersList().add(builder);
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
-        jenkins.assertLogContains(String.format("Packing project at path %s", parentProjectPath), build);
+        jenkins.assertLogContains(String.format("Packing project(s) at path %s", parentProjectPath), build);
         jenkins.assertLogContains(String.format("saved to %s", outputPath), build);
     }
 
@@ -151,7 +151,7 @@ public class UiPathPackTests {
         project.getBuildersList().add(builder);
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
         FilePath workspace = project.getSomeBuildWithWorkspace().getWorkspace();
-        jenkins.assertLogContains(String.format("Packing project at path %s", workspace != null ? workspace.child("TestProject").getRemote() : null), build);
+        jenkins.assertLogContains(String.format("Packing project(s) at path %s", workspace != null ? workspace.child("TestProject").getRemote() : null), build);
         jenkins.assertLogContains(String.format("saved to %s", workspace != null ? workspace.child("Output").getRemote() : null), build);
     }
 
@@ -167,7 +167,7 @@ public class UiPathPackTests {
         project.getBuildersList().add(builder);
         doNothing().when(util).validateParams(isA(String.class), isA(String.class));
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
-        jenkins.assertLogContains(String.format("Packing project at path %s", projectPath), build);
+        jenkins.assertLogContains(String.format("Packing project(s) at path %s", projectPath), build);
         jenkins.assertLogContains(String.format("saved to %s", outputPath), build);
     }
 
@@ -183,7 +183,7 @@ public class UiPathPackTests {
         project.getBuildersList().add(builder);
         doNothing().when(util).validateParams(isA(String.class), isA(String.class));
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
-        jenkins.assertLogContains(String.format("Packing project at path %s", projectPath), build);
+        jenkins.assertLogContains(String.format("Packing project(s) at path %s", projectPath), build);
         jenkins.assertLogNotContains(workspaceOutputPath, build);
     }
 
@@ -199,7 +199,7 @@ public class UiPathPackTests {
         project.getBuildersList().add(builder);
         doNothing().when(util).validateParams(isA(String.class), isA(String.class));
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
-        jenkins.assertLogContains(String.format("Packing project at path %s", projectPath), build);
+        jenkins.assertLogContains(String.format("Packing project(s) at path %s", projectPath), build);
         jenkins.assertLogNotContains(workspaceOutputPath, build);
     }
 
@@ -218,7 +218,7 @@ public class UiPathPackTests {
         project.getBuildersList().add(builder);
         doNothing().when(util).validateParams(isA(String.class), isA(String.class));
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
-        jenkins.assertLogContains(String.format("Packing project at path %s", projectPath), build);
+        jenkins.assertLogContains(String.format("Packing project(s) at path %s", projectPath), build);
         jenkins.assertLogNotContains(workspaceOutputPath, build);
     }
 

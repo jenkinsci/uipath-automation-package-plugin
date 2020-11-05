@@ -147,6 +147,10 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         FilePath tempRemoteDir = tempDir(workspace);
         tempRemoteDir.mkdirs();
 
+        if (launcher.isUnix()) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
+        }
+
         try {
             EnvVars envVars = run.getEnvironment(listener);
 
@@ -175,11 +179,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
                 deployOptions.setEnvironments(new ArrayList<>());
             }
 
-            int result = util.execute("deploy", deployOptions, tempRemoteDir, listener, envVars, launcher);
-
-            if (result != 0) {
-                throw new AbortException("Failed to run the command");
-            }
+            util.execute("DeployOptions", deployOptions, tempRemoteDir, listener, envVars, launcher, true);
         } catch (URISyntaxException e) {
             e.printStackTrace(logger);
             throw new AbortException(e.getMessage());
