@@ -48,6 +48,17 @@ steps:
     TestOrchestratorPassword: $(TestOrchestratorPassword)
     TestOrchestratorFolderName: $(TestOrchestratorFolderName)
 
+    TestOrchestratorCloudUrl: $(TestOrchestratorCloudUrl)
+    TestOrchestratorCloudTenant: $(TestOrchestratorCloudTenant)
+    TestOrchestratorAccountName: $(TestOrchestratorAccountName)
+    TestOrchestratorAuthenticationToken: $(TestOrchestratorAuthenticationToken)
+    TestOrchestratorCloudModernFolderName: $(TestOrchestratorCloudModernFolderName)
+    TestOrchestratorClientIdOverride: $(TestOrchestratorClientIdOverride)
+    TestOrchestratorAuthorizationUriOverride: $(TestOrchestratorAuthorizationUriOverride)
+    TestOrchestratorCloudUserName: $(TestOrchestratorCloudUserName)
+    TestOrchestratorCloudMachineName: $(TestOrchestratorCloudMachineName)
+    TestOrchestratorCloudUnattendedRobotName: $(TestOrchestratorCloudUnattendedRobotName)
+
 - task: PublishBuildArtifacts@1
   displayName: 'Publish package'
   inputs:
@@ -71,5 +82,17 @@ steps:
     TestOrchestratorUsername: $(TestOrchestratorUsername)
     TestOrchestratorPassword: $(TestOrchestratorPassword)
     TestOrchestratorFolderName: $(TestOrchestratorFolderName)
+    
+    TestOrchestratorCloudUrl: $(TestOrchestratorCloudUrl)
+    TestOrchestratorCloudTenant: $(TestOrchestratorCloudTenant)
+    TestOrchestratorAccountName: $(TestOrchestratorAccountName)
+    TestOrchestratorAuthenticationToken: $(TestOrchestratorAuthenticationToken)
+    TestOrchestratorCloudModernFolderName: $(TestOrchestratorCloudModernFolderName)
+    TestOrchestratorClientIdOverride: $(TestOrchestratorClientIdOverride)
+    TestOrchestratorAuthorizationUriOverride: $(TestOrchestratorAuthorizationUriOverride)
+    TestOrchestratorCloudUserName: $(TestOrchestratorCloudUserName)
+    TestOrchestratorCloudMachineName: $(TestOrchestratorCloudMachineName)
+    TestOrchestratorCloudUnattendedRobotName: $(TestOrchestratorCloudUnattendedRobotName)
+
 
 
