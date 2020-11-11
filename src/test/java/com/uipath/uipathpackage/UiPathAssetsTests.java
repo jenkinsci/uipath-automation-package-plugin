@@ -115,13 +115,18 @@ public class UiPathAssetsTests {
     @Test
     public void testDeployUpdateAssets() throws Exception {
         String assetsResourcesFolder = new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("Assets")).getPath()).getAbsolutePath();
-        UiPathAssets builder = new UiPathAssets(new DeployAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/deploy_test_sample_file.csv");
+        UiPathAssets builder = new UiPathAssets(new DeleteAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/deploy_test_sample_file.csv");
+        project.getBuildersList().add(builder);
+        project = jenkins.configRoundtrip(project);
+        FreeStyleBuild build = project.scheduleBuild2(0).get();
+        project.getBuildersList().clear();
+        builder = new UiPathAssets(new DeployAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/deploy_test_sample_file.csv");
         project.getBuildersList().add(builder);
         builder = new UiPathAssets(new UpdateAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/update_test_sample_file.csv");
         project.getBuildersList().add(builder);
         builder = new UiPathAssets(new DeleteAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/deploy_test_sample_file.csv");
         project.getBuildersList().add(builder);
         project = jenkins.configRoundtrip(project);
-        FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
+        build = jenkins.buildAndAssertSuccess(project);
     }
 }

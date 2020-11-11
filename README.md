@@ -25,6 +25,69 @@ The Jenkins plugin can be installed from any Jenkins installation connected to t
 
 ## Steps
 
+### 💼 UiPath Manage Assets
+
+The `UiPathManageAssets` step enables you to deploy and/or update assets on an
+Orchestrator instance. In order to deploy assets you must describe them in a
+CSV file like the one in the example below.
+
+```csv
+name,type,value
+asset_1_name,text,asset_value   # we can have comments
+asset_2_name,integer,123
+asset_3_name,boolean,false
+asset_4_name,credential,"username::password"
+```
+
+There are 4 types of assets `text`, `integer`, `boolean` and `credential`. For 
+the credential you must encode the username and password by using `::` to
+separte the two fields.
+
+[![UiPath Manage Assets](.github/assets.png)](.github/assets.png)
+
+**⚙️ Configuration**
+
+| Argument                      | Description           |
+| ----------------------------- | -------------         |
+| Action                        | What to do with the provided assets: deploy or update. You can only deploy an asset with the same key (name) once.|
+| Orchestrator address          | The address of the Orchestrator instance where we'll deploy or update assets. |
+| Orchestrator tenant           | Specify the Orchestrator tenant onto which the assets will be deployed or updated. |
+| Orchestrator folder           | Specify the folder where assets will be deployed or updated. |
+| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this). |
+| CSV File Path                 | The path to the csv file containing assets descriptions. The same file can be used to deploy or update the assets although the `type` isn't required for update. The `type` field can also be empty but the column must be present. |
+
+**📖 Pipeline example:**
+
+```Groovy
+pipeline {
+  agent any
+  environment {
+      MAJOR = '1'
+      MINOR = '0'
+  }
+  stages {
+    stage ('Build') {
+        UiPathAssets(
+            assetsAction: UpdateAssets(),
+            credentials: UserPass('825c83c9-9a14-44eb-883a-af54f8078af0'),
+            filePath: '${WORKSPACE}/test.csv',
+            folderName: 'Default',
+            orchestratorAddress: 'https://orch-testingsol-web0-we-webapp.azurewebsites.net',
+            orchestratorTenant: 'Default'
+        )
+        UiPathAssets (
+            assetsAction: DeployAssets(), 
+            credentials: Token(accountName: '', credentialsId: ''), 
+            filePath: '${WORKSPACE}/test.csv', 
+            folderName: 'Default', 
+            orchestratorAddress: 'https://orch-testingsol-web0-we-webapp.azurewebsites.net', 
+            orchestratorTenant: 'Default'
+        )
+    }
+  }
+}
+```
+
 ### 📦 UiPath Pack
 
 **Application:** RPA

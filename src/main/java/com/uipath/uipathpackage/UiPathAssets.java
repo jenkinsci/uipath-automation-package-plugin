@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.uipath.uipathpackage.entries.SelectEntry;
 import com.uipath.uipathpackage.entries.assetsAction.DeployAssetsEntry;
 import com.uipath.uipathpackage.entries.assetsAction.UpdateAssetsEntry;
+import com.uipath.uipathpackage.entries.assetsAction.DeleteAssetsEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
 import com.uipath.uipathpackage.util.Utility;
@@ -82,6 +83,9 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
             if (assetsAction instanceof UpdateAssetsEntry) {
                 logger.println("Update some assets");
             }
+            if (assetsAction instanceof DeleteAssetsEntry) {
+                logger.println("Update some assets");
+            }
             logger.println("Orchestrator URL: " + orchestratorAddress);
             logger.println("Orchestrator Tenant: " + orchestratorTenant);
             logger.println("Orchestrator Folder: " + folderName);
@@ -97,17 +101,16 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
             String organizationUnit = envVars.expand(folderName.trim());
             assetsOptions.setOrganizationUnit(organizationUnit.length() > 0 ? organizationUnit : "Default");
             assetsOptions.setAssetsFile(expandedCsvFilePath.getRemote());
-           
+
             ResourceBundle rb = ResourceBundle.getBundle("config");
             String orchestratorTenantFormatted = envVars.expand(orchestratorTenant.trim()).isEmpty() ? util.getConfigValue(rb, "UiPath.DefaultTenant") : envVars.expand(orchestratorTenant.trim());
 
             assetsOptions.setOrchestratorTenant(orchestratorTenantFormatted);
             util.setCredentialsFromCredentialsEntry(credentials, assetsOptions, run);
+            String assetAction = assetsAction instanceof DeployAssetsEntry ? "DeployAssetsOptions"
+                               : assetsAction instanceof UpdateAssetsEntry ? "UpdateAssetsOptions" : "DeleteAssetsOptions";
 
-            int result = util.execute(assetsAction instanceof DeployAssetsEntry ? "DeployAssetsOptions"
-                                    : assetsAction instanceof UpdateAssetsEntry ? "UpdateAssetsOptions" 
-                                                                                : "DeleteAssetsOptions"
-                                                                                , assetsOptions, tempRemoteDir, listener, envVars, launcher, true);
+            int result = util.execute(assetAction, assetsOptions, tempRemoteDir, listener, envVars, launcher, true);
 
             if (result != 0) {
                 throw new AbortException("Failed to run the command");
@@ -231,6 +234,37 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
                 list.add(updateAssetsDescriptor);
             }
             return ImmutableList.copyOf(list);
+        }
+
+        /**
+         * Validates CSV File Path
+         *
+         * @param value value of csv file path
+         * @return FormValidation
+         */
+        public FormValidation doCheckFilePath(@QueryParameter String value) {
+            if (value.trim().isEmpty()) {
+                return FormValidation.error(com.uipath.uipathpackage.Messages.UiPathAssets_DescriptorImpl_Errors_MissingFilePath());
+            }
+
+            if (value.trim().toUpperCase().contains("${JENKINS_HOME}")) {
+                return FormValidation.error(com.uipath.uipathpackage.Messages.GenericErrors_MustUseSlavePaths());
+            }
+
+            return FormValidation.ok();
+        }
+
+        /**
+         * Validates Orchestrator Address
+         *
+         * @param value value of orchestrator address
+         * @return FormValidation
+         */
+        public FormValidation doCheckOrchestratorAddress(@QueryParameter String value) {
+            if (value.trim().isEmpty()) {
+                return FormValidation.error(com.uipath.uipathpackage.Messages.GenericErrors_MissingOrchestratorAddress());
+            }
+            return FormValidation.ok();
         }
 
         /**
