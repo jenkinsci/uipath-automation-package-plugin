@@ -45,7 +45,7 @@
     <f:entry field="orchestratorTenant" title="${%OrchestratorTenant}">
         <f:textbox/>
     </f:entry>
-    <f:entry field="folderName" title="${%OrchestratorFolder}" >
+    <f:entry field="folderName" title="${%OrchestratorFolder}">
         <f:textbox/>
     </f:entry>
     <f:entry field="credentialsEntry" title="${%ChooseAuthenticationMethod}">

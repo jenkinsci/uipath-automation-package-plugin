@@ -13,6 +13,8 @@
     <properties>
         <jenkins.version>2.138.4</jenkins.version>
         <java.level>8</java.level>
+        <script.to.execute>.\GenerateHelpFiles.ps1</script.to.execute>
+        <script.executor>powershell.exe</script.executor>
     </properties>
     <name>UiPath Plugin</name>
     <description>
@@ -21,6 +23,24 @@
     <url>https://github.com/jenkinsci/uipath-automation-package-plugin</url>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <id>default-cli</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <phase>test</phase>
+                        <configuration>
+                            <executable>${script.executor}</executable>
+                            <commandlineArgs>${script.to.execute}</commandlineArgs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
