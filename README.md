@@ -49,12 +49,12 @@ separte the two fields.
 
 | Argument                      | Description           |
 | ----------------------------- | -------------         |
-| Action                        | What to do with the provided assets: deploy or update. You can only deploy an asset with the same key (name) once.|
+| Action                        | What to do with the provided assets: deploy, update or delete. You can only deploy an asset with the same key (name) once.|
 | Orchestrator address          | The address of the Orchestrator instance where we'll deploy or update assets. |
 | Orchestrator tenant           | Specify the Orchestrator tenant onto which the assets will be deployed or updated. |
 | Orchestrator folder           | Specify the folder where assets will be deployed or updated. |
 | Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this). |
-| CSV File Path                 | The path to the csv file containing assets descriptions. The same file can be used to deploy or update the assets although the `type` isn't required for update. The `type` field can also be empty but the column must be present. |
+| CSV File Path                 | The path to the csv file containing assets descriptions. The same file can be used to deploy or update the assets although the `type` isn't required for update. The `type` field can also be empty but the column must be present. For delete, only the name column is used, so the other columns can be empty but they must be present. |
 
 **📖 Pipeline example:**
 

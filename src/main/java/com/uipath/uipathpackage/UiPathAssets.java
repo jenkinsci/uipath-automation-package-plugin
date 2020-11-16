@@ -108,12 +108,17 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
             assetsOptions.setOrchestratorTenant(orchestratorTenantFormatted);
             util.setCredentialsFromCredentialsEntry(credentials, assetsOptions, run);
             String assetAction = assetsAction instanceof DeployAssetsEntry ? "DeployAssetsOptions"
-                               : assetsAction instanceof UpdateAssetsEntry ? "UpdateAssetsOptions" : "DeleteAssetsOptions";
+                               : assetsAction instanceof UpdateAssetsEntry ? "UpdateAssetsOptions"
+                               : assetsAction instanceof DeleteAssetsEntry ? "DeleteAssetsOptions" : "None";
+
+            if (assetAction.equals("None")) {
+                throw new AbortException("Invalid assetAction!");
+            }
 
             int result = util.execute(assetAction, assetsOptions, tempRemoteDir, listener, envVars, launcher, true);
 
             if (result != 0) {
-                throw new AbortException("Failed to run the command");
+                throw new AbortException("Failed to run the command.");
             }
         } catch (URISyntaxException e) {
             e.printStackTrace(logger);
@@ -232,6 +237,10 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
             Descriptor updateAssetsDescriptor = jenkins.getDescriptor(UpdateAssetsEntry.class);
             if (updateAssetsDescriptor != null) {
                 list.add(updateAssetsDescriptor);
+            }
+            Descriptor deleteAssetsDescriptor = jenkins.getDescriptor(DeleteAssetsEntry.class);
+            if (deleteAssetsDescriptor != null) {
+                list.add(deleteAssetsDescriptor);
             }
             return ImmutableList.copyOf(list);
         }
