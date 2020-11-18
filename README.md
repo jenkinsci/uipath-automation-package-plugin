@@ -27,7 +27,7 @@ The Jenkins plugin can be installed from any Jenkins installation connected to t
 
 ### 💼 UiPath Manage Assets
 
-The `UiPathManageAssets` step enables you to deploy and/or update assets on an
+The `UiPathManageAssets` step enables you to deploy, update or delete assets on an
 Orchestrator instance. In order to deploy assets you must describe them in a
 CSV file like the one in the example below.
 
@@ -67,6 +67,14 @@ pipeline {
   }
   stages {
     stage ('Build') {
+        UiPathAssets (
+            assetsAction: DeployAssets(), 
+            credentials: Token(accountName: '', credentialsId: ''), 
+            filePath: '${WORKSPACE}/test.csv', 
+            folderName: 'Default', 
+            orchestratorAddress: 'https://orch-testingsol-web0-we-webapp.azurewebsites.net', 
+            orchestratorTenant: 'Default'
+        )
         UiPathAssets(
             assetsAction: UpdateAssets(),
             credentials: UserPass('825c83c9-9a14-44eb-883a-af54f8078af0'),
@@ -75,12 +83,12 @@ pipeline {
             orchestratorAddress: 'https://orch-testingsol-web0-we-webapp.azurewebsites.net',
             orchestratorTenant: 'Default'
         )
-        UiPathAssets (
-            assetsAction: DeployAssets(), 
-            credentials: Token(accountName: '', credentialsId: ''), 
-            filePath: '${WORKSPACE}/test.csv', 
-            folderName: 'Default', 
-            orchestratorAddress: 'https://orch-testingsol-web0-we-webapp.azurewebsites.net', 
+        UiPathAssets(
+            assetsAction: DeleteAssets(),
+            credentials: UserPass('825c83c9-9a14-44eb-883a-af54f8078af0'),
+            filePath: '${WORKSPACE}/test.csv',
+            folderName: 'Default',
+            orchestratorAddress: 'https://orch-testingsol-web0-we-webapp.azurewebsites.net',
             orchestratorTenant: 'Default'
         )
     }

@@ -76,25 +76,11 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
         tempRemoteDir.mkdirs();
 
         try {
-            logger.println("Start");
-            if (assetsAction instanceof DeployAssetsEntry) {
-                logger.println("Deploy some assets");
-            }
-            if (assetsAction instanceof UpdateAssetsEntry) {
-                logger.println("Update some assets");
-            }
-            if (assetsAction instanceof DeleteAssetsEntry) {
-                logger.println("Update some assets");
-            }
-            logger.println("Orchestrator URL: " + orchestratorAddress);
-            logger.println("Orchestrator Tenant: " + orchestratorTenant);
-            logger.println("Orchestrator Folder: " + folderName);
             EnvVars envVars = run.getEnvironment(listener);
 
             FilePath expandedCsvFilePath = filePath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(filePath)) :
                     workspace.child(envVars.expand(filePath));
-            logger.println("expandedFilePath: " + expandedCsvFilePath.getRemote());
 
             AssetsOptions assetsOptions = new AssetsOptions();
             assetsOptions.setOrchestratorUrl(orchestratorAddress);
@@ -112,7 +98,7 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
                                : assetsAction instanceof DeleteAssetsEntry ? "DeleteAssetsOptions" : "None";
 
             if (assetAction.equals("None")) {
-                throw new AbortException("Invalid assetAction!");
+                throw new AbortException("Invalid Action!");
             }
 
             int result = util.execute(assetAction, assetsOptions, tempRemoteDir, listener, envVars, launcher, true);
@@ -127,7 +113,7 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
             try{
                 Objects.requireNonNull(tempRemoteDir).deleteRecursive();
             }catch(Exception e){
-                logger.println("Failed to delete temp remote directory in UiPath Deploy "+ e.getMessage());
+                logger.println("Failed to delete temp remote directory in UiPath Assets " + e.getMessage());
                 e.printStackTrace(logger);
             }
         }

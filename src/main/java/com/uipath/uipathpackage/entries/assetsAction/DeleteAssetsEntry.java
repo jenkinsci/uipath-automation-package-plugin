@@ -32,7 +32,7 @@ public class DeleteAssetsEntry extends SelectEntry {
         return true;
     }
 
-    @Symbol("DeployAssets")
+    @Symbol("DeleteAssets")
     @Extension
     public static class DescriptorImpl extends Descriptor<SelectEntry> {
         @Nonnull
