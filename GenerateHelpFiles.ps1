@@ -1,5 +1,9 @@
 $OpenDivTag='<div>'
 $CloseDivTag='</div>'
+$OpenHrefTag='<a href ="'
+$CloseHrefTag='" target = "_blank">here</a>.'
+
+$UrlRegex = "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
 
 $ResourcesRelativePath = "src\\main\\resources\\com\\uipath\\uipathpackage\\"
 $FolderName = "help"
@@ -22,6 +26,11 @@ function CreateFileWithContent {
         $Value
     )
 
+    $hasUrl = $Value -match $UrlRegex
+    if ($hasUrl -eq $true){
+        $match = $matches[0]
+        $Value = $Value.Replace($match, "$OpenHrefTag$match$CloseHrefTag")
+    }
     $TemplateValue = $OpenDivTag + $Value + $CloseDivTag
     Set-Content -Path $FilePath -Value $TemplateValue -Force
 }
