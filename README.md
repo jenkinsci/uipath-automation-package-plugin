@@ -24,6 +24,76 @@ In order to pack projects created with UiPath Studio starting from 20.10, you ne
 The Jenkins plugin can be installed from any Jenkins installation connected to the Internet using the **Plugin Manager** screen.
 
 ## Steps
+### ▶ UiPath Run Job
+
+The `UiPath Run Job` post-build step starts an already deployed process on an Orchestrator instance. The processes this task refers to are found in `Automations->Processes` on newer versions of Orchestrator and directly on the `Processes` tab on older versions of Orchestrator.
+
+[![UiPath Run Job](.github/run-job.png)](.github/run-job.png)
+
+**⚙️ Configuration**
+
+| Argument                      | Description           |
+| ----------------------------- | -------------         |
+| Process                       | (Required) Process name. You can take the process name from the Orchestrator UI. If the process is deployed in a Modern Folder then this argument should be the `NAME` of the process in the Processes tab. If the process is deployed in a Classic Folder, then the argument must be formed by the `NAME` of the process and the `ENVIRONMENT` (eg: NAME: `ProcessA` ENVIRONMENT: `Production` ProcessName: `ProcessA_Production`). |
+| Parameters                    | The full path to a json input file. This is used when the Process requires input. |
+| Priority                      | The job run priority. |
+| Strategy                      | Specify the job run strategy, dynamically allocated job(s) or robot specific job(s). Options: `Allocate dynamically`, `Specific robots` |
+| Orchestrator address          | The address of the Orchestrator instance where we'll run the process. |
+| Orchestrator tenant           | Specify the Orchestrator tenant. |
+| Orchestrator folder           | Specify the folder where the specified process was deployed. |
+| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this). |
+| Job results output path       | Specify the output full path of the job results, e.g. testResults.json. The results are outputted in json format. If not specified, the results are outputted to the artifact staging directory as UiPathResults.json. The output is in json format. |
+| Timeout                       | Specify the job run(s) timeout in seconds. |
+| Fail when job fails           | The task fails when at least one job fails. (default true) |
+| Wait for job completion       | Wait for job run(s) completion. (default true) |
+|                               | **Parameters used for strategy `Allocate dynamically`** |
+| No. of jobs                   | The number of job runs. (default 1) |
+| User                          | The name of the user. This feature is available only on modern folders! This should be a machine user, not an orchestrator user. For local users, the format should be MachineName\\UserName |
+| Machine                       | The name of the machine. This feature is available only on modern folders! |
+|                               | **Parameters used for strategy `Specific robots`** |
+| Robot names	                  | Comma-separated list of specific robot names. |
+
+**📖 Pipeline example:**
+
+```Groovy
+pipeline {
+  agent any
+  environment {
+      MAJOR = '1'
+      MINOR = '0'
+  }
+  stages {
+    stage ('Build') {
+        UiPathRunJob(
+          credentials: UserPass('825c83c9-9a14-44eb-883a-af54f8078af0'),
+          failWhenJobFails: true,
+          folderName: 'A_Classic',
+          orchestratorAddress: 'https://testorchestrator.some-domain.com',
+          orchestratorTenant: 'Default',
+          parametersFilePath: '',
+          priority: 'Low',
+          processName: 'ProcessA_EnvB',
+          resultFilePath: 'output.json',
+          strategy: Dynamically(jobsCount: 1, machine: 'TestMachine', user: 'TestUser'), timeout: 3600, waitForJobCompletion: true
+        )
+        UiPathRunJob(
+          credentials: UserPass('825c83c9-9a14-44eb-883a-af54f8078af0'),
+          failWhenJobFails: true,
+          folderName: 'A_Classic',
+          orchestratorAddress: 'https://testorchestrator.some-domain.com',
+          orchestratorTenant: 'Default',
+          parametersFilePath: '',
+          priority: 'Low',
+          processName: 'ProcessA_EnvB',
+          resultFilePath: 'output.json',
+          strategy: Robot('robot1,robot2'),
+          timeout: 1800,
+          waitForJobCompletion: false
+        )
+    }
+  }
+}
+```
 
 ### 💼 UiPath Manage Assets
 
