@@ -10,7 +10,6 @@ import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
 import com.uipath.uipathpackage.entries.versioning.AutoVersionEntry;
 import com.uipath.uipathpackage.entries.assetsAction.DeployAssetsEntry;
-import com.uipath.uipathpackage.entries.assetsAction.UpdateAssetsEntry;
 import com.uipath.uipathpackage.entries.assetsAction.DeleteAssetsEntry;
 import hudson.FilePath;
 import hudson.model.FreeStyleBuild;
@@ -105,14 +104,6 @@ public class UiPathAssetsTests {
     }
 
     @Test
-    public void testUpdateAssetsWithTokenConfigRoundTrip() throws Exception {
-        UiPathAssets builder = new UiPathAssets(new UpdateAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, "test.csv");
-        project.getBuildersList().add(builder);
-        project = jenkins.configRoundtrip(project);
-        jenkins.assertEqualDataBoundBeans(new UiPathAssets(new UpdateAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, "test.csv"), project.getBuildersList().get(0));
-    }
-
-    @Test
     public void testDeleteAssetsWithTokenConfigRoundTrip() throws Exception {
         UiPathAssets builder = new UiPathAssets(new DeleteAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, "test.csv");
         project.getBuildersList().add(builder);
@@ -130,7 +121,7 @@ public class UiPathAssetsTests {
         project.getBuildersList().clear();
         builder = new UiPathAssets(new DeployAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/deploy_test_sample_file.csv");
         project.getBuildersList().add(builder);
-        builder = new UiPathAssets(new UpdateAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/update_test_sample_file.csv");
+        builder = new UiPathAssets(new DeployAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/update_test_sample_file.csv");
         project.getBuildersList().add(builder);
         builder = new UiPathAssets(new DeleteAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/deploy_test_sample_file.csv");
         project.getBuildersList().add(builder);
