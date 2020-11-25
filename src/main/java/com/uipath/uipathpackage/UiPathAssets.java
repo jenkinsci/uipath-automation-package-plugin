@@ -3,7 +3,6 @@ package com.uipath.uipathpackage;
 import com.google.common.collect.ImmutableList;
 import com.uipath.uipathpackage.entries.SelectEntry;
 import com.uipath.uipathpackage.entries.assetsAction.DeployAssetsEntry;
-import com.uipath.uipathpackage.entries.assetsAction.UpdateAssetsEntry;
 import com.uipath.uipathpackage.entries.assetsAction.DeleteAssetsEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
@@ -94,7 +93,6 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
             assetsOptions.setOrchestratorTenant(orchestratorTenantFormatted);
             util.setCredentialsFromCredentialsEntry(credentials, assetsOptions, run);
             String assetAction = assetsAction instanceof DeployAssetsEntry ? "DeployAssetsOptions"
-                               : assetsAction instanceof UpdateAssetsEntry ? "UpdateAssetsOptions"
                                : assetsAction instanceof DeleteAssetsEntry ? "DeleteAssetsOptions" : "None";
 
             if (assetAction.equals("None")) {
@@ -219,10 +217,6 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
             Descriptor deployAssetsDescriptor = jenkins.getDescriptor(DeployAssetsEntry.class);
             if (deployAssetsDescriptor != null) {
                 list.add(deployAssetsDescriptor);
-            }
-            Descriptor updateAssetsDescriptor = jenkins.getDescriptor(UpdateAssetsEntry.class);
-            if (updateAssetsDescriptor != null) {
-                list.add(updateAssetsDescriptor);
             }
             Descriptor deleteAssetsDescriptor = jenkins.getDescriptor(DeleteAssetsEntry.class);
             if (deleteAssetsDescriptor != null) {

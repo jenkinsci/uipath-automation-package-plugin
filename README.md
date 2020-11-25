@@ -49,7 +49,7 @@ separte the two fields.
 
 | Argument                      | Description           |
 | ----------------------------- | -------------         |
-| Action                        | What to do with the provided assets: deploy, update or delete. You can only deploy an asset with the same key (name) once.|
+| Action                        | What to do with the provided assets: deploy or delete. If a deployed asset exists then it will be updated instead.|
 | Orchestrator address          | The address of the Orchestrator instance where we'll deploy or update assets. |
 | Orchestrator tenant           | Specify the Orchestrator tenant onto which the assets will be deployed or updated. |
 | Orchestrator folder           | Specify the folder where assets will be deployed or updated. |
@@ -73,14 +73,6 @@ pipeline {
             filePath: '${WORKSPACE}/test.csv', 
             folderName: 'Default', 
             orchestratorAddress: 'https://orch-testingsol-web0-we-webapp.azurewebsites.net', 
-            orchestratorTenant: 'Default'
-        )
-        UiPathAssets(
-            assetsAction: UpdateAssets(),
-            credentials: UserPass('825c83c9-9a14-44eb-883a-af54f8078af0'),
-            filePath: '${WORKSPACE}/test.csv',
-            folderName: 'Default',
-            orchestratorAddress: 'https://orch-testingsol-web0-we-webapp.azurewebsites.net',
             orchestratorTenant: 'Default'
         )
         UiPathAssets(
