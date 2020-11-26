@@ -142,7 +142,7 @@ pipeline {
             credentials: Token(accountName: '', credentialsId: ''), 
             filePath: '${WORKSPACE}/test.csv', 
             folderName: 'Default', 
-            orchestratorAddress: 'https://orch-testingsol-web0-we-webapp.azurewebsites.net', 
+            orchestratorAddress: 'https://test-orchestrator.somedomain.com', 
             orchestratorTenant: 'Default'
         )
         UiPathAssets(
@@ -150,7 +150,7 @@ pipeline {
             credentials: UserPass('825c83c9-9a14-44eb-883a-af54f8078af0'),
             filePath: '${WORKSPACE}/test.csv',
             folderName: 'Default',
-            orchestratorAddress: 'https://orch-testingsol-web0-we-webapp.azurewebsites.net',
+            orchestratorAddress: 'https://test-orchestrator.somedomain.com',
             orchestratorTenant: 'Default'
         )
     }
