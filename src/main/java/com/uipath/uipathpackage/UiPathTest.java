@@ -44,7 +44,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private final SelectEntry testTarget;
     private final Integer timeout;
     private final String testResultsOutputPath;
-    private String expandedTestResultsOutputPath;
+    private String testResultIncludes;
 
     private static int TimeoutDefault = 7200;
 
@@ -156,12 +156,24 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             }
 
             String workspacePath = workspace.getRemote();
-            this.expandedTestResultsOutputPath = expandedTestResultsOutputPath.getRemote();
-            if (this.expandedTestResultsOutputPath.startsWith(workspacePath)) {
-                this.expandedTestResultsOutputPath = this.expandedTestResultsOutputPath.substring(workspacePath.length());
-                while ((this.expandedTestResultsOutputPath.startsWith("/") || this.expandedTestResultsOutputPath.startsWith("\\")) && this.expandedTestResultsOutputPath.length() > 1) {
-                    this.expandedTestResultsOutputPath = this.expandedTestResultsOutputPath.substring(1);
+            this.testResultIncludes = expandedTestResultsOutputPath.getRemote();
+            if (this.testResultIncludes.startsWith(workspacePath)) {
+                this.testResultIncludes = this.testResultIncludes.substring(workspacePath.length());
+                while ((this.testResultIncludes.startsWith("/") || this.testResultIncludes.startsWith("\\")) && this.testResultIncludes.length() > 1) {
+                    this.testResultIncludes = this.testResultIncludes.substring(1);
                 }
+            }
+
+            if (!expandedTestResultsOutputPath.getName().contains(".")) {
+                if (!this.testResultIncludes.endsWith("/") && !this.testResultIncludes.endsWith("\\")) {
+                    if (launcher.isUnix()) {
+                        this.testResultIncludes += "/";
+                    } else {
+                        this.testResultIncludes += "\\";
+                    }
+                }
+
+                this.testResultIncludes += "*.xml";
             }
 
             run.addAction(new TestResultProjectAction(run.getParent()));
@@ -285,7 +297,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
     @Override
     public String getTestResults() {
-        return this.expandedTestResultsOutputPath;
+        return this.testResultIncludes;
     }
 
     @Override
