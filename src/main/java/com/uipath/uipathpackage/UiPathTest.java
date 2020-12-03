@@ -155,7 +155,14 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
                 throw new AbortException("Failed to run the command");
             }
 
-            this.expandedTestResultsOutputPath = envVars.expand(resultsOutputPath);
+            String workspacePath = workspace.getRemote();
+            this.expandedTestResultsOutputPath = expandedTestResultsOutputPath.getRemote();
+            if (this.expandedTestResultsOutputPath.startsWith(workspacePath)) {
+                this.expandedTestResultsOutputPath = this.expandedTestResultsOutputPath.substring(workspacePath.length());
+                while ((this.expandedTestResultsOutputPath.startsWith("/") || this.expandedTestResultsOutputPath.startsWith("\\")) && this.expandedTestResultsOutputPath.length() > 1) {
+                    this.expandedTestResultsOutputPath = this.expandedTestResultsOutputPath.substring(1);
+                }
+            }
 
             run.addAction(new TestResultProjectAction(run.getParent()));
             publishTestResults(run, workspace, launcher, listener);
@@ -278,12 +285,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
     @Override
     public String getTestResults() {
-        if (this.expandedTestResultsOutputPath != null && !this.expandedTestResultsOutputPath.isEmpty())
-        {
-            return this.expandedTestResultsOutputPath;
-        }
-
-        return "UiPathResults.xml";
+        return this.expandedTestResultsOutputPath;
     }
 
     @Override
@@ -304,6 +306,16 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     @Override
     public boolean isAllowEmptyResults() {
         return true;
+    }
+
+    // Add @Override once we switch to minimum JUnit plugin version 1.4x
+    public boolean isSkipPublishingChecks() {
+        return false;
+    }
+
+    // Add @Override once we switch to minimum JUnit plugin version 1.4x
+    public String getChecksName() {
+        return "UiPath Tests";
     }
 
     /**
