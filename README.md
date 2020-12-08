@@ -24,6 +24,139 @@ In order to pack projects created with UiPath Studio starting from 20.10, you ne
 The Jenkins plugin can be installed from any Jenkins installation connected to the Internet using the **Plugin Manager** screen.
 
 ## Steps
+### ▶ UiPath Run Job
+
+The `UiPath Run Job` post-build step starts an already deployed process on an Orchestrator instance. The processes this task refers to are found in `Automations->Processes` on newer versions of Orchestrator and directly on the `Processes` tab on older versions of Orchestrator.
+
+[![UiPath Run Job](.github/run-job.png)](.github/run-job.png)
+
+**⚙️ Configuration**
+
+| Argument                      | Description           |
+| ----------------------------- | -------------         |
+| Process                       | (Required) Process name. You can take the process name from the Orchestrator UI. If the process is deployed in a Modern Folder then this argument should be the `NAME` of the process in the Processes tab. If the process is deployed in a Classic Folder, then the argument must be formed by the `NAME` of the process and the `ENVIRONMENT` (eg: NAME: `ProcessA` ENVIRONMENT: `Production` ProcessName: `ProcessA_Production`). |
+| Parameters                    | The full path to a json input file. This is used when the Process requires input. |
+| Priority                      | The job run priority. |
+| Strategy                      | Specify the job run strategy, dynamically allocated job(s) or robot specific job(s). Options: `Allocate dynamically`, `Specific robots` |
+| Orchestrator address          | The address of the Orchestrator instance where we'll run the process. |
+| Orchestrator tenant           | Specify the Orchestrator tenant. |
+| Orchestrator folder           | Specify the folder where the specified process was deployed. |
+| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this). |
+| Job results output path       | Specify the output full path of the job results, e.g. testResults.json. The results are outputted in json format. If not specified, the results are outputted to the artifact staging directory as UiPathResults.json. The output is in json format. |
+| Timeout                       | Specify the job run(s) timeout in seconds. |
+| Fail when job fails           | The task fails when at least one job fails. (default true) |
+| Wait for job completion       | Wait for job run(s) completion. (default true) |
+|                               | **Parameters used for strategy `Allocate dynamically`** |
+| No. of jobs                   | The number of job runs. (default 1) |
+| User                          | The name of the user. This feature is available only on modern folders! This should be a machine user, not an orchestrator user. For local users, the format should be MachineName\\UserName |
+| Machine                       | The name of the machine. This feature is available only on modern folders! |
+|                               | **Parameters used for strategy `Specific robots`** |
+| Robot names	                  | Comma-separated list of specific robot names. |
+
+**📖 Pipeline example:**
+
+```Groovy
+pipeline {
+  agent any
+  environment {
+      MAJOR = '1'
+      MINOR = '0'
+  }
+  stages {
+    stage ('Build') {
+        UiPathRunJob(
+          credentials: UserPass('825c83c9-9a14-44eb-883a-af54f8078af0'),
+          failWhenJobFails: true,
+          folderName: 'A_Classic',
+          orchestratorAddress: 'https://testorchestrator.some-domain.com',
+          orchestratorTenant: 'Default',
+          parametersFilePath: '',
+          priority: 'Low',
+          processName: 'ProcessA_EnvB',
+          resultFilePath: 'output.json',
+          strategy: Dynamically(jobsCount: 1, machine: 'TestMachine', user: 'TestUser'), timeout: 3600, waitForJobCompletion: true
+        )
+        UiPathRunJob(
+          credentials: UserPass('825c83c9-9a14-44eb-883a-af54f8078af0'),
+          failWhenJobFails: true,
+          folderName: 'A_Classic',
+          orchestratorAddress: 'https://testorchestrator.some-domain.com',
+          orchestratorTenant: 'Default',
+          parametersFilePath: '',
+          priority: 'Low',
+          processName: 'ProcessA_EnvB',
+          resultFilePath: 'output.json',
+          strategy: Robot('robot1,robot2'),
+          timeout: 1800,
+          waitForJobCompletion: false
+        )
+    }
+  }
+}
+```
+
+### 💼 UiPath Manage Assets
+
+The `UiPathManageAssets` step enables you to deploy, update or delete assets on an
+Orchestrator instance. In order to deploy assets you must describe them in a
+CSV file like the one in the example below.
+
+```csv
+name,type,value
+asset_1_name,text,asset_value   # we can have comments
+asset_2_name,integer,123
+asset_3_name,boolean,false
+asset_4_name,credential,"username::password"
+```
+
+There are 4 types of assets `text`, `integer`, `boolean` and `credential`. For 
+the credential you must encode the username and password by using `::` to
+separte the two fields.
+
+[![UiPath Manage Assets](.github/assets.png)](.github/assets.png)
+
+**⚙️ Configuration**
+
+| Argument                      | Description           |
+| ----------------------------- | -------------         |
+| Action                        | What to do with the provided assets: deploy or delete. If a deployed asset exists then it will be updated instead.|
+| Orchestrator address          | The address of the Orchestrator instance where we'll deploy or update assets. |
+| Orchestrator tenant           | Specify the Orchestrator tenant onto which the assets will be deployed or updated. |
+| Orchestrator folder           | Specify the folder where assets will be deployed or updated. |
+| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this). |
+| CSV File Path                 | The path to the csv file containing assets descriptions. The same file can be used to deploy or update the assets although the `type` isn't required for update. The `type` field can also be empty but the column must be present. For delete, only the name column is used, so the other columns can be empty but they must be present. |
+
+**📖 Pipeline example:**
+
+```Groovy
+pipeline {
+  agent any
+  environment {
+      MAJOR = '1'
+      MINOR = '0'
+  }
+  stages {
+    stage ('Build') {
+        UiPathAssets (
+            assetsAction: DeployAssets(), 
+            credentials: Token(accountName: '', credentialsId: ''), 
+            filePath: '${WORKSPACE}/test.csv', 
+            folderName: 'Default', 
+            orchestratorAddress: 'https://test-orchestrator.somedomain.com', 
+            orchestratorTenant: 'Default'
+        )
+        UiPathAssets(
+            assetsAction: DeleteAssets(),
+            credentials: UserPass('825c83c9-9a14-44eb-883a-af54f8078af0'),
+            filePath: '${WORKSPACE}/test.csv',
+            folderName: 'Default',
+            orchestratorAddress: 'https://test-orchestrator.somedomain.com',
+            orchestratorTenant: 'Default'
+        )
+    }
+  }
+}
+```
 
 ### 📦 UiPath Pack
 
@@ -191,6 +324,74 @@ In order to package libraries when connected to an Orchestrator instance, ensure
 ## Questions
 
 Do you have any questions regarding the plugin? Ask them [here](https://connect.uipath.com/marketplace/components/jenkins-plugin-for-uipath-public-preview/questions).
+
+## Troubleshooting
+#### [Unauthorized error](#unauthorized-error)
+#### [Forbidden error](#forbidden-error)
+#### [Folder/environment not found](#folder/environment-not-found)
+#### [Package already exists (Conflict)](#package-already-exists-conflict)
+#### [Failed to run the command (Generic error)](#failed-to-run-the-command-generic-error))
+#### [Jenkins fails to process paths containing non-Latin characters](#jenkins-fails-to-process-paths-containing-non-latin-characters)
+
+### Unauthorized error
+If using basic authentication:
+* ensure the correctness of the username-password combination on the web login
+* if federated authentication is enabled, make sure your write the username in the task as “DOMAIN\user”
+
+If using token authentication:
+* Revoke the token from the API access panel and generate a new one
+* Ensure that the user that generated the key has can access the Orchestrator and has a user on the Orchestrator instance
+
+If authenticating against on an on-premise Orchestrator you might receive this error as a result of the certificate used for the Orchestrator not being valid. This might mean that it has the wrong CN or other validation issues. Ensure that the Orchestrator certificate is valid and that the machine running the job trusts the Orchestrator certificate in case you are using a self-signed certificate.
+
+### Forbidden error
+Likely, the user does not have the permission to perform the action.
+
+Ensure that the user has permissions to read folders, upload packages, create and update processes, read test sets and test cases, create and run test sets, read background tasks.
+
+### Folder/environment not found
+Ensure that the authenticated user used by CI/CD plugins has the Folders.View and (20.4 only) BackgroundTask.View permissions.
+
+### Package already exists (Conflict)
+Ensure that the package that you are trying to deploy does not exist with the same version already. If it does, consider using automatic package versioning, so that the new version is bumped up every time we deploy.
+
+### Failed to run the command (Generic error)
+If the Jenkins workspace is inside a location on disk (like C:\Windows or C:\Program Files) to which the user does not have permissions, ensure that the workspace is placed on a path that can be accessed smoothly by the user
+
+### Jenkins fails to process paths containing non-Latin characters
+Jenkins is not able to pass correctly non-standard encoded characters when invoking the UiPath Plugin. The unknown characters will be replaced by ???.
+
+The solution depends on how Jenkins is deployed on both the server and the agent host machines, but involves setting "file.encoding" to UTF-8 in Java options:
+* Windows
+	* Running Jenkins in Windows as a Service
+	In the service configuration file add the arguments into the <arguments> tag. It should look like this:
+	```
+	<arguments>-Xrs -Xmx512m -Dhudson.lifecycle=hudson.lifecycle.WindowsServiceLifecycle -Dfile.encoding=UTF-8 -jar "%BASE%\jenkins.war" --httpPort=8080 --webroot="%BASE%\war"</arguments>
+	```
+	
+	* Running Jenkins inside Docker
+	The JAVA_OPTS should be passed to the container via --env JAVA_OPTS="..." like the following:
+	```
+	docker run --name myjenkins -p 8080:8080 -p 50000:50000 --env JAVA_OPTS=-Dhudson.lifecycle=hudson.lifecycle.WindowsServiceLifecycle -Dfile.encoding=UTF-8 jenkins/jenkins:lts
+	```
+	
+	* Running Jenkins inside Tomcat
+	Use environment variable CATALINA_OPTS:
+	```
+	export CATALINA_OPTS="-DJENKINS_HOME=/path/to/jenkins_home/ -Dhudson.lifecycle=hudson.lifecycle.WindowsServiceLifecycle -Dfile.encoding=UTF-8 -Xmx512m"
+	```
+* Linux
+	* Debian / Ubuntu based Linux distributions
+	In the configuration file search for the argument JAVA_ARGS and add the file enconding. It might look like this:
+	```
+	JAVA_ARGS="-Dfile.encoding=UTF-8 -Xmx512m"
+	```
+	
+	* RedHat Linux based distributions
+	In the configuration file search for the argument JENKINS_JAVA_OPTIONS and add the file enconding. It might look like this:
+	```
+	JENKINS_JAVA_OPTIONS="-Dfile.encoding=UTF-8 -Xmx512m"
+	```
 
 ## License
 

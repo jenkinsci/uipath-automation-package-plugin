@@ -150,7 +150,7 @@ public class UiPathTestTests {
        project.getPublishersList().add(publisher);
        FreeStyleBuild build = jenkins.assertBuildStatus(Result.UNSTABLE, project.scheduleBuild2(0));
 
-       jenkins.assertLogContains("Started test set Jenkins", build);
+       jenkins.assertLogContains("Started test set CI_", build);
        jenkins.assertLogContains("Writing test results of type junit", build);
        jenkins.assertLogContains("workspace\\freeStyleProject1\\results.xml", build);
 
@@ -163,7 +163,7 @@ public class UiPathTestTests {
         project.getPublishersList().add(publisher);
         FreeStyleBuild build = jenkins.assertBuildStatus(Result.SUCCESS, project.scheduleBuild2(0));
 
-        jenkins.assertLogContains("Started test set Jenkins", build);
+        jenkins.assertLogContains("Started test set CI_", build);
         jenkins.assertLogContains("Writing test results of type junit", build);
         jenkins.assertLogContains("workspace\\freeStyleProject1\\results.xml", build);
 

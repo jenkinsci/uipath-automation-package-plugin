@@ -5,7 +5,10 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 import com.uipath.uipathpackage.entries.SelectEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
+import com.uipath.uipathpackage.entries.job.DynamicallyEntry;
+import com.uipath.uipathpackage.entries.job.RobotEntry;
 import com.uipath.uipathpackage.models.AuthenticatedOptions;
+import com.uipath.uipathpackage.models.JobOptions;
 import com.uipath.uipathpackage.models.RunOptions;
 import com.uipath.uipathpackage.models.SerializableCliOptions;
 import hudson.AbortException;
@@ -56,11 +59,20 @@ public class Utility {
         return rb.getString(s);
     }
 
-    public int execute(@Nonnull String command, @Nonnull SerializableCliOptions options, @Nonnull FilePath remoteTempDir, @Nonnull TaskListener listener, @Nonnull EnvVars envVars, @Nonnull Launcher launcher) throws IOException, InterruptedException, URISyntaxException {
+    public int execute(@Nonnull String command, @Nonnull SerializableCliOptions options, @Nonnull FilePath remoteTempDir, @Nonnull TaskListener listener, @Nonnull EnvVars envVars, @Nonnull Launcher launcher, boolean throwExceptionOnFailure) throws IOException, InterruptedException, URISyntaxException {
+        if (remoteTempDir.getRemote().toUpperCase().contains(":\\WINDOWS\\SYSTEM32")) {
+            throw new AbortException("The plugin cannot be executed in a workspace path inside the WINDOWS folder. Please use a custom workspace folder that is outside the WINDOWS folder for this build definition or reinstall Jenkins and use a local user account instead.");
+        }
+
         FilePath cliPath = extractCliApp(remoteTempDir, listener, envVars);
         FilePath commandOptionsFile = remoteTempDir.createTextTempFile("uipcliargs", "", new JSONObject(new RunOptions(command, options)).toString());
 
-        return launcher.launch().cmds(this.buildCommandLine(cliPath, commandOptionsFile)).envs(envVars).stdout(listener).pwd(cliPath.getParent()).start().join();
+        int result = launcher.launch().cmds(this.buildCommandLine(cliPath, commandOptionsFile)).envs(envVars).stdout(listener).pwd(cliPath.getParent()).start().join();
+        if (throwExceptionOnFailure && result != 0) {
+            throw new AbortException("Failed to run the command, the CLI failed with error code " + result);
+        }
+
+        return result;
     }
 
 
@@ -78,7 +90,7 @@ public class Utility {
 
         String pluginJarPath;
 
-        if (isCurrentOSWindows()) {
+        if (isServerOSWindows()) {
             pluginJarPath = env.expand("${JENKINS_HOME}\\plugins\\uipath-automation-package\\WEB-INF\\lib\\uipath-automation-package.jar");
         } else {
             pluginJarPath = env.expand("${JENKINS_HOME}/plugins/uipath-automation-package/WEB-INF/lib/uipath-automation-package.jar");
@@ -108,6 +120,34 @@ public class Utility {
 
             options.setRefreshToken(cred.getSecret().getPlainText());
             options.setAccountName(((TokenAuthenticationEntry) credentials).getAccountName());
+        }
+    }
+
+    public void setJobRunFromStrategyEntry(SelectEntry strategy, JobOptions options) {
+        if (strategy == null)
+        {
+            options.setJobsCount(1);
+            options.setUser("");
+            options.setMachine("");
+
+            return;
+        }
+
+        if (strategy instanceof DynamicallyEntry) {
+            options.setJobsCount(((DynamicallyEntry) strategy).getJobsCount());
+            options.setUser(((DynamicallyEntry) strategy).getUser());
+            options.setMachine(((DynamicallyEntry) strategy).getMachine());
+            options.setRobots(new String[]{});
+        }else {
+            String robotNames = ((RobotEntry) strategy).getRobotsIds();
+            if (robotNames != null)
+            {
+                options.setRobots(robotNames.split(","));
+            }
+            else
+            {
+                options.setRobots(new String[]{});
+            }
         }
     }
 
@@ -163,7 +203,7 @@ public class Utility {
         }
     }
 
-    private boolean isCurrentOSWindows() {
+    private boolean isServerOSWindows() {
         return System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH).contains("win");
     }
 

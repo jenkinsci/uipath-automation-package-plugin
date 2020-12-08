@@ -1,0 +1,5 @@
+name,type,value
+asset_1_name,text,update_asset_value   # we can have comments
+asset_2_name,integer,1234
+# asset_3_name,boolean,false
+asset_4_name,credential,"username1::password1"

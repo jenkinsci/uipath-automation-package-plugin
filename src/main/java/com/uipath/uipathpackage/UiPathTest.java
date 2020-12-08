@@ -44,7 +44,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private final SelectEntry testTarget;
     private final Integer timeout;
     private final String testResultsOutputPath;
-    private String expandedTestResultsOutputPath;
+    private String testResultIncludes;
 
     private static int TimeoutDefault = 7200;
 
@@ -93,6 +93,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
         FilePath tempRemoteDir = tempDir(workspace);
         tempRemoteDir.mkdirs();
+
+        if (launcher.isUnix()) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
+        }
 
         try {
             ResourceBundle rb = ResourceBundle.getBundle("config");
@@ -145,13 +149,32 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
             util.setCredentialsFromCredentialsEntry(credentials, testOptions, run);
 
-            int result = util.execute("test", testOptions, tempRemoteDir, listener, envVars, launcher);
+            int result = util.execute("RunTestsOptions", testOptions, tempRemoteDir, listener, envVars, launcher, false);
 
             if (result != 0 && !expandedTestResultsOutputPath.exists()) {
                 throw new AbortException("Failed to run the command");
             }
 
-            this.expandedTestResultsOutputPath = envVars.expand(resultsOutputPath);
+            String workspacePath = workspace.getRemote();
+            this.testResultIncludes = expandedTestResultsOutputPath.getRemote();
+            if (this.testResultIncludes.startsWith(workspacePath)) {
+                this.testResultIncludes = this.testResultIncludes.substring(workspacePath.length());
+                while ((this.testResultIncludes.startsWith("/") || this.testResultIncludes.startsWith("\\")) && this.testResultIncludes.length() > 1) {
+                    this.testResultIncludes = this.testResultIncludes.substring(1);
+                }
+            }
+
+            if (!expandedTestResultsOutputPath.getName().contains(".")) {
+                if (!this.testResultIncludes.endsWith("/") && !this.testResultIncludes.endsWith("\\")) {
+                    if (launcher.isUnix()) {
+                        this.testResultIncludes += "/";
+                    } else {
+                        this.testResultIncludes += "\\";
+                    }
+                }
+
+                this.testResultIncludes += "*.xml";
+            }
 
             run.addAction(new TestResultProjectAction(run.getParent()));
             publishTestResults(run, workspace, launcher, listener);
@@ -274,12 +297,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
     @Override
     public String getTestResults() {
-        if (this.expandedTestResultsOutputPath != null && !this.expandedTestResultsOutputPath.isEmpty())
-        {
-            return this.expandedTestResultsOutputPath;
-        }
-
-        return "UiPathResults.xml";
+        return this.testResultIncludes;
     }
 
     @Override
@@ -300,6 +318,16 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     @Override
     public boolean isAllowEmptyResults() {
         return true;
+    }
+
+    // Add @Override once we switch to minimum JUnit plugin version 1.4x
+    public boolean isSkipPublishingChecks() {
+        return false;
+    }
+
+    // Add @Override once we switch to minimum JUnit plugin version 1.4x
+    public String getChecksName() {
+        return "UiPath Tests";
     }
 
     /**
