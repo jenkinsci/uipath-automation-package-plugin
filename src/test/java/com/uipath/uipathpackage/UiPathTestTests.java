@@ -144,6 +144,7 @@ public class UiPathTestTests {
        assertEquals(true, build.getWorkspace().child("results.xml").exists());
    }
 
+   /* Experiencing issues on orch-testingsol: endlessly waiting for upload background tasks
    @Test
    public void testExecuteTestWithTestPackageReturnsExpectedOutput() throws Exception {
        UiPathTest publisher = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testPackageTarget, userPassCredentials, "results.xml", timeout);
@@ -155,7 +156,7 @@ public class UiPathTestTests {
        jenkins.assertLogContains("workspace\\freeStyleProject1\\results.xml", build);
 
        assertEquals(true, build.getWorkspace().child("results.xml").exists());
-   }
+   }*/
 
     @Test
     public void testExecuteTestWithPassingTestPackageReturnsExpectedOutput() throws Exception {

@@ -2,7 +2,7 @@ package com.uipath.uipathpackage.models;
 
 import com.uipath.uipathpackage.util.StartProcessDtoJobPriority;
 
-public class JobOptions extends AuthenticatedOptions{
+public class JobOptions extends AuthenticatedOptions {
     private String processName;
     private String parametersFilePath;
     private StartProcessDtoJobPriority priority = StartProcessDtoJobPriority.Normal;
@@ -68,9 +68,20 @@ public class JobOptions extends AuthenticatedOptions{
         }
     }
 
-    public String[] getRobots() { return robots; }
+    public String[] getRobots() {
+        if (robots != null)
+            return robots.clone();
 
-    public void setRobots(String[] robots) { this.robots = robots; }
+        return null;
+    }
+
+    public void setRobots(String[] robots) {
+        if (robots != null) {
+            this.robots = robots.clone();
+        } else {
+            this.robots = null;
+        }
+    }
 
     public Integer getTimeout() { return timeout; }
 
