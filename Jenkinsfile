@@ -1,1 +1,1 @@
-buildPlugin(tests: [skip: true])
+buildPlugin(tests: [skip: true], platforms: ['windows'])
