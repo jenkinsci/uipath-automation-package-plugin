@@ -64,14 +64,14 @@ stages:
       displayName: 'Download Packages'
       artifact: Packages
   
-    - powershell: |
-        az storage blob upload -f $(Agent.BuildDirectory)/Packages/uipath-automation-package.hpi -c plugins -n $(Build.BuildNumber)/uipath-automation-package.hpi --account-name $(AzureAccountName) --auth-mode key --account-key $(StorageAccountKey)
-      displayName: "Upload plugin package to blob storage"
+    # - powershell: |
+    #     az storage blob upload -f $(Agent.BuildDirectory)/Packages/uipath-automation-package.hpi -c plugins -n $(Build.BuildNumber)/uipath-automation-package.hpi --account-name $(AzureAccountName) --auth-mode key --account-key $(StorageAccountKey)
+    #   displayName: "Upload plugin package to blob storage"
 
     - bash: |
         rm jenkins-cli.jar*
         wget $(JenkinsUrl)/jnlpJars/jenkins-cli.jar
-        java -jar jenkins-cli.jar -s $(JenkinsUrlHttp) -auth $(JenkinsUsername):$(JenkinsAuthToken) install-plugin https://$(AzureAccountName).blob.core.windows.net/plugins/$(Build.BuildNumber)/uipath-automation-package.hpi -restart
+        java -jar jenkins-cli.jar -s $(JenkinsUrlHttp) -auth $(JenkinsUsername):$(JenkinsAuthToken) install-plugin $(Agent.BuildDirectory)/Packages/uipath-automation-package.hpi -restart
         timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' $(JenkinsUrl)/login)" != "200" ]]; do echo "waiting for plugin to install" && sleep 5; done'
       displayName: "Install package on Jenkins server"
 
