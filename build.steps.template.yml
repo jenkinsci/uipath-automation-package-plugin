@@ -1,0 +1,49 @@
+parameters:
+  mavenPomFile: ''
+  TestOrchestratorUrl: ''
+  TestOrchestratorUsername: ''
+  TestOrchestratorPassword: ''
+  TestOrchestratorFolderName: ''
+  TestOrchestratorCloudUrl: ''
+  TestOrchestratorCloudTenant: ''
+  TestOrchestratorAccountName: ''
+  TestOrchestratorAuthenticationToken: ''
+  TestOrchestratorCloudModernFolderName: ''
+  TestOrchestratorClientIdOverride: ''
+  TestOrchestratorAuthorizationUriOverride: ''
+  TestOrchestratorCloudUserName: ''
+  TestOrchestratorCloudMachineName: ''
+  TestOrchestratorCloudUnattendedRobotName: ''
+
+steps:
+- task: Maven@3
+  ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+    displayName: 'Build plugin package (Java 8)'
+  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+    displayName: 'Build plugin package & run unit tests (Java 8)'
+  inputs:
+    mavenPomFile: ${{mavenPomFile}}
+    testResultsFiles: '**/TEST-*.xml'
+    sonarQubeRunAnalysis: false
+    findBugsRunAnalysis: true
+    sqMavenPluginVersionChoice: 'latest'
+    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+      options: '-Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
+    ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+      options: '-DskipTests -Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
+  env:
+    TestOrchestratorUrl: ${{parameters.TestOrchestratorUrl}}
+    TestOrchestratorUsername: ${{parameters.TestOrchestratorUsername}}
+    TestOrchestratorPassword: ${{parameters.TestOrchestratorPassword}}
+    TestOrchestratorFolderName: ${{parameters.TestOrchestratorFolderName}}
+
+    TestOrchestratorCloudUrl: ${{parameters.TestOrchestratorCloudUrl}}
+    TestOrchestratorCloudTenant: ${{parameters.TestOrchestratorCloudTenant}}
+    TestOrchestratorAccountName: ${{parameters.TestOrchestratorAccountName}}
+    TestOrchestratorAuthenticationToken: ${{parameters.TestOrchestratorAuthenticationToken}}
+    TestOrchestratorCloudModernFolderName: ${{parameters.TestOrchestratorCloudModernFolderName}}
+    TestOrchestratorClientIdOverride: ${{parameters.TestOrchestratorClientIdOverride}}
+    TestOrchestratorAuthorizationUriOverride: ${{parameters.TestOrchestratorAuthorizationUriOverride}}
+    TestOrchestratorCloudUserName: ${{parameters.TestOrchestratorCloudUserName}}
+    TestOrchestratorCloudMachineName: ${{parameters.TestOrchestratorCloudMachineName}}
+    TestOrchestratorCloudUnattendedRobotName: ${{parameters.TestOrchestratorCloudUnattendedRobotName}}
