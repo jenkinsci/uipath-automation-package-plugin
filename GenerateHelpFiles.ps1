@@ -12,6 +12,7 @@ $ActivitiesFolders = @{"TokenAuthenticationEntry" = "entries\\authentication\\To
                         "RobotEntry" = "entries\\job\RobotEntry";
                         "TestProjectEntry" = "entries\\testExecutionTarget\\TestProjectEntry";
                         "TestSetEntry" = "entries\\testExecutionTarget\\TestSetEntry";
+                        "UiPathAssets" = "UiPathAssets";
                         "UiPathDeploy" = "UiPathDeploy";
                         "UiPathPack" = "UiPathPack";
                         "UiPathRunJob" = "UiPathRunJob";
