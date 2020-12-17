@@ -1,6 +1,6 @@
 package com.uipath.uipathpackage.models;
 
-public abstract class AuthenticatedOptions implements SerializableCliOptions {
+public abstract class AuthenticatedOptions extends LocalizationOptions implements SerializableCliOptions {
     private String username;
     private String password;
     private String refreshToken;

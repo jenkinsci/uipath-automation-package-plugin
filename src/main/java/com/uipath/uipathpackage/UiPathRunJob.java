@@ -290,28 +290,33 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
 
             util.setCredentialsFromCredentialsEntry(credentials, jobOptions, run);
 
+            String language = Locale.getDefault().getLanguage();
+            String country = Locale.getDefault().getCountry();
+            String localization = country.isEmpty() ? language : language + "-" + country;
+            jobOptions.setLanguage(localization);
+
             util.execute("RunJobOptions", jobOptions, tempRemoteDir, listener, envVars, launcher, true);
         } catch (URISyntaxException e) {
             e.printStackTrace(logger);
             throw new AbortException(e.getMessage());
         } finally {
-            try{
+            try {
                 Objects.requireNonNull(tempRemoteDir).deleteRecursive();
-            }catch(Exception e){
-                logger.println("Failed to delete temp remote directory in UiPath Run Job "+ e.getMessage());
+            } catch(Exception e) {
+                logger.println(com.uipath.uipathpackage.Messages.GenericErrors_FailedToDeleteTempRunJob() + e.getMessage());
                 e.printStackTrace(logger);
             }
         }
     }
 
     private void validateParameters() throws AbortException {
-        util.validateParams(processName, "Invalid Process(s) Name");
-        util.validateParams(orchestratorAddress, "Invalid Orchestrator Address");
-        util.validateParams(folderName, "Invalid Orchestrator Folder");
+        util.validateParams(processName, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidProcess());
+        util.validateParams(orchestratorAddress, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchAddress());
+        util.validateParams(folderName, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchFolder());
 
         if (credentials == null)
         {
-            throw new InvalidParameterException("You must specify either a set of credentials or an authentication token");
+            throw new InvalidParameterException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidCredentialsType());
         }
 
         credentials.validateParameters();

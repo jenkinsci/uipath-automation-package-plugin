@@ -17,7 +17,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
@@ -164,50 +163,52 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
             deployOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
 
             ResourceBundle rb = ResourceBundle.getBundle("config");
-            String orchestratorTenantFormatted = envVars.expand(orchestratorTenant.trim()).isEmpty() ? util.getConfigValue(rb, "UiPath.DefaultTenant") : envVars.expand(orchestratorTenant.trim());
+            String orchestratorTenantFormatted = envVars.expand(orchestratorTenant.trim()).isEmpty()
+                    ? util.getConfigValue(rb, "UiPath.DefaultTenant") : envVars.expand(orchestratorTenant.trim());
             deployOptions.setOrchestratorTenant(orchestratorTenantFormatted);
 
             util.setCredentialsFromCredentialsEntry(credentials, deployOptions, run);
 
-            if (this.environments != null && !this.environments.isEmpty())
-            {
+            String language = Locale.getDefault().getLanguage();
+            String country = Locale.getDefault().getCountry();
+            String localization = country.isEmpty() ? language : language + "-" + country;
+            deployOptions.setLanguage(localization);
+
+            if (this.environments != null && !this.environments.isEmpty()) {
                 String[] deploymentEnvironments = envVars.expand(this.environments).split(",");
                 deployOptions.setEnvironments(Arrays.asList(deploymentEnvironments));
             }
-            else
-            {
+            else {
                 deployOptions.setEnvironments(new ArrayList<>());
             }
 
             util.execute("DeployOptions", deployOptions, tempRemoteDir, listener, envVars, launcher, true);
-
         } catch (URISyntaxException e) {
             e.printStackTrace(logger);
             throw new AbortException(e.getMessage());
         } finally {
-            try{
+            try {
                 Objects.requireNonNull(tempRemoteDir).deleteRecursive();
-            }catch(Exception e){
-                logger.println("Failed to delete temp remote directory in UiPath Deploy "+ e.getMessage());
+            } catch(Exception e) {
+                logger.println(com.uipath.uipathpackage.Messages.GenericErrors_FailedToDeleteTempDeploy() + e.getMessage());
                 e.printStackTrace(logger);
             }
         }
     }
 
     private void validateParameters() throws AbortException {
-        util.validateParams(packagePath, "Invalid Package(s) Path");
-        util.validateParams(orchestratorAddress, "Invalid Orchestrator Address");
-        util.validateParams(folderName, "Invalid Orchestrator Folder");
+        util.validateParams(packagePath, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidPackage());
+        util.validateParams(orchestratorAddress, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchAddress());
+        util.validateParams(folderName, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchFolder());
 
-        if (credentials == null)
-        {
-            throw new InvalidParameterException("You must specify either a set of credentials or an authentication token");
+        if (credentials == null) {
+            throw new InvalidParameterException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidCredentialsType());
         }
 
         credentials.validateParameters();
 
         if (packagePath.toUpperCase().contains("${JENKINS_HOME}")) {
-            throw new AbortException("Paths containing JENKINS_HOME are not allowed, use the Archive Artifacts plugin to copy the required files to the build output.");
+            throw new AbortException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidPath());
         }
     }
 

@@ -76,7 +76,7 @@ steps:
     sonarQubeRunAnalysis: true
     findBugsRunAnalysis: true
     sqMavenPluginVersionChoice: 'latest'
-    options: '-Djenkins.version=2.164 -Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
+    options: '-Djenkins.version=2.173 -Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
   env:
     TestOrchestratorUrl: $(TestOrchestratorUrl)
     TestOrchestratorUsername: $(TestOrchestratorUsername)
