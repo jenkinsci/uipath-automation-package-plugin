@@ -22,7 +22,7 @@ steps:
   ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
     displayName: 'Build plugin package & run unit tests (Java 8)'
   inputs:
-    mavenPomFile: ${{mavenPomFile}}
+    mavenPomFile: ${{parameters.mavenPomFile}}
     testResultsFiles: '**/TEST-*.xml'
     sonarQubeRunAnalysis: false
     findBugsRunAnalysis: true
