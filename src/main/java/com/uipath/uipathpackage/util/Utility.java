@@ -66,6 +66,7 @@ public class Utility {
 
         FilePath cliPath = extractCliApp(remoteTempDir, listener, envVars);
         FilePath commandOptionsFile = remoteTempDir.createTextTempFile("uipcliargs", "", new JSONObject(new RunOptions(command, options)).toString());
+        
 
         int result = launcher.launch().cmds(this.buildCommandLine(cliPath, commandOptionsFile)).envs(envVars).stdout(listener).pwd(cliPath.getParent()).start().join();
         if (throwExceptionOnFailure && result != 0) {

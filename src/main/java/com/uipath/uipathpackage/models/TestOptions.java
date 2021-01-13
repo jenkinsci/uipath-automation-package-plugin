@@ -7,6 +7,7 @@ public class TestOptions extends AuthenticatedOptions {
     private String testReportType;
     private String testReportDestination;
     private Integer timeout;
+    private final String telemetryOrigin = "Jenkins";
 
     public String getEnvironment() {
         return environment;
@@ -54,5 +55,9 @@ public class TestOptions extends AuthenticatedOptions {
 
     public void setTestReportDestination(String testReportDestination) {
         this.testReportDestination = testReportDestination;
+    }
+
+    public String getTelemetryOrigin() {
+        return telemetryOrigin;
     }
 }
