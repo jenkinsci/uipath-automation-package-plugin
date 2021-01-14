@@ -7,10 +7,7 @@ import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
 import com.uipath.uipathpackage.entries.job.DynamicallyEntry;
 import com.uipath.uipathpackage.entries.job.RobotEntry;
-import com.uipath.uipathpackage.models.AuthenticatedOptions;
-import com.uipath.uipathpackage.models.JobOptions;
-import com.uipath.uipathpackage.models.RunOptions;
-import com.uipath.uipathpackage.models.SerializableCliOptions;
+import com.uipath.uipathpackage.models.*;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
@@ -206,6 +203,4 @@ public class Utility {
     private boolean isServerOSWindows() {
         return System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH).contains("win");
     }
-
-
 }

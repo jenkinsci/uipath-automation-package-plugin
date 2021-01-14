@@ -149,10 +149,15 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
             util.setCredentialsFromCredentialsEntry(credentials, testOptions, run);
 
+            String language = Locale.getDefault().getLanguage();
+            String country = Locale.getDefault().getCountry();
+            String localization = country.isEmpty() ? language : language + "-" + country;
+            testOptions.setLanguage(localization);
+
             int result = util.execute("RunTestsOptions", testOptions, tempRemoteDir, listener, envVars, launcher, false);
 
             if (result != 0 && !expandedTestResultsOutputPath.exists()) {
-                throw new AbortException("Failed to run the command");
+                throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToRunCommand());
             }
 
             String workspacePath = workspace.getRemote();
@@ -182,10 +187,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             e.printStackTrace(listener.getLogger());
             throw new AbortException(e.getMessage());
         } finally {
-            try{
+            try {
                 Objects.requireNonNull(tempRemoteDir).deleteRecursive();
-            }catch(Exception e){
-                listener.getLogger().println("Failed to delete temp remote directory in UiPath Pack "+ e.getMessage());
+            } catch(Exception e) {
+                listener.getLogger().println(com.uipath.uipathpackage.Messages.GenericErrors_FailedToDeleteTempTest() + e.getMessage());
                 e.printStackTrace(listener.getLogger());
             }
         }
@@ -259,27 +264,24 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     }
 
     private void validateParameters() throws AbortException {
-
-        if (testTarget == null)
-        {
+        if (testTarget == null) {
             throw new InvalidParameterException(com.uipath.uipathpackage.Messages.GenericErrors_MissingTestSetOrProjectPath());
         }
 
         testTarget.validateParameters();
 
         Utility util = new Utility();
-        util.validateParams(this.orchestratorAddress, "Invalid Orchestrator address");
-        util.validateParams(this.folderName, "Invalid Orchestrator folder");
+        util.validateParams(this.orchestratorAddress, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchAddress());
+        util.validateParams(this.folderName, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchFolder());
 
-        if (credentials == null)
-        {
+        if (credentials == null) {
             throw new InvalidParameterException(com.uipath.uipathpackage.Messages.GenericErrors_MissingAuthenticationMethod());
         }
 
         credentials.validateParameters();
 
         if (testResultsOutputPath != null && testResultsOutputPath.toUpperCase().contains("${JENKINS_HOME}")) {
-            throw new AbortException("Paths containing JENKINS_HOME are not allowed, use the Copy To Slave plugin to copy the required files to the slave's workspace instead.");
+            throw new AbortException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidPath());
         }
     }
 
