@@ -10,8 +10,6 @@ import com.uipath.uipathpackage.util.Utility;
 import com.uipath.uipathpackage.models.AssetsOptions;
 import hudson.*;
 import hudson.model.*;
-import hudson.tasks.*;
-import hudson.remoting.Channel;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
@@ -22,7 +20,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
@@ -99,23 +96,28 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
             String assetAction = assetsAction instanceof DeployAssetsEntry ? "DeployAssetsOptions"
                                : assetsAction instanceof DeleteAssetsEntry ? "DeleteAssetsOptions" : "None";
 
+            String language = Locale.getDefault().getLanguage();
+            String country = Locale.getDefault().getCountry();
+            String localization = country.isEmpty() ? language : language + "-" + country;
+            assetsOptions.setLanguage(localization);
+
             if (assetAction.equals("None")) {
-                throw new AbortException("Invalid Action!");
+                throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_InvalidAction());
             }
 
             int result = util.execute(assetAction, assetsOptions, tempRemoteDir, listener, envVars, launcher, true);
 
             if (result != 0) {
-                throw new AbortException("Failed to run the command.");
+                throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToRunCommand());
             }
         } catch (URISyntaxException e) {
             e.printStackTrace(logger);
             throw new AbortException(e.getMessage());
         } finally {
-            try{
+            try {
                 Objects.requireNonNull(tempRemoteDir).deleteRecursive();
-            }catch(Exception e){
-                logger.println("Failed to delete temp remote directory in UiPath Assets " + e.getMessage());
+            } catch(Exception e) {
+                logger.println(com.uipath.uipathpackage.Messages.GenericErrors_FailedToDeleteTempAssets() + e.getMessage());
                 e.printStackTrace(logger);
             }
         }
@@ -177,18 +179,17 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
     }
 
     private void validateParameters() throws AbortException {
-        util.validateParams(filePath, "Invalid Package(s) Path");
-        util.validateParams(orchestratorAddress, "Invalid Orchestrator Address");
+        util.validateParams(filePath, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidPackage());
+        util.validateParams(orchestratorAddress, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchAddress());
 
-        if (credentials == null)
-        {
-            throw new InvalidParameterException("You must specify either a set of credentials or an authentication token");
+        if (credentials == null) {
+            throw new InvalidParameterException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidCredentialsType());
         }
 
         credentials.validateParameters();
 
         if (filePath.toUpperCase().contains("${JENKINS_HOME}")) {
-            throw new AbortException("Paths containing JENKINS_HOME are not allowed, use the Archive Artifacts plugin to copy the required files to the build output.");
+            throw new AbortException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidPath());
         }
     }
 
