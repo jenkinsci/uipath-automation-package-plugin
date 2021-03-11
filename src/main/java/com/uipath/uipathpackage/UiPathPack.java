@@ -28,10 +28,7 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.InvalidParameterException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static hudson.slaves.WorkspaceList.tempDir;
 
@@ -121,15 +118,20 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
                 util.setCredentialsFromCredentialsEntry(credentials, packOptions, run);
             }
 
+            String language = Locale.getDefault().getLanguage();
+            String country = Locale.getDefault().getCountry();
+            String localization = country.isEmpty() ? language : language + "-" + country;
+            packOptions.setLanguage(localization);
+
             util.execute("PackOptions", packOptions, tempRemoteDir, listener, envVars, launcher, true);
         } catch (URISyntaxException e) {
             e.printStackTrace(listener.getLogger());
             throw new AbortException(e.getMessage());
         } finally {
-            try{
+            try {
                 Objects.requireNonNull(tempRemoteDir).deleteRecursive();
-            }catch(Exception e){
-                listener.getLogger().println("Failed to delete temp remote directory in UiPath Pack "+ e.getMessage());
+            } catch(Exception e) {
+                listener.getLogger().println(com.uipath.uipathpackage.Messages.GenericErrors_FailedToDeleteTempPack() + e.getMessage());
                 e.printStackTrace(listener.getLogger());
             }
         }
@@ -239,27 +241,25 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     }
 
     private void validateParameters() throws AbortException {
-        if (version == null)
-        {
+        if (version == null) {
             throw new InvalidParameterException(com.uipath.uipathpackage.Messages.GenericErrors_MissingVersioningMethod());
         }
 
-        util.validateParams(projectJsonPath, "Invalid Project(s) Path");
-
-        util.validateParams(outputPath, "Invalid Output Path");
+        util.validateParams(projectJsonPath, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidProject());
+        util.validateParams(outputPath, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOutputPath());
 
         if (useOrchestrator) {
-            util.validateParams(orchestratorAddress, "Invalid Orchestrator Address");
+            util.validateParams(orchestratorAddress, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchAddress());
 
             if (credentials == null) {
-                throw new InvalidParameterException("You must specify either a set of credentials or an authentication token");
+                throw new InvalidParameterException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidCredentialsType());
             }
 
             credentials.validateParameters();
         }
 
         if (outputPath.toUpperCase().contains("${JENKINS_HOME}")) {
-            throw new AbortException("Paths containing JENKINS_HOME are not allowed, use the Archive Artifacts plugin to copy the required files to the build output.");
+            throw new AbortException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidPath());
         }
     }
 
@@ -359,8 +359,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             }
 
             ListBoxModel result= new ListBoxModel();
-            for (Map.Entry<String, String> v: OutputType.outputTypes.entrySet())
-            {
+            for (Map.Entry<String, String> v: OutputType.outputTypes.entrySet()) {
                 result.add(v.getKey(), v.getValue());
             }
 
