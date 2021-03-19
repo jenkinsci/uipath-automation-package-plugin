@@ -13,6 +13,14 @@ pr:
     - develop    
     - release/*
 
+resources:
+  repositories:
+    - repository: common
+      type: github
+      name: UiPath/AzurePipelinesTemplates
+      ref: master
+      endpoint: "GitHub connection"
+
 parameters:
 - name: runLongRunningTests
   displayName: Run all tests
@@ -43,6 +51,12 @@ stages:
         - maven
     steps:
     - template: job.ci.build.yml
+
+- stage: BuildSecurityScan
+  displayName: Build and Security Scan
+  dependsOn: []
+  jobs:
+  - template: stage.security.yml
 
 - stage: Deploy
   displayName: "Deploy on Jenkins server & run"
