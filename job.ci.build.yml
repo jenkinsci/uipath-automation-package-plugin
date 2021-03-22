@@ -44,6 +44,8 @@ steps:
     TestOrchestratorCloudUserName: $(TestOrchestratorCloudUserName)
     TestOrchestratorCloudMachineName: $(TestOrchestratorCloudMachineName)
     TestOrchestratorCloudUnattendedRobotName: $(TestOrchestratorCloudUnattendedRobotName)
+    OrchestratorAuthorizationUriOverride: $(OrchestratorAuthorizationUriOverride)
+    OrchestratorClientIdOverride: $(OrchestratorClientIdOverride)
 
 - task: PublishBuildArtifacts@1
   displayName: 'Publish package'
@@ -69,6 +71,9 @@ steps:
     TestOrchestratorPassword: $(TestOrchestratorPassword)
     TestOrchestratorFolderName: $(TestOrchestratorFolderName)
     
+    OrchestratorAuthorizationUriOverride: $(OrchestratorAuthorizationUriOverride)
+    OrchestratorClientIdOverride: $(OrchestratorClientIdOverride)
+
     TestOrchestratorCloudUrl: $(TestOrchestratorCloudUrl)
     TestOrchestratorCloudTenant: $(TestOrchestratorCloudTenant)
     TestOrchestratorAccountName: $(TestOrchestratorAccountName)
