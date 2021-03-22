@@ -15,6 +15,9 @@ parameters:
   TestOrchestratorCloudMachineName: ''
   TestOrchestratorCloudUnattendedRobotName: ''
 
+  OrchestratorAuthorizationUriOverride: ''
+  OrchestratorClientIdOverride: ''
+
 steps:
 - task: Maven@3
   ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
@@ -36,6 +39,9 @@ steps:
     TestOrchestratorUsername: ${{parameters.TestOrchestratorUsername}}
     TestOrchestratorPassword: ${{parameters.TestOrchestratorPassword}}
     TestOrchestratorFolderName: ${{parameters.TestOrchestratorFolderName}}
+
+    OrchestratorAuthorizationUriOverride: ${{parameters.OrchestratorAuthorizationUriOverride}}
+    OrchestratorClientIdOverride: ${{parameters.OrchestratorClientIdOverride}}
 
     TestOrchestratorCloudUrl: ${{parameters.TestOrchestratorCloudUrl}}
     TestOrchestratorCloudTenant: ${{parameters.TestOrchestratorCloudTenant}}
