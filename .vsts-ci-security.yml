@@ -18,7 +18,7 @@ stages:
       pool:
         vmImage: vs2017-win2016
         demands:
-          - maven
+          - maven 
       steps:
       - task: BuildProcessCleaner@0
       - task: Maven@3
