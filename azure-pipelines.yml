@@ -52,11 +52,12 @@ stages:
     steps:
     - template: job.ci.build.yml
 
-- stage: BuildSecurityScan
-  displayName: Build and Security Scan
-  dependsOn: []
-  jobs:
-  - template: stage.security.yml
+- ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/develop'), startsWith(variables['Build.SourceBranch'], 'refs/heads/masters/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/support/')) }}:
+  - stage: BuildSecurityScan
+    displayName: Build and Security Scan
+    dependsOn: []
+    jobs:
+    - template: stage.security.yml
 
 - stage: Deploy
   displayName: "Deploy on Jenkins server & run"
