@@ -54,7 +54,6 @@ public class TestProjectEntry extends SelectEntry {
     public boolean validateParameters() throws AbortException {
         Utility util = new Utility();
         util.validateParams(testProjectPath, "Invalid test package path");
-        util.validateParams(environments, "Invalid environment");
 
         if (testProjectPath.toUpperCase().contains("${JENKINS_HOME}")) {
             throw new AbortException("Paths containing JENKINS_HOME are not allowed, use the Copy To Slave plugin to copy the required files to the slave's workspace instead.");
