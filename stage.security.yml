@@ -1,0 +1,25 @@
+jobs:
+- deployment: BuildAndScan
+  displayName: Build and Security Scan
+  pool:
+    vmImage: vs2017-win2016
+    demands:
+      - maven
+  environment: Security-Scan
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - checkout: self
+        - download: none
+        - task: BuildProcessCleaner@0
+        - task: Maven@3
+          displayName: 'Build plugin package (Java 8)'
+          inputs:
+            mavenPomFile: $(MavenPOMFile)
+            sqMavenPluginVersionChoice: 'latest'
+            ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+              options: '-Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
+            ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+              options: '-DskipTests -Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
+        - template: Security/security.yml@common
