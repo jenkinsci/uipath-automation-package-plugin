@@ -5,8 +5,7 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 import com.uipath.uipathpackage.entries.SelectEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
-import com.uipath.uipathpackage.entries.job.DynamicallyEntry;
-import com.uipath.uipathpackage.entries.job.RobotEntry;
+import com.uipath.uipathpackage.entries.job.*;
 import com.uipath.uipathpackage.models.*;
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -147,6 +146,18 @@ public class Utility {
             }
         }
     }
+
+    public void setJobRunFromJobTypeEntry(SelectEntry strategy, JobOptions options) {
+        if (strategy instanceof NonProductionJobTypeEntry) {
+            options.setJobType(JobType.NonProduction);
+        }
+        else if (strategy instanceof UnattendedJobTypeEntry)
+        {
+            options.setJobType(JobType.Unattended);
+        }
+    }
+
+
 
     private String[] buildCommandLine(FilePath cliPath, FilePath commandOptionsFile) {
         return new String[] { cliPath.getRemote(), "run", commandOptionsFile.getRemote() };

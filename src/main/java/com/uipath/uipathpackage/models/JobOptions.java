@@ -1,5 +1,6 @@
 package com.uipath.uipathpackage.models;
 
+import com.uipath.uipathpackage.util.JobType;
 import com.uipath.uipathpackage.util.StartProcessDtoJobPriority;
 
 public class JobOptions extends AuthenticatedOptions {
@@ -17,6 +18,7 @@ public class JobOptions extends AuthenticatedOptions {
     private Integer timeout = 1800;
     private boolean failWhenJobFails = true;
     private boolean waitForJobCompletion = true;
+    private JobType jobType = null;
 
     public String getProcessName() {
         return processName;
@@ -105,5 +107,13 @@ public class JobOptions extends AuthenticatedOptions {
 
     public void setWaitForJobCompletion(boolean waitForJobCompletion) {
         this.waitForJobCompletion = waitForJobCompletion;
+    }
+
+    public JobType getJobType() {
+        return jobType;
+    }
+
+    public void setJobType(JobType jobType) {
+        this.jobType = jobType;
     }
 }
