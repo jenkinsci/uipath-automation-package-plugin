@@ -36,7 +36,6 @@ public class UiPathRunJobTests {
     private static String folderName;
     private static NonProductionJobTypeEntry nonProductionJobTypeEntry;
     private static UnattendedJobTypeEntry unattendedJobTypeEntry;
-    private static NotSpecifiedJobTypeEntry notSpecifiedJobTypeEntry;
 
     private static String cloudOrchestratorAddress = "null";
     private static String cloudOrchestratorTenant = null;

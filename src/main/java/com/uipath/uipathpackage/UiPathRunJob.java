@@ -478,12 +478,6 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
             Jenkins jenkins = Jenkins.getInstance();
             List<Descriptor> list = new ArrayList<>();
 
-            // Add not specified job type entry option
-            Descriptor notSpecifiedDescriptor = jenkins.getDescriptor(NotSpecifiedJobTypeEntry.class);
-            if (notSpecifiedDescriptor != null) {
-                list.add(notSpecifiedDescriptor);
-            }
-
             // Add unattended job type entry option
             Descriptor unattendedDescriptor = jenkins.getDescriptor(UnattendedJobTypeEntry.class);
             if (unattendedDescriptor != null) {
