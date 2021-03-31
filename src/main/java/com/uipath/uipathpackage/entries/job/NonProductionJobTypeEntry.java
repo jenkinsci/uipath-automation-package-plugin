@@ -28,7 +28,7 @@ public class NonProductionJobTypeEntry extends SelectEntry {
         @Nonnull
         @Override
         public String getDisplayName() {
-            return Messages.NonProductionJobTypeEntry_DescriptorImpl_DisplayName();
+            return Messages.NonProductionJobTypeEntry_DisplayName();
         }
     }
 }

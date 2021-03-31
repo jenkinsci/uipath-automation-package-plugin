@@ -28,7 +28,7 @@ public class UnattendedJobTypeEntry extends SelectEntry {
         @Nonnull
         @Override
         public String getDisplayName() {
-            return Messages.UnattendedJobTypeEntry_DescriptorImpl_DisplayName();
+            return Messages.UnattendedJobTypeEntry_DisplayName();
         }
     }
 }
