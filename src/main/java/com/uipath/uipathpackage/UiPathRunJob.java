@@ -4,8 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.uipath.uipathpackage.entries.SelectEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
-import com.uipath.uipathpackage.entries.job.DynamicallyEntry;
-import com.uipath.uipathpackage.entries.job.RobotEntry;
+import com.uipath.uipathpackage.entries.job.*;
 import com.uipath.uipathpackage.models.JobOptions;
 import com.uipath.uipathpackage.util.StartProcessDtoJobPriority;
 import com.uipath.uipathpackage.util.Utility;
@@ -41,6 +40,7 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
     private String processName;
     private String parametersFilePath;
     private StartProcessDtoJobPriority priority;
+    private final SelectEntry jobType;
 
     private SelectEntry strategy;
 
@@ -71,12 +71,13 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
      * @param credentials           Orchestrator credentials
      */
     @DataBoundConstructor
-    public UiPathRunJob(String processName, String parametersFilePath, StartProcessDtoJobPriority priority, SelectEntry strategy, String resultFilePath,
+    public UiPathRunJob(String processName, String parametersFilePath, StartProcessDtoJobPriority priority, SelectEntry strategy, SelectEntry jobType, String resultFilePath,
                         Integer timeout, Boolean failWhenJobFails, Boolean waitForJobCompletion,
                         String orchestratorAddress, String orchestratorTenant, String folderName, SelectEntry credentials) {
         this.processName = processName;
         this.parametersFilePath = parametersFilePath;
         this.priority = priority;
+        this.jobType = jobType;
 
         this.strategy = strategy;
 
@@ -90,6 +91,8 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
         this.credentials = credentials;
         this.folderName = folderName;
     }
+
+    public SelectEntry getJobType() {return this.jobType;}
 
 
     @DataBoundSetter
@@ -283,6 +286,7 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
 
             jobOptions.setOrchestratorUrl(orchestratorAddress);
             jobOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
+            util.setJobRunFromJobTypeEntry(jobType, jobOptions);
 
             ResourceBundle rb = ResourceBundle.getBundle("config");
             String orchestratorTenantFormatted = envVars.expand(orchestratorTenant.trim()).isEmpty() ? util.getConfigValue(rb, "UiPath.DefaultTenant") : envVars.expand(orchestratorTenant.trim());
@@ -444,7 +448,7 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
         /**
          * Provides the list of descriptors to the choice in hetero-radio
          *
-         * @return list of the authentication descriptors
+         * @return list of the strategy descriptors
          */
         public List<Descriptor> getStrategyDescriptors() {
             Jenkins jenkins = Jenkins.getInstance();
@@ -460,6 +464,30 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
             Descriptor robotDescriptor = jenkins.getDescriptor(RobotEntry.class);
             if (robotDescriptor != null) {
                 list.add(robotDescriptor);
+            }
+
+            return ImmutableList.copyOf(list);
+        }
+
+        /**
+         * Provides the list of descriptors to the choice in hetero-radio
+         *
+         * @return list of the job type descriptors
+         */
+        public List<Descriptor> getJobTypeDescriptors() {
+            Jenkins jenkins = Jenkins.getInstance();
+            List<Descriptor> list = new ArrayList<>();
+
+            // Add unattended job type entry option
+            Descriptor unattendedDescriptor = jenkins.getDescriptor(UnattendedJobTypeEntry.class);
+            if (unattendedDescriptor != null) {
+                list.add(unattendedDescriptor);
+            }
+
+            // Add unattended job type entry option
+            Descriptor nonProductionDescriptor = jenkins.getDescriptor(NonProductionJobTypeEntry.class);
+            if (nonProductionDescriptor != null) {
+                list.add(nonProductionDescriptor);
             }
 
             return ImmutableList.copyOf(list);

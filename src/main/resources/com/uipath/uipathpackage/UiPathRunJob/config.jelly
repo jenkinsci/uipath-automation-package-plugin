@@ -50,6 +50,9 @@
     <f:entry title="${%ChooseStrategy}" field="strategyEntry">
         <f:hetero-radio field="strategy" descriptors="${descriptor.strategyDescriptors}"/>
     </f:entry>
+    <f:entry title="${%JobType}" field="jobTypeEntry">
+        <f:hetero-radio field="jobType" descriptors="${descriptor.jobTypeDescriptors}"/>
+    </f:entry>
     <f:entry title="${%OrchestratorAddress}" field="orchestratorAddress">
         <f:textbox/>
     </f:entry>

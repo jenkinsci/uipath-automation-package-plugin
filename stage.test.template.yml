@@ -96,6 +96,8 @@ stages:
             configurationName: 'Staging Orchestrator/Modern_Process_Pack_Deploy_RunJob'
           - jobName: 'Modern_TestingProcess_Pack_Deploy_RunTests_RunJob'
             configurationName: 'Staging Orchestrator/Modern_TestingProcess_Pack_Deploy_RunTests_RunJob'
+          - jobName: 'Modern_TestingProcess_Pack_Deploy_RunTests_RunJobWithType'
+            configurationName: 'Staging Orchestrator/Modern_TestingProcess_Pack_Deploy_RunTests_RunJobWithType'
 
 ### Long Running ###
       ${{ if eq('Long_Running', configuration.stageName) }}:
