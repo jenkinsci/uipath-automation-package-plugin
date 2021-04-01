@@ -38,6 +38,7 @@ The `UiPath Run Job` post-build step starts an already deployed process on an Or
 | Parameters                    | The full path to a json input file. This is used when the Process requires input. |
 | Priority                      | The job run priority. |
 | Strategy                      | Specify the job run strategy, dynamically allocated job(s) or robot specific job(s). Options: `Allocate dynamically`, `Specific robots` |
+| Job Type                      | This feature is available only on modern folders! Choose the license model of the runtime under which the job is to be executed. |
 | Orchestrator address          | The address of the Orchestrator instance where we'll run the process. |
 | Orchestrator tenant           | Specify the Orchestrator tenant. |
 | Orchestrator folder           | Specify the folder where the specified process was deployed. |
@@ -176,7 +177,7 @@ UiPath Pack is available in standard jobs and pipelines, and lets you package an
 | Project(s) path               | The location of the project(s) to be packaged. It can be a direct path to a project.json file or a directory with one or multiple projects. In the latter case, each level one project is packaged individually. |
 | Output folder                 | Path to a folder, where the created package should be placed. |
 | Output type                   | The output type of the project(s). There are 5 options for the project(s) type: *(1)* Output type of the project *(2)* Pack a process project *(3)* Pack a library project *(4)* Pack a tests project *(5)* Pack an objects project. |
-| Use orchestrator              | Use Orchestrator feed when packaging libraries. |
+| Use orchestrator              | Use Orchestrator feed when packaging libraries. The Orchestrator must be 20.4 or higher. The library feed needs to allow API Key authentication in Tenant -> Setting -> Deployment. |
 | Orchestrator address          | The address of the Orchestrator instance from which library dependencies should be restored. |
 | Orchestrator tenant           | The Orchestrator tenant from which library dependencies should be restored. |
 | Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this). |
