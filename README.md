@@ -32,7 +32,7 @@ The `UiPath Run Job` post-build step starts an already deployed process on an Or
 
 **⚙️ Configuration**
 
-| Argument                      | Description           |
+| <div style="width:150px;">Argument</div>                      | Description           |
 | ----------------------------- | -------------         |
 | Process                       | (Required) Process name. You can take the process name from the Orchestrator UI. If the process is deployed in a Modern Folder then this argument should be the `NAME` of the process in the Processes tab. If the process is deployed in a Classic Folder, then the argument must be formed by the `NAME` of the process and the `ENVIRONMENT` (eg: NAME: `ProcessA` ENVIRONMENT: `Production` ProcessName: `ProcessA_Production`). |
 | Parameters                    | The full path to a json input file. This is used when the Process requires input. |
@@ -118,7 +118,7 @@ separte the two fields.
 
 **⚙️ Configuration**
 
-| Argument                      | Description           |
+| <div style="width:150px;">Argument</div>                      | Description           |
 | ----------------------------- | -------------         |
 | Action                        | What to do with the provided assets: deploy or delete. If a deployed asset exists then it will be updated instead.|
 | Orchestrator address          | The address of the Orchestrator instance where we'll deploy or update assets. |
@@ -171,7 +171,7 @@ UiPath Pack is available in standard jobs and pipelines, and lets you package an
 
 **⚙️ Configuration**
 
-| Job parameter                 | Description           |
+| <div style="width:150px;">Job parameter</div>                 | Description           |
 | ----------------------------- | -------------         |
 | Choose versioning method      | UiPath packages are versioned. With UiPath pack you can choose between 3 different options: (1) Auto generate (2) Define custom version (3) Use the current version set in the project. |
 | Project(s) path               | The location of the project(s) to be packaged. It can be a direct path to a project.json file or a directory with one or multiple projects. In the latter case, each level one project is packaged individually. |
@@ -221,7 +221,7 @@ UiPath Deploy is available in standard jobs and pipelines, and lets you deploy a
 
 **⚙️ Configuration**
 
-| Job parameter                 | Description           |
+| <div style="width:150px;">Job parameter</div>                 | Description           |
 | ----------------------------- | -------------         |
 | Package(s) path               | The folder that holds your UiPath nuget package(s). |
 | Orchestrator address          | The address of the Orchestrator instance onto which the package(s) will be deployed. |
@@ -272,7 +272,7 @@ Depending on the result, the build will be either marked as successful (all test
 
 **⚙️ Configuration**
 
-| Job parameter                 | Description           |
+| <div style="width:150px;">Job parameter</div>                 | Description           |
 | ----------------------------- | -------------         |
 | Target                        | *(1)* Execute test set (specify an existing test set on UiPath Orchestrator) or *(2)* Execute test project (provide the project.json path of a UiPath Testing project) |
 | Test result output path       | The executed test set returns the test result as junit.xml. Specify the path where the result should be stored, relative to the Jenkins workspace directory (e.g. result.xml). *Optional* |
