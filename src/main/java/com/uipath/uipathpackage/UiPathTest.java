@@ -7,6 +7,7 @@ import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEnt
 import com.uipath.uipathpackage.entries.testExecutionTarget.TestProjectEntry;
 import com.uipath.uipathpackage.entries.testExecutionTarget.TestSetEntry;
 import com.uipath.uipathpackage.models.TestOptions;
+import com.uipath.uipathpackage.util.TraceLevel;
 import com.uipath.uipathpackage.util.Utility;
 import hudson.*;
 import hudson.model.*;
@@ -45,6 +46,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private final Integer timeout;
     private final String testResultsOutputPath;
     private String testResultIncludes;
+    private final TraceLevel traceLevel;
 
     private static int TimeoutDefault = 7200;
 
@@ -65,9 +67,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
      * @param credentials          UiPath Orchestrator credentials
      * @param testResultsOutputPath Test result output path (JUnit format)
      * @param timeout              Timeout
+     * @param traceLevel            The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
      */
     @DataBoundConstructor
-    public UiPathTest(String orchestratorAddress, String orchestratorTenant, String folderName, SelectEntry testTarget, SelectEntry credentials, String testResultsOutputPath, Integer timeout)  {
+    public UiPathTest(String orchestratorAddress, String orchestratorTenant, String folderName, SelectEntry testTarget, SelectEntry credentials, String testResultsOutputPath, Integer timeout, TraceLevel traceLevel)  {
         this.testTarget = testTarget;
         this.orchestratorAddress = orchestratorAddress;
         this.orchestratorTenant = orchestratorTenant;
@@ -75,6 +78,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         this.credentials = credentials;
         this.timeout = timeout;
         this.testResultsOutputPath = testResultsOutputPath;
+        this.traceLevel = traceLevel;
     }
 
     /**
@@ -153,6 +157,8 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             String country = Locale.getDefault().getCountry();
             String localization = country.isEmpty() ? language : language + "-" + country;
             testOptions.setLanguage(localization);
+
+            testOptions.setTraceLevel(traceLevel);
 
             int result = util.execute("RunTestsOptions", testOptions, tempRemoteDir, listener, envVars, launcher, false);
 
@@ -261,6 +267,15 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
      */
     public String getTestResultsOutputPath() {
         return testResultsOutputPath;
+    }
+
+    /**
+     * traceLevel
+     *
+     * @return TraceLevel traceLevel
+     */
+    public TraceLevel getTraceLevel() {
+        return traceLevel;
     }
 
     private void validateParameters() throws AbortException {

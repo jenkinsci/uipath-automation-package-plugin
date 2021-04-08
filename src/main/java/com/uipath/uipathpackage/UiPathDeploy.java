@@ -5,6 +5,7 @@ import com.uipath.uipathpackage.entries.SelectEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
 import com.uipath.uipathpackage.models.DeployOptions;
+import com.uipath.uipathpackage.util.TraceLevel;
 import com.uipath.uipathpackage.util.Utility;
 import hudson.*;
 import hudson.model.*;
@@ -37,6 +38,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
     private final SelectEntry credentials;
     private final String environments;
     private final String folderName;
+    private TraceLevel traceLevel;
 
     /**
      * Data bound constructor which is responsible for setting/saving of the values
@@ -48,16 +50,18 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
      * @param folderName          Orchestrator folder
      * @param credentials         Orchestrator credentials
      * @param environments        Environments on which to deploy
+     * @param traceLevel          The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
      */
     @DataBoundConstructor
     public UiPathDeploy(String packagePath, String orchestratorAddress, String orchestratorTenant,
-            String folderName, String environments, SelectEntry credentials) {
+            String folderName, String environments, SelectEntry credentials, TraceLevel traceLevel) {
         this.packagePath = packagePath;
         this.orchestratorAddress = orchestratorAddress;
         this.orchestratorTenant = orchestratorTenant;
         this.credentials = credentials;
         this.folderName = folderName;
         this.environments = environments;
+        this.traceLevel = traceLevel;
     }
 
     /**
@@ -112,6 +116,15 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
      */
     public String getEnvironments() {
         return environments;
+    }
+
+    /**
+     * traceLevel
+     *
+     * @return TraceLevel traceLevel
+     */
+    public TraceLevel getTraceLevel() {
+        return traceLevel;
     }
 
     /**
@@ -173,6 +186,8 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
             String country = Locale.getDefault().getCountry();
             String localization = country.isEmpty() ? language : language + "-" + country;
             deployOptions.setLanguage(localization);
+
+            deployOptions.setTraceLevel(traceLevel);
 
             if (this.environments != null && !this.environments.isEmpty()) {
                 String[] deploymentEnvironments = envVars.expand(this.environments).split(",");

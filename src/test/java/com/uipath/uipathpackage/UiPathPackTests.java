@@ -4,6 +4,7 @@ import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEnt
 import com.uipath.uipathpackage.entries.versioning.AutoVersionEntry;
 import com.uipath.uipathpackage.entries.versioning.CurrentVersionEntry;
 import com.uipath.uipathpackage.entries.versioning.ManualVersionEntry;
+import com.uipath.uipathpackage.util.TraceLevel;
 import com.uipath.uipathpackage.util.Utility;
 import hudson.FilePath;
 import hudson.model.FreeStyleBuild;
@@ -37,6 +38,7 @@ public class UiPathPackTests {
     private static String parentProjectPath = null;
     private static String projectJsonPath = null;
     private static String projectPath = null;
+    private static TraceLevel traceLevel = TraceLevel.None;
 
     private static String orchestratorAddress = "null";
     private static String orchestratorTenant = null;
@@ -80,33 +82,33 @@ public class UiPathPackTests {
     @Test
     public void testAutoVersionConfigRoundtrip() throws Exception {
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        project.getBuildersList().add(new UiPathPack(autoEntry, projectJsonPath, outputPath));
+        project.getBuildersList().add(new UiPathPack(autoEntry, projectJsonPath, outputPath, traceLevel));
         project = jenkins.configRoundtrip(project);
 
         Builder descriptor = project.getBuildersList().get(0);
-        jenkins.assertEqualDataBoundBeans(new UiPathPack(autoEntry, projectJsonPath, outputPath), descriptor);
+        jenkins.assertEqualDataBoundBeans(new UiPathPack(autoEntry, projectJsonPath, outputPath, traceLevel), descriptor);
     }
 
     @Test
     public void testManualVersionConfigRoundtrip() throws Exception {
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        project.getBuildersList().add(new UiPathPack(manualEntry, projectJsonPath, outputPath));
+        project.getBuildersList().add(new UiPathPack(manualEntry, projectJsonPath, outputPath, traceLevel));
         project = jenkins.configRoundtrip(project);
-        jenkins.assertEqualDataBoundBeans(new UiPathPack(manualEntry, projectJsonPath, outputPath), project.getBuildersList().get(0));
+        jenkins.assertEqualDataBoundBeans(new UiPathPack(manualEntry, projectJsonPath, outputPath, traceLevel), project.getBuildersList().get(0));
     }
 
     @Test
     public void testCurrentVersionConfigRoundtrip() throws Exception {
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        project.getBuildersList().add(new UiPathPack(currentEntry, projectJsonPath, outputPath));
+        project.getBuildersList().add(new UiPathPack(currentEntry, projectJsonPath, outputPath, traceLevel));
         project = jenkins.configRoundtrip(project);
-        jenkins.assertEqualDataBoundBeans(new UiPathPack(currentEntry, projectJsonPath, outputPath), project.getBuildersList().get(0));
+        jenkins.assertEqualDataBoundBeans(new UiPathPack(currentEntry, projectJsonPath, outputPath, traceLevel), project.getBuildersList().get(0));
     }
 
     @Test
     public void testBuildWithJson() throws Exception {
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        UiPathPack builder = new UiPathPack(autoEntry, projectJsonPath, outputPath);
+        UiPathPack builder = new UiPathPack(autoEntry, projectJsonPath, outputPath, traceLevel);
         project.getBuildersList().add(builder);
         doNothing().when(util).validateParams(isA(String.class), isA(String.class));
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
@@ -123,7 +125,7 @@ public class UiPathPackTests {
     @Test
     public void testBuildWithParentProject() throws Exception {
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        UiPathPack builder = new UiPathPack(autoEntry, parentProjectPath, outputPath);
+        UiPathPack builder = new UiPathPack(autoEntry, parentProjectPath, outputPath, traceLevel);
         builder.setCredentials(userPassCredentials);
         builder.setOrchestratorAddress(orchestratorAddress);
         builder.setOrchestratorTenant(orchestratorTenant);
@@ -140,7 +142,7 @@ public class UiPathPackTests {
     public void testBuildWithWorkspaceRelativePath() throws Exception {
         FreeStyleProject project = jenkins.createFreeStyleProject();
 
-        UiPathPack builder = new UiPathPack(autoEntry, "TestProject", "Output");
+        UiPathPack builder = new UiPathPack(autoEntry, "TestProject", "Output", traceLevel);
         builder.setCredentials(userPassCredentials);
         builder.setOrchestratorAddress(orchestratorAddress);
         builder.setOrchestratorTenant(orchestratorTenant);
@@ -158,7 +160,7 @@ public class UiPathPackTests {
     @Test
     public void testBuildWithProject() throws Exception {
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        UiPathPack builder = new UiPathPack(autoEntry, projectPath, outputPath);
+        UiPathPack builder = new UiPathPack(autoEntry, projectPath, outputPath, traceLevel);
         builder.setCredentials(userPassCredentials);
         builder.setOrchestratorAddress(orchestratorAddress);
         builder.setOrchestratorTenant(orchestratorTenant);
@@ -174,7 +176,7 @@ public class UiPathPackTests {
     @Test
     public void testBuildWithEnvVar() throws Exception {
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        UiPathPack builder = new UiPathPack(autoEntry, projectPath, workspaceOutputPath);
+        UiPathPack builder = new UiPathPack(autoEntry, projectPath, workspaceOutputPath, traceLevel);
         builder.setCredentials(userPassCredentials);
         builder.setOrchestratorAddress(orchestratorAddress);
         builder.setOrchestratorTenant(orchestratorTenant);
@@ -190,7 +192,7 @@ public class UiPathPackTests {
     @Test
     public void testBuildWithEnvVarManualEntry() throws Exception {
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        UiPathPack builder = new UiPathPack(manualEntry, projectPath, workspaceOutputPath);
+        UiPathPack builder = new UiPathPack(manualEntry, projectPath, workspaceOutputPath, traceLevel);
         builder.setCredentials(userPassCredentials);
         builder.setOrchestratorAddress(orchestratorAddress);
         builder.setOrchestratorTenant(orchestratorTenant);
@@ -209,7 +211,7 @@ public class UiPathPackTests {
         DumbSlave node = jenkins.createSlave("aNode", "", null);
         FreeStyleProject project = jenkins.createFreeStyleProject();
         project.setAssignedNode(node);
-        UiPathPack builder = new UiPathPack(manualEntry, projectPath, workspaceOutputPath);
+        UiPathPack builder = new UiPathPack(manualEntry, projectPath, workspaceOutputPath, traceLevel);
         builder.setCredentials(userPassCredentials);
         builder.setOrchestratorAddress(orchestratorAddress);
         builder.setOrchestratorTenant(orchestratorTenant);
@@ -227,7 +229,7 @@ public class UiPathPackTests {
         DumbSlave node = jenkins.createSlave("aNode", "", null);
         FreeStyleProject project = jenkins.createFreeStyleProject();
         project.setAssignedNode(node);
-        UiPathPack builder = new UiPathPack(manualEntry, projectPath, masterOutputPath);
+        UiPathPack builder = new UiPathPack(manualEntry, projectPath, masterOutputPath, traceLevel);
         builder.setCredentials(userPassCredentials);
         builder.setOrchestratorAddress(orchestratorAddress);
         builder.setOrchestratorTenant(orchestratorTenant);
@@ -242,7 +244,7 @@ public class UiPathPackTests {
 
     @Test
     public void testAutoVersionEntry() {
-        UiPathPack uipathPack = new UiPathPack(autoEntry, projectPath, outputPath);
+        UiPathPack uipathPack = new UiPathPack(autoEntry, projectPath, outputPath, traceLevel);
         assertEquals(autoEntry, uipathPack.getVersion());
         assertEquals(projectPath, uipathPack.getProjectJsonPath());
         assertEquals(outputPath, uipathPack.getOutputPath());
@@ -250,7 +252,7 @@ public class UiPathPackTests {
 
     @Test
     public void testManualVersionEntry() {
-        UiPathPack uipathPack = new UiPathPack(manualEntry, projectPath, outputPath);
+        UiPathPack uipathPack = new UiPathPack(manualEntry, projectPath, outputPath, traceLevel);
         uipathPack.setCredentials(userPassCredentials);
         uipathPack.setOrchestratorAddress(orchestratorAddress);
         uipathPack.setOrchestratorTenant(orchestratorTenant);
@@ -261,7 +263,7 @@ public class UiPathPackTests {
 
     @Test
     public void testCurrentVersionEntry() {
-        UiPathPack uipathPack = new UiPathPack(currentEntry, projectPath, outputPath);
+        UiPathPack uipathPack = new UiPathPack(currentEntry, projectPath, outputPath, traceLevel);
         uipathPack.setCredentials(userPassCredentials);
         uipathPack.setOrchestratorAddress(orchestratorAddress);
         uipathPack.setOrchestratorTenant(orchestratorTenant);
@@ -270,6 +272,7 @@ public class UiPathPackTests {
         assertEquals(currentEntry, uipathPack.getVersion());
         assertEquals(projectPath, uipathPack.getProjectJsonPath());
         assertEquals(outputPath, uipathPack.getOutputPath());
+        assertEquals(traceLevel, uipathPack.getTraceLevel());
     }
 
     @Test

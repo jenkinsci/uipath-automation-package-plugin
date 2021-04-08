@@ -6,6 +6,7 @@ import com.uipath.uipathpackage.entries.assetsAction.DeployAssetsEntry;
 import com.uipath.uipathpackage.entries.assetsAction.DeleteAssetsEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
+import com.uipath.uipathpackage.util.TraceLevel;
 import com.uipath.uipathpackage.util.Utility;
 import com.uipath.uipathpackage.models.AssetsOptions;
 import hudson.*;
@@ -36,21 +37,24 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
     private final SelectEntry credentials;
     private final String folderName;
     private final String filePath;
+    private final TraceLevel traceLevel;
 
     /**
      * Data bound constructor responsible for setting the values param values to state
      * 
      * @param assetsAction  What to do with the assets: deploy or update.
+     * @param traceLevel    The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
      */
     @DataBoundConstructor
     public UiPathAssets(SelectEntry assetsAction, String orchestratorAddress, String orchestratorTenant,
-    String folderName, SelectEntry credentials, String filePath) {
+    String folderName, SelectEntry credentials, String filePath, TraceLevel traceLevel) {
         this.assetsAction = assetsAction;
         this.orchestratorAddress = orchestratorAddress;
         this.orchestratorTenant = orchestratorTenant;
         this.folderName = folderName;
         this.credentials = credentials;
         this.filePath = filePath;
+        this.traceLevel = traceLevel;
     }
 
     /**
@@ -100,6 +104,8 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
             String country = Locale.getDefault().getCountry();
             String localization = country.isEmpty() ? language : language + "-" + country;
             assetsOptions.setLanguage(localization);
+
+            assetsOptions.setTraceLevel(traceLevel);
 
             if (assetAction.equals("None")) {
                 throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_InvalidAction());
@@ -176,6 +182,15 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
      */
     public String getFilePath() {
         return filePath;
+    }
+    
+    /**
+     * traceLevel
+     *
+     * @return TraceLevel traceLevel
+     */
+    public TraceLevel getTraceLevel() {
+        return traceLevel;
     }
 
     private void validateParameters() throws AbortException {

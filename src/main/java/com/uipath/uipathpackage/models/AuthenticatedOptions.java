@@ -1,4 +1,5 @@
 package com.uipath.uipathpackage.models;
+import com.uipath.uipathpackage.util.TraceLevel;
 
 public abstract class AuthenticatedOptions extends LocalizationOptions implements SerializableCliOptions {
     private String username;
@@ -8,6 +9,7 @@ public abstract class AuthenticatedOptions extends LocalizationOptions implement
     private String organizationUnit;
     private String orchestratorUrl;
     private String orchestratorTenant;
+    private TraceLevel traceLevel;
 
     public String getAccountName() {
         return accountName;
@@ -63,5 +65,13 @@ public abstract class AuthenticatedOptions extends LocalizationOptions implement
 
     public void setOrganizationUnit(String organizationUnit) {
         this.organizationUnit = organizationUnit;
+    }
+
+    public TraceLevel getTraceLevel() {
+        return traceLevel;
+    }
+
+    public void setTraceLevel(TraceLevel traceLevel) {
+        this.traceLevel = traceLevel;
     }
 }

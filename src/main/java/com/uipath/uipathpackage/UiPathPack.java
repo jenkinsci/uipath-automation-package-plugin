@@ -9,6 +9,7 @@ import com.uipath.uipathpackage.entries.versioning.CurrentVersionEntry;
 import com.uipath.uipathpackage.entries.versioning.ManualVersionEntry;
 import com.uipath.uipathpackage.models.PackOptions;
 import com.uipath.uipathpackage.util.OutputType;
+import com.uipath.uipathpackage.util.TraceLevel;
 import com.uipath.uipathpackage.util.Utility;
 import hudson.*;
 import hudson.model.*;
@@ -46,6 +47,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     private String orchestratorAddress;
     private String orchestratorTenant;
     private SelectEntry credentials;
+    private final TraceLevel traceLevel;
 
     /**
      * Data bound constructor responsible for setting the values param values to state
@@ -53,12 +55,14 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      * @param version         Entry version
      * @param projectJsonPath Project Json Path
      * @param outputPath      Output Path
+     * @param traceLevel      The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
      */
     @DataBoundConstructor
-    public UiPathPack(SelectEntry version, String projectJsonPath, String outputPath) {
+    public UiPathPack(SelectEntry version, String projectJsonPath, String outputPath, TraceLevel traceLevel) {
         this.version = version;
         this.projectJsonPath = projectJsonPath;
         this.outputPath = outputPath;
+        this.traceLevel = traceLevel;
         this.outputType = "None";
 
         this.orchestratorAddress = "";
@@ -122,6 +126,8 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             String country = Locale.getDefault().getCountry();
             String localization = country.isEmpty() ? language : language + "-" + country;
             packOptions.setLanguage(localization);
+
+            packOptions.setTraceLevel(traceLevel);
 
             util.execute("PackOptions", packOptions, tempRemoteDir, listener, envVars, launcher, true);
         } catch (URISyntaxException e) {
@@ -238,6 +244,15 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      */
     public String getOutputType() {
         return outputType;
+    }
+
+    /**
+     * traceLevel
+     *
+     * @return TraceLevel traceLevel
+     */
+    public TraceLevel getTraceLevel() {
+        return traceLevel;
     }
 
     private void validateParameters() throws AbortException {

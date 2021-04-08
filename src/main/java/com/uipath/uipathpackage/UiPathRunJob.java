@@ -7,6 +7,7 @@ import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEnt
 import com.uipath.uipathpackage.entries.job.*;
 import com.uipath.uipathpackage.models.JobOptions;
 import com.uipath.uipathpackage.util.StartProcessDtoJobPriority;
+import com.uipath.uipathpackage.util.TraceLevel;
 import com.uipath.uipathpackage.util.Utility;
 import hudson.*;
 import hudson.model.*;
@@ -49,6 +50,8 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
     private Boolean failWhenJobFails;
     private Boolean waitForJobCompletion;
 
+    private TraceLevel traceLevel;
+
     private final String orchestratorAddress;
     private final String orchestratorTenant;
     private final SelectEntry credentials;
@@ -65,6 +68,7 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
      * @param timeout               The timeout for job executions in seconds. (default 1800)
      * @param failWhenJobFails      The command fails when at least one job fails. (default true)
      * @param waitForJobCompletion  Wait for job runs completion. (default true)
+     * @param traceLevel            The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
      * @param orchestratorAddress   Orchestrator base URL
      * @param orchestratorTenant    Orchestrator tenant
      * @param folderName            Orchestrator folder
@@ -72,7 +76,7 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
      */
     @DataBoundConstructor
     public UiPathRunJob(String processName, String parametersFilePath, StartProcessDtoJobPriority priority, SelectEntry strategy, SelectEntry jobType, String resultFilePath,
-                        Integer timeout, Boolean failWhenJobFails, Boolean waitForJobCompletion,
+                        Integer timeout, Boolean failWhenJobFails, Boolean waitForJobCompletion, TraceLevel traceLevel,
                         String orchestratorAddress, String orchestratorTenant, String folderName, SelectEntry credentials) {
         this.processName = processName;
         this.parametersFilePath = parametersFilePath;
@@ -85,6 +89,8 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
         this.timeout = timeout;
         this.failWhenJobFails = failWhenJobFails;
         this.waitForJobCompletion = waitForJobCompletion;
+
+        this.traceLevel = traceLevel;
 
         this.orchestratorAddress = orchestratorAddress;
         this.orchestratorTenant = orchestratorTenant;
@@ -213,6 +219,18 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
         this.resultFilePath = resultFilePath;
     }
 
+    @DataBoundSetter
+    public void setTraceLevel(TraceLevel traceLevel) {
+        this.traceLevel = traceLevel;
+    }
+
+    /**
+     * traceLevel
+     *
+     * @return TraceLevel traceLevel
+     */
+    public TraceLevel getTraceLevel() { return traceLevel; }
+
     public String getResultFilePath() { return resultFilePath; }
 
     @DataBoundSetter
@@ -283,6 +301,8 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
             jobOptions.setTimeout(timeout);
             jobOptions.setFailWhenJobFails(failWhenJobFails);
             jobOptions.setWaitForJobCompletion(waitForJobCompletion);
+
+            jobOptions.setTraceLevel(traceLevel);
 
             jobOptions.setOrchestratorUrl(orchestratorAddress);
             jobOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
