@@ -11,6 +11,7 @@ import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEnt
 import com.uipath.uipathpackage.entries.versioning.AutoVersionEntry;
 import com.uipath.uipathpackage.entries.assetsAction.DeployAssetsEntry;
 import com.uipath.uipathpackage.entries.assetsAction.DeleteAssetsEntry;
+import com.uipath.uipathpackage.util.TraceLevel;
 import hudson.FilePath;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
@@ -57,6 +58,8 @@ public class UiPathAssetsTests {
     private static String folderName;
     private static int folderId;
 
+    private static TraceLevel traceLevel;
+
     private static UserPassAuthenticationEntry userPassCredentials;
     private static TokenAuthenticationEntry tokenCredentials;
     @Rule
@@ -79,6 +82,7 @@ public class UiPathAssetsTests {
         environments = System.getenv("TestOrchestratorEnvironments");
         folderName = "Default";
         folderId = 21;
+        traceLevel = TraceLevel.None;
         userPassCredentials = new UserPassAuthenticationEntry(userPassCredentialsId);
         tokenCredentials = new TokenAuthenticationEntry(tokenCredentialsId, "randomaccount");
     }
@@ -97,33 +101,33 @@ public class UiPathAssetsTests {
 
     @Test
     public void testDeployAssetsWithUsernamePasswordConfigRoundtrip() throws Exception {
-        UiPathAssets builder = new UiPathAssets(new DeployAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, "test.csv");
+        UiPathAssets builder = new UiPathAssets(new DeployAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, "test.csv", traceLevel);
         project.getBuildersList().add(builder);
         project = jenkins.configRoundtrip(project);
-        jenkins.assertEqualDataBoundBeans(new UiPathAssets(new DeployAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, "test.csv"), project.getBuildersList().get(0));
+        jenkins.assertEqualDataBoundBeans(new UiPathAssets(new DeployAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, "test.csv", traceLevel), project.getBuildersList().get(0));
     }
 
     @Test
     public void testDeleteAssetsWithTokenConfigRoundTrip() throws Exception {
-        UiPathAssets builder = new UiPathAssets(new DeleteAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, "test.csv");
+        UiPathAssets builder = new UiPathAssets(new DeleteAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, "test.csv", traceLevel);
         project.getBuildersList().add(builder);
         project = jenkins.configRoundtrip(project);
-        jenkins.assertEqualDataBoundBeans(new UiPathAssets(new DeleteAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, "test.csv"), project.getBuildersList().get(0));
+        jenkins.assertEqualDataBoundBeans(new UiPathAssets(new DeleteAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, "test.csv", traceLevel), project.getBuildersList().get(0));
     }
 
     @Test
     public void testDeployUpdateAssets() throws Exception {
         String assetsResourcesFolder = new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("Assets")).getPath()).getAbsolutePath();
-        UiPathAssets builder = new UiPathAssets(new DeleteAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/deploy_test_sample_file.csv");
+        UiPathAssets builder = new UiPathAssets(new DeleteAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/deploy_test_sample_file.csv", traceLevel);
         project.getBuildersList().add(builder);
         project = jenkins.configRoundtrip(project);
         FreeStyleBuild build = project.scheduleBuild2(0).get();
         project.getBuildersList().clear();
-        builder = new UiPathAssets(new DeployAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/deploy_test_sample_file.csv");
+        builder = new UiPathAssets(new DeployAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/deploy_test_sample_file.csv", traceLevel);
         project.getBuildersList().add(builder);
-        builder = new UiPathAssets(new DeployAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/update_test_sample_file.csv");
+        builder = new UiPathAssets(new DeployAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/update_test_sample_file.csv", traceLevel);
         project.getBuildersList().add(builder);
-        builder = new UiPathAssets(new DeleteAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/deploy_test_sample_file.csv");
+        builder = new UiPathAssets(new DeleteAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/deploy_test_sample_file.csv", traceLevel);
         project.getBuildersList().add(builder);
         project = jenkins.configRoundtrip(project);
         build = jenkins.buildAndAssertSuccess(project);

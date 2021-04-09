@@ -6,6 +6,7 @@ import com.uipath.uipathpackage.entries.assetsAction.DeployAssetsEntry;
 import com.uipath.uipathpackage.entries.assetsAction.DeleteAssetsEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
+import com.uipath.uipathpackage.util.TraceLevel;
 import com.uipath.uipathpackage.util.Utility;
 import com.uipath.uipathpackage.models.AssetsOptions;
 import hudson.*;
@@ -13,9 +14,11 @@ import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -36,21 +39,24 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
     private final SelectEntry credentials;
     private final String folderName;
     private final String filePath;
+    private final TraceLevel traceLevel;
 
     /**
      * Data bound constructor responsible for setting the values param values to state
      * 
      * @param assetsAction  What to do with the assets: deploy or update.
+     * @param traceLevel    The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
      */
     @DataBoundConstructor
     public UiPathAssets(SelectEntry assetsAction, String orchestratorAddress, String orchestratorTenant,
-    String folderName, SelectEntry credentials, String filePath) {
+    String folderName, SelectEntry credentials, String filePath, TraceLevel traceLevel) {
         this.assetsAction = assetsAction;
         this.orchestratorAddress = orchestratorAddress;
         this.orchestratorTenant = orchestratorTenant;
         this.folderName = folderName;
         this.credentials = credentials;
         this.filePath = filePath;
+        this.traceLevel = traceLevel;
     }
 
     /**
@@ -100,6 +106,8 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
             String country = Locale.getDefault().getCountry();
             String localization = country.isEmpty() ? language : language + "-" + country;
             assetsOptions.setLanguage(localization);
+
+            assetsOptions.setTraceLevel(traceLevel);
 
             if (assetAction.equals("None")) {
                 throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_InvalidAction());
@@ -176,6 +184,15 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
      */
     public String getFilePath() {
         return filePath;
+    }
+    
+    /**
+     * traceLevel
+     *
+     * @return TraceLevel traceLevel
+     */
+    public TraceLevel getTraceLevel() {
+        return traceLevel;
     }
 
     private void validateParameters() throws AbortException {
@@ -278,6 +295,26 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
                 list.add(tokenDescriptor);
             }
             return ImmutableList.copyOf(list);
+        }
+
+        /**
+         * Returns the list of Strings to be filled in choice
+         * If item is null or doesn't have configure permission it will return empty list
+         *
+         * @param item Basic configuration unit in Hudson
+         * @return ListBoxModel list of String
+         */
+        public ListBoxModel doFillTraceLevelItems(@AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
+
+            ListBoxModel result= new ListBoxModel();
+            for (TraceLevel v: TraceLevel.values()) {
+                result.add(v.toString(), v.toString());
+            }
+
+            return result;
         }
 
         /**

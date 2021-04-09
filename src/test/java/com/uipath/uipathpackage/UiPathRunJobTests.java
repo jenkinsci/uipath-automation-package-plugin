@@ -10,6 +10,7 @@ import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
 import com.uipath.uipathpackage.entries.job.*;
 import com.uipath.uipathpackage.util.StartProcessDtoJobPriority;
+import com.uipath.uipathpackage.util.TraceLevel;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.util.Secret;
@@ -34,6 +35,7 @@ public class UiPathRunJobTests {
     private static String password;
     private static String token;
     private static String folderName;
+    private static TraceLevel traceLevel;
     private static NonProductionJobTypeEntry nonProductionJobTypeEntry;
     private static UnattendedJobTypeEntry unattendedJobTypeEntry;
 
@@ -69,6 +71,8 @@ public class UiPathRunJobTests {
         username = System.getenv("TestOrchestratorUsername");
         password = System.getenv("TestOrchestratorPassword");
         folderName = System.getenv("TestOrchestratorFolderName");
+
+        traceLevel = TraceLevel.None;
 
         cloudOrchestratorAddress = System.getenv("TestOrchestratorCloudUrl");
         cloudOrchestratorTenant = System.getenv("TestOrchestratorCloudTenant");
@@ -120,119 +124,119 @@ public class UiPathRunJobTests {
     @Test
     public void runJobWithUsernamePasswordAndDefaultConfiguration() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(defaultProcessName, "", StartProcessDtoJobPriority.Normal, defaultDynamicallyStrategy, unattendedJobTypeEntry, "",
-                null, true, true,
+                null, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, userPassCredentials);
 
         project.getPublishersList().add(publisher);
         project = jenkins.configRoundtrip(project);
 
         jenkins.assertEqualDataBoundBeans(new UiPathRunJob(defaultProcessName, "", StartProcessDtoJobPriority.Normal, defaultDynamicallyStrategy, unattendedJobTypeEntry, "",
-                null, true, true,
+                null, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName,userPassCredentials), project.getPublishersList().get(0));
     }
 
     @Test
     public void runJobWithTokenAndDefaultConfiguration() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(defaultProcessName, "", StartProcessDtoJobPriority.Normal, defaultDynamicallyStrategy, unattendedJobTypeEntry, "",
-                null, true, true,
+                null, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, tokenCredentials);
 
         project.getPublishersList().add(publisher);
         project = jenkins.configRoundtrip(project);
 
         jenkins.assertEqualDataBoundBeans(new UiPathRunJob(defaultProcessName, "", StartProcessDtoJobPriority.Normal, defaultDynamicallyStrategy, unattendedJobTypeEntry, "",
-                null, true, true,
+                null, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, tokenCredentials), project.getPublishersList().get(0));
     }
 
     @Test
     public void runJobWithDynamicallyStrategySpecificNumberOFJobsUserAndMachine() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(modernProcessName, "", StartProcessDtoJobPriority.Normal, completeDynamicallyStrategy, unattendedJobTypeEntry, "",
-                null, true, true,
+                null, true, true, traceLevel,
                 cloudOrchestratorAddress, cloudOrchestratorTenant, couldModernFolderName, userPassCredentials);
 
         project.getPublishersList().add(publisher);
         project = jenkins.configRoundtrip(project);
 
         jenkins.assertEqualDataBoundBeans(new UiPathRunJob(modernProcessName, "", StartProcessDtoJobPriority.Normal, completeDynamicallyStrategy, unattendedJobTypeEntry, "",
-                null, true, true,
+                null, true, true, traceLevel,
                 cloudOrchestratorAddress, cloudOrchestratorTenant, couldModernFolderName, userPassCredentials), project.getPublishersList().get(0));
     }
 
     @Test
     public void runJobWithSpecificStrategy() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(defaultProcessName, "", StartProcessDtoJobPriority.Normal, robotStrategy, unattendedJobTypeEntry, "",
-                null, true, true,
+                null, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, userPassCredentials);
 
         project.getPublishersList().add(publisher);
         project = jenkins.configRoundtrip(project);
 
         jenkins.assertEqualDataBoundBeans(new UiPathRunJob(defaultProcessName, "", StartProcessDtoJobPriority.Normal, robotStrategy, unattendedJobTypeEntry, "",
-                null, true, true,
+                null, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName,userPassCredentials), project.getPublishersList().get(0));
     }
 
     @Test
     public void runJobWithDynamicallyStrategySpecificUser() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(defaultProcessName, "", StartProcessDtoJobPriority.Normal, userDynamicallyStrategy, unattendedJobTypeEntry, "",
-                null, true, true,
+                null, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, userPassCredentials);
 
         project.getPublishersList().add(publisher);
         project = jenkins.configRoundtrip(project);
 
         jenkins.assertEqualDataBoundBeans(new UiPathRunJob(defaultProcessName, "", StartProcessDtoJobPriority.Normal, userDynamicallyStrategy, unattendedJobTypeEntry, "",
-                null, true, true,
+                null, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName,userPassCredentials), project.getPublishersList().get(0));
     }
 
     @Test
     public void runJobWithDynamicallyStrategySpecificMachine() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(defaultProcessName, "", StartProcessDtoJobPriority.Normal, machineDynamicallyStrategy, unattendedJobTypeEntry, "",
-                null, true, true,
+                null, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, userPassCredentials);
 
         project.getPublishersList().add(publisher);
         project = jenkins.configRoundtrip(project);
 
         jenkins.assertEqualDataBoundBeans(new UiPathRunJob(defaultProcessName, "", StartProcessDtoJobPriority.Normal, machineDynamicallyStrategy, unattendedJobTypeEntry, "",
-                null, true, true,
+                null, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, userPassCredentials), project.getPublishersList().get(0));
     }
 
     @Test
     public void runJobWithResultFile() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(defaultProcessName, "", StartProcessDtoJobPriority.Normal, defaultDynamicallyStrategy, unattendedJobTypeEntry, "test",
-                null, true, true,
+                null, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, userPassCredentials);
 
         project.getPublishersList().add(publisher);
         project = jenkins.configRoundtrip(project);
 
         jenkins.assertEqualDataBoundBeans(new UiPathRunJob(defaultProcessName, "", StartProcessDtoJobPriority.Normal, defaultDynamicallyStrategy, unattendedJobTypeEntry, "test",
-                null, true, true,
+                null, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, userPassCredentials), project.getPublishersList().get(0));
     }
 
     @Test
     public void runJobWithTimeout() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(defaultProcessName, "", StartProcessDtoJobPriority.Normal, defaultDynamicallyStrategy, unattendedJobTypeEntry, "",
-                10000, true, true,
+                10000, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, userPassCredentials);
 
         project.getPublishersList().add(publisher);
         project = jenkins.configRoundtrip(project);
 
         jenkins.assertEqualDataBoundBeans(new UiPathRunJob(defaultProcessName, "", StartProcessDtoJobPriority.Normal, defaultDynamicallyStrategy, unattendedJobTypeEntry, "",
-                10000, true, true,
+                10000, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, userPassCredentials), project.getPublishersList().get(0));
     }
 
     @Test
     public void runJobClassicFolder() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(classicProcessName, null, StartProcessDtoJobPriority.High, defaultDynamicallyStrategy, unattendedJobTypeEntry, null,
-                10000, true, true,
+                10000, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, userPassCredentials);
 
         project.getPublishersList().add(publisher);
@@ -246,7 +250,7 @@ public class UiPathRunJobTests {
     @Test
     public void runJobClassicFolderWithSpecificRobots() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(classicProcessName, null, StartProcessDtoJobPriority.High, robotStrategy, unattendedJobTypeEntry, null,
-                10000, true, true,
+                10000, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, userPassCredentials);
 
         project.getPublishersList().add(publisher);
@@ -260,7 +264,7 @@ public class UiPathRunJobTests {
     @Test
     public void runJobModernFolder() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(cloudModernProcessName, null, StartProcessDtoJobPriority.High, completeDynamicallyStrategy, unattendedJobTypeEntry, null,
-                10000, true, true,
+                10000, true, true, traceLevel,
                 cloudOrchestratorAddress, cloudOrchestratorTenant, couldModernFolderName, cloudTokenCredentials);
 
         StringBuilder stringBuilder = new StringBuilder();
@@ -282,7 +286,7 @@ public class UiPathRunJobTests {
     @Test
     public void runJobNonProductionJobTypeModernFolder() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(cloudModernProcessName, null, StartProcessDtoJobPriority.High, completeDynamicallyStrategy, nonProductionJobTypeEntry, null,
-                10000, true, true,
+                10000, true, true, traceLevel,
                 cloudOrchestratorAddress, cloudOrchestratorTenant, couldModernFolderName, cloudTokenCredentials);
 
         StringBuilder stringBuilder = new StringBuilder();
@@ -304,7 +308,7 @@ public class UiPathRunJobTests {
     @Test
     public void runJobNullJobTypeModernFolder() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(cloudModernProcessName, null, StartProcessDtoJobPriority.High, completeDynamicallyStrategy, null, null,
-                10000, true, true,
+                10000, true, true, traceLevel,
                 cloudOrchestratorAddress, cloudOrchestratorTenant, couldModernFolderName, cloudTokenCredentials);
 
         StringBuilder stringBuilder = new StringBuilder();
@@ -326,14 +330,14 @@ public class UiPathRunJobTests {
     @Test
     public void runJobWithCompleteSpecifications() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(defaultProcessName, "test", StartProcessDtoJobPriority.High, completeDynamicallyStrategy, unattendedJobTypeEntry, "test",
-                10000, true, true,
+                10000, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, userPassCredentials);
 
         project.getPublishersList().add(publisher);
         project = jenkins.configRoundtrip(project);
 
         jenkins.assertEqualDataBoundBeans(new UiPathRunJob(defaultProcessName, "test", StartProcessDtoJobPriority.High, completeDynamicallyStrategy, unattendedJobTypeEntry, "test",
-                10000, true, true,
+                10000, true, true, traceLevel,
                 orchestratorAddress, orchestratorTenant, folderName, userPassCredentials), project.getPublishersList().get(0));
     }
 }

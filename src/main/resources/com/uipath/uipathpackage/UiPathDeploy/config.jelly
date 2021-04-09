@@ -54,4 +54,7 @@
     <f:entry title="${%ChooseAuthenticationMethod}" field="credentialsEntry">
         <f:hetero-radio field="credentials" descriptors="${descriptor.authenticationDescriptors}"/>
     </f:entry>
+    <f:entry title="${%TraceLevel}" field="traceLevel">
+        <f:select/>
+    </f:entry>
 </j:jelly>
