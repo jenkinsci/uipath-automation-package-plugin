@@ -382,6 +382,26 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         }
 
         /**
+         * Returns the list of Strings to be filled in choice
+         * If item is null or doesn't have configure permission it will return empty list
+         *
+         * @param item Basic configuration unit in Hudson
+         * @return ListBoxModel list of String
+         */
+        public ListBoxModel doFillTraceLevelItems(@AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
+
+            ListBoxModel result= new ListBoxModel();
+            for (TraceLevel v: TraceLevel.values()) {
+                result.add(v.toString(), v.toString());
+            }
+
+            return result;
+        }
+
+        /**
          * Provides the list of descriptors to the choice in hetero-radio
          *
          * @return list of the authentication descriptors

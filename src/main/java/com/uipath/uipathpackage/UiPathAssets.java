@@ -14,9 +14,11 @@ import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -293,6 +295,26 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
                 list.add(tokenDescriptor);
             }
             return ImmutableList.copyOf(list);
+        }
+
+        /**
+         * Returns the list of Strings to be filled in choice
+         * If item is null or doesn't have configure permission it will return empty list
+         *
+         * @param item Basic configuration unit in Hudson
+         * @return ListBoxModel list of String
+         */
+        public ListBoxModel doFillTraceLevelItems(@AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
+
+            ListBoxModel result= new ListBoxModel();
+            for (TraceLevel v: TraceLevel.values()) {
+                result.add(v.toString(), v.toString());
+            }
+
+            return result;
         }
 
         /**
