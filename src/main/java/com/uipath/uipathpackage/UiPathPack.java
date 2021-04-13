@@ -8,6 +8,7 @@ import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEnt
 import com.uipath.uipathpackage.entries.versioning.AutoVersionEntry;
 import com.uipath.uipathpackage.entries.versioning.CurrentVersionEntry;
 import com.uipath.uipathpackage.entries.versioning.ManualVersionEntry;
+import com.uipath.uipathpackage.models.AnalyzeOptions;
 import com.uipath.uipathpackage.models.PackOptions;
 import com.uipath.uipathpackage.util.OutputType;
 import com.uipath.uipathpackage.util.TraceLevel;
@@ -43,6 +44,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     private final String projectJsonPath;
     private final String outputPath;
     private String outputType;
+    private boolean runWorkflowAnalysis;
 
     private boolean useOrchestrator;
     private String orchestratorAddress;
@@ -69,6 +71,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         this.orchestratorAddress = "";
         this.orchestratorTenant = "";
         this.credentials = null;
+        this.runWorkflowAnalysis = false;
     }
 
     /**
@@ -85,12 +88,12 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         validateParameters();
 
-        FilePath tempRemoteDir = tempDir(workspace);
-        tempRemoteDir.mkdirs();
-
         if (launcher.isUnix()) {
             throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
         }
+
+        FilePath tempRemoteDir = tempDir(workspace);
+        tempRemoteDir.mkdirs();
 
         try {
             EnvVars envVars = run.getEnvironment(listener);
@@ -103,6 +106,20 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             FilePath expandedProjectJsonPath = projectJsonPath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(projectJsonPath)) :
                     workspace.child(envVars.expand(projectJsonPath));
+
+            if (runWorkflowAnalysis) {
+                AnalyzeOptions analyzeOptions = new AnalyzeOptions();
+                analyzeOptions.setProjectPath(expandedProjectJsonPath.getRemote());
+
+                if (useOrchestrator) {
+                    analyzeOptions.setOrchestratorUrl(orchestratorAddress);
+                    analyzeOptions.setOrchestratorTenant(orchestratorTenant);
+
+                    util.setCredentialsFromCredentialsEntry(credentials, analyzeOptions, run);
+                }
+
+                util.execute("AnalyzeOptions", analyzeOptions, tempRemoteDir, listener, envVars, launcher, true);
+            }
 
             PackOptions packOptions = new PackOptions();
 
@@ -158,6 +175,11 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     @DataBoundSetter
     public void setOutputType(String outputType) {
         this.outputType = outputType;
+    }
+
+    @DataBoundSetter
+    public void setRunWorkflowAnalysis(boolean runWorkflowAnalysis) {
+        this.runWorkflowAnalysis = runWorkflowAnalysis;
     }
 
     @DataBoundSetter
@@ -245,6 +267,15 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      */
     public String getOutputType() {
         return outputType;
+    }
+
+    /**
+     * Provides the run workflow analysis flag
+     *
+     * @return boolean runWorkflowAnalysis
+     */
+    public boolean getRunWorkflowAnalysis() {
+        return runWorkflowAnalysis;
     }
 
     /**
