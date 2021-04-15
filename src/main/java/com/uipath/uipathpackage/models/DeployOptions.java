@@ -5,6 +5,7 @@ import java.util.List;
 public class DeployOptions extends AuthenticatedOptions {
     private String packagesPath;
     private List<String> environments;
+    private List<String> entryPointPaths;
 
     public String getPackagesPath() {
         return packagesPath;
@@ -20,5 +21,13 @@ public class DeployOptions extends AuthenticatedOptions {
 
     public void setEnvironments(List<String> environments) {
         this.environments = environments;
+    }
+
+    public List<String> getEntryPointPaths() {
+        return entryPointPaths;
+    }
+
+    public void setEntryPointPaths(List<String> entryPointPaths) {
+        this.entryPointPaths = entryPointPaths;
     }
 }

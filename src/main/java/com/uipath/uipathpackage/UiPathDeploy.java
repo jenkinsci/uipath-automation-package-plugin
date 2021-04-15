@@ -42,6 +42,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
     private final String environments;
     private final String folderName;
     private TraceLevel traceLevel;
+    private final String entryPointPaths;
 
     /**
      * Data bound constructor which is responsible for setting/saving of the values
@@ -54,10 +55,11 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
      * @param credentials         Orchestrator credentials
      * @param environments        Environments on which to deploy
      * @param traceLevel          The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
+     * @param entryPointPaths     Entry points with which processes will be created
      */
     @DataBoundConstructor
     public UiPathDeploy(String packagePath, String orchestratorAddress, String orchestratorTenant,
-            String folderName, String environments, SelectEntry credentials, TraceLevel traceLevel) {
+            String folderName, String environments, SelectEntry credentials, TraceLevel traceLevel, String entryPointPaths) {
         this.packagePath = packagePath;
         this.orchestratorAddress = orchestratorAddress;
         this.orchestratorTenant = orchestratorTenant;
@@ -65,6 +67,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         this.folderName = folderName;
         this.environments = environments;
         this.traceLevel = traceLevel;
+        this.entryPointPaths = entryPointPaths;
     }
 
     /**
@@ -128,6 +131,15 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
      */
     public TraceLevel getTraceLevel() {
         return traceLevel;
+    }
+
+    /**
+     * The comma-separated list of entry points with which processes will be created
+     *
+     * @return the entry points
+     */
+    public String getEntryPointPaths() {
+        return entryPointPaths;
     }
 
     /**
@@ -198,6 +210,14 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
             }
             else {
                 deployOptions.setEnvironments(new ArrayList<>());
+            }
+
+            if (this.entryPointPaths != null && !this.entryPointPaths.isEmpty()) {
+                String[] entryPoints = envVars.expand(this.entryPointPaths).split(",");
+                deployOptions.setEntryPointPaths(Arrays.asList(entryPoints));
+            }
+            else {
+                deployOptions.setEntryPointPaths(new ArrayList<>());
             }
 
             util.execute("DeployOptions", deployOptions, tempRemoteDir, listener, envVars, launcher, true);
