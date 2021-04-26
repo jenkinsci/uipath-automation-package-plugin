@@ -109,7 +109,7 @@ stages:
     #   stageDisplayName: 'Orchestrator 20.4'
 
     - stageName: 'OrchTestingSol'
-      stageDisplayName: 'Orchestrator TestingSol'
+      stageDisplayName: 'Orchestrator TestingSol (User/Password Auth)'
 
     - stageName: 'Cloud'
       stageDisplayName: 'Orchestrator Cloud (Token Auth)'

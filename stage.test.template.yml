@@ -85,8 +85,10 @@ stages:
           configurations:
           - jobName: 'Classic_Library_Pack_Deploy'
             configurationName: 'Staging Orchestrator/Classic_Library_Pack_Deploy'
-          - jobName: 'Classic_Process_Pack_Deploy'
-            configurationName: 'Staging Orchestrator/Classic_Process_Pack_Deploy'
+          - jobName: 'Classic_Process_Pack_Deploy_Token'
+            configurationName: 'Staging Orchestrator/Classic_Process_Pack_Deploy_Token'
+          - jobName: 'Classic_Process_Pack_Deploy_ExternalApp'
+            configurationName: 'Staging Orchestrator/Classic_Process_Pack_Deploy_ExternalApp'
 
           - jobName: 'Modern_Process_RunJob'
             configurationName: 'Staging Orchestrator/Modern_Process_RunJob'

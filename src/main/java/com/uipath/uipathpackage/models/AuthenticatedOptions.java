@@ -4,8 +4,15 @@ import com.uipath.uipathpackage.util.TraceLevel;
 public abstract class AuthenticatedOptions extends LocalizationOptions implements SerializableCliOptions {
     private String username;
     private String password;
-    private String refreshToken;
+
     private String accountName;
+    private String refreshToken;
+
+    private String accountForApp;
+    private String applicationId;
+    private String applicationSecret;
+    private String applicationScope;
+
     private String organizationUnit;
     private String orchestratorUrl;
     private String orchestratorTenant;
@@ -17,6 +24,38 @@ public abstract class AuthenticatedOptions extends LocalizationOptions implement
 
     public void setAccountName(String accountName) {
         this.accountName = accountName;
+    }
+
+    public String getAccountForApp() {
+        return accountForApp;
+    }
+
+    public void setAccountForApp(String accountForApp) {
+        this.accountForApp = accountForApp;
+    }
+
+    public String getApplicationId() {
+        return applicationId;
+    }
+
+    public void setApplicationId(String applicationId) {
+        this.applicationId = applicationId;
+    }
+
+    public String getApplicationSecret() {
+        return applicationSecret;
+    }
+
+    public void setApplicationSecret(String applicationSecret) {
+        this.applicationSecret = applicationSecret;
+    }
+
+    public String getApplicationScope() {
+        return applicationScope;
+    }
+
+    public void setApplicationScope(String applicationScope) {
+        this.applicationScope = applicationScope;
     }
 
     public String getUsername() {

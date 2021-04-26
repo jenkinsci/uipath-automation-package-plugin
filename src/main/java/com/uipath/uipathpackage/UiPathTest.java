@@ -2,6 +2,7 @@ package com.uipath.uipathpackage;
 
 import com.google.common.collect.ImmutableList;
 import com.uipath.uipathpackage.entries.SelectEntry;
+import com.uipath.uipathpackage.entries.authentication.ExternalAppAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
 import com.uipath.uipathpackage.entries.testExecutionTarget.TestProjectEntry;
@@ -383,7 +384,11 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
          * @return list of the Entry descriptors
          */
         public List<Descriptor> getEntryDescriptors() {
-            Jenkins jenkins = Jenkins.getInstance();
+            Jenkins jenkins = Jenkins.getInstanceOrNull();
+            if (jenkins == null) {
+                return new ArrayList<>();
+            }
+
             List<Descriptor> list = new ArrayList<>();
 
             Descriptor testSetDescriptor = jenkins.getDescriptor(TestSetEntry.class);
@@ -405,7 +410,11 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
          * @return list of the authentication descriptors
          */
         public List<Descriptor> getAuthenticationDescriptors() {
-            Jenkins jenkins = Jenkins.getInstance();
+            Jenkins jenkins = Jenkins.getInstanceOrNull();
+            if (jenkins == null) {
+                return new ArrayList<>();
+            }
+
             List<Descriptor> list = new ArrayList<>();
             Descriptor userPassDescriptor = jenkins.getDescriptor(UserPassAuthenticationEntry.class);
             if (userPassDescriptor != null) {
@@ -414,6 +423,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             Descriptor tokenDescriptor = jenkins.getDescriptor(TokenAuthenticationEntry.class);
             if (tokenDescriptor != null) {
                 list.add(tokenDescriptor);
+            }
+            Descriptor externalAppDescriptor = jenkins.getDescriptor(ExternalAppAuthenticationEntry.class);
+            if (externalAppDescriptor != null) {
+                list.add(externalAppDescriptor);
             }
             return ImmutableList.copyOf(list);
         }
