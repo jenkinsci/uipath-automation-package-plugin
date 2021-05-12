@@ -2,6 +2,7 @@ package com.uipath.uipathpackage;
 
 import com.google.common.collect.ImmutableList;
 import com.uipath.uipathpackage.entries.SelectEntry;
+import com.uipath.uipathpackage.entries.authentication.ExternalAppAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
 import com.uipath.uipathpackage.entries.job.*;
@@ -471,7 +472,11 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
          * @return list of the strategy descriptors
          */
         public List<Descriptor> getStrategyDescriptors() {
-            Jenkins jenkins = Jenkins.getInstance();
+            Jenkins jenkins = Jenkins.getInstanceOrNull();
+            if (jenkins == null) {
+                return new ArrayList<>();
+            }
+
             List<Descriptor> list = new ArrayList<>();
 
             // Add dynamically entry option
@@ -495,7 +500,11 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
          * @return list of the job type descriptors
          */
         public List<Descriptor> getJobTypeDescriptors() {
-            Jenkins jenkins = Jenkins.getInstance();
+            Jenkins jenkins = Jenkins.getInstanceOrNull();
+            if (jenkins == null) {
+                return new ArrayList<>();
+            }
+
             List<Descriptor> list = new ArrayList<>();
 
             // Add unattended job type entry option
@@ -519,7 +528,11 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
          * @return list of the authentication descriptors
          */
         public List<Descriptor> getAuthenticationDescriptors() {
-            Jenkins jenkins = Jenkins.getInstance();
+            Jenkins jenkins = Jenkins.getInstanceOrNull();
+            if (jenkins == null) {
+                return new ArrayList<>();
+            }
+
             List<Descriptor> list = new ArrayList<>();
             Descriptor userPassDescriptor = jenkins.getDescriptor(UserPassAuthenticationEntry.class);
             if (userPassDescriptor != null) {
@@ -528,6 +541,10 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
             Descriptor tokenDescriptor = jenkins.getDescriptor(TokenAuthenticationEntry.class);
             if (tokenDescriptor != null) {
                 list.add(tokenDescriptor);
+            }
+            Descriptor externalAppDescriptor = jenkins.getDescriptor(ExternalAppAuthenticationEntry.class);
+            if (externalAppDescriptor != null) {
+                list.add(externalAppDescriptor);
             }
             return ImmutableList.copyOf(list);
         }

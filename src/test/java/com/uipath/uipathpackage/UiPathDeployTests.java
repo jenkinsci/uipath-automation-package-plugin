@@ -37,16 +37,24 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)
 public class UiPathDeployTests {
-
-    private static String userPassCredentialsId;
-    private static String tokenCredentialsId;
     private static String orchestratorAddress = "null";
     private static String orchestratorTenant = null;
-    private static String accountName = null;
-    private static String username = null;
     private static String description;
+
+    private static String userPassCredentialsId;
+    private static String username = null;
     private static String password;
+
+    private static String tokenCredentialsId;
+    private static String accountName = null;
     private static String refreshToken;
+
+    private static String externalAppCredentialsId;
+    private static String accountForApp;
+    private static String applicationId;
+    private static String applicationSecret;
+    private static String applicationScope;
+
     private static String environments;
     private static String folderName;
     private static int folderId;
@@ -58,6 +66,8 @@ public class UiPathDeployTests {
 
 //    private static UserPassAuthenticationEntry userPassCredentials;
     private static TokenAuthenticationEntry tokenCredentials;
+    private static TokenAuthenticationEntry externalAppCredentials;
+
     @Rule
     public final JenkinsRule jenkins = new JenkinsRule();
     private FreeStyleProject project;
@@ -80,18 +90,27 @@ public class UiPathDeployTests {
     public static void setupClass() {
         orchestratorAddress = System.getenv("TestOrchestratorCloudUrl");
         orchestratorTenant = System.getenv("TestOrchestratorCloudTenant");
-        accountName = System.getenv("TestOrchestratorAccountName");
+
+        userPassCredentialsId = "TestIdUserPass";
         username = System.getenv("TestOrchestratorUsername");
         password = System.getenv("TestOrchestratorPassword");
-        refreshToken = System.getenv("TestOrchestratorAuthenticationToken");
-        description = "TestDesc";
-        userPassCredentialsId = "TestIdUserPass";
+
         tokenCredentialsId = "TestIdToken";
+        accountName = System.getenv("TestOrchestratorAccountName");
+        refreshToken = System.getenv("TestOrchestratorAuthenticationToken");
+        tokenCredentials = new TokenAuthenticationEntry(tokenCredentialsId, accountName);
+
+        externalAppCredentialsId = "TestIdExternalApp";
+        accountForApp = System.getenv("TestOrchestratorAccountName");
+        applicationId = System.getenv("TestOrchestratorApplicationId");
+        applicationSecret = System.getenv("TestOrchestratorApplicationSecret");
+        applicationScope = System.getenv("TestOrchestratorApplicationScope");
+        externalAppCredentials = new TokenAuthenticationEntry(externalAppCredentialsId, accountForApp);
+
+        description = "TestDesc";
         environments = System.getenv("TestOrchestratorEnvironments");
         folderName = System.getenv("TestOrchestratorFolderName");
         folderId = 21;
-//        userPassCredentials = new UserPassAuthenticationEntry(userPassCredentialsId);
-        tokenCredentials = new TokenAuthenticationEntry(tokenCredentialsId, accountName);
         workspaceOutputPath = "${WORKSPACE}";
         traceLevel = TraceLevel.None;
     }
@@ -112,10 +131,13 @@ public class UiPathDeployTests {
 
         StringCredentials tokenCredentials = new StringCredentialsImpl(CredentialsScope.GLOBAL, tokenCredentialsId, description, Secret.fromString(refreshToken));
         store.addCredentials(Domain.global(), tokenCredentials);
+
+        StringCredentials externalAppCredentials = new StringCredentialsImpl(CredentialsScope.GLOBAL, externalAppCredentialsId, description, Secret.fromString(applicationSecret));
+        store.addCredentials(Domain.global(), externalAppCredentials);
     }
 
     @Test
-    public void testDeployWithUsernamePasswordConfigRoundtrip() throws Exception {
+    public void testDeployWithTokenConfigRoundtrip() throws Exception {
         UiPathPack pack = new UiPathPack(new AutoVersionEntry(), packagePath, workspaceOutputPath, traceLevel);
         project.getBuildersList().add(pack);
 
@@ -137,7 +159,18 @@ public class UiPathDeployTests {
     }
 
     @Test
-    public void testExecuteDeployFolderWithUserPassReturnsExpectedOutput() throws Exception {
+    public void testDeployWithExternalAppConfigRoundTrip() throws Exception {
+        UiPathPack pack = new UiPathPack(new AutoVersionEntry(), packagePath, workspaceOutputPath, traceLevel);
+        project.getBuildersList().add(pack);
+
+        UiPathDeploy publisher = new UiPathDeploy(workspaceOutputPath, orchestratorAddress, orchestratorTenant, folderName, environments, externalAppCredentials, traceLevel);
+        project.getPublishersList().add(publisher);
+        project = jenkins.configRoundtrip(project);
+        jenkins.assertEqualDataBoundBeans(new UiPathDeploy(workspaceOutputPath, orchestratorAddress, orchestratorTenant, folderName, environments, externalAppCredentials, traceLevel), project.getPublishersList().get(0));
+    }
+
+    @Test
+    public void testExecuteDeployFolderWithTokenReturnsExpectedOutput() throws Exception {
         UiPathPack pack = new UiPathPack(new AutoVersionEntry(), packagePath, workspaceOutputPath, traceLevel);
         project.getBuildersList().add(pack);
 
@@ -149,7 +182,7 @@ public class UiPathDeployTests {
     }
 
     @Test
-    public void testExecuteDeployFileWithUserPassReturnsExpectedOutput() throws Exception {
+    public void testExecuteDeployFileWithTokenReturnsExpectedOutput() throws Exception {
         String nuPkgPath = new FilePath((new File(packagePath)).listFiles()[0]).getRemote();
 
         UiPathPack pack = new UiPathPack(new AutoVersionEntry(), packagePath, workspaceOutputPath, traceLevel);

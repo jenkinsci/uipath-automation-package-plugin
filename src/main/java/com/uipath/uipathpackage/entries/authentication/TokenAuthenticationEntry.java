@@ -68,11 +68,11 @@ public class TokenAuthenticationEntry extends SelectEntry {
         }
 
         /**
-         * Returns the list of StandardUsernamePasswordCredentials to be filled in choice
+         * Returns the list of StringCredentials to be filled in choice
          * If item is null or doesn't have configure permission it will return empty list
          *
          * @param item Basic configuration unit in Hudson
-         * @return ListBoxModel list of StandardUsernamePasswordCredentials
+         * @return ListBoxModel list of StringCredentials
          */
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item item) {
             if (item == null || !item.hasPermission(Item.CONFIGURE)) {
