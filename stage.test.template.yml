@@ -96,6 +96,8 @@ stages:
             configurationName: 'Staging Orchestrator/Modern_TestingProcess_RunTests'
           - jobName: 'Modern_Process_Pack_Deploy_RunJob'
             configurationName: 'Staging Orchestrator/Modern_Process_Pack_Deploy_RunJob'
+          - jobName: 'Modern_Process_Pack_Deploy_EntryPoint_RunJob'
+            configurationName: 'Staging Orchestrator/Modern_Process_Pack_Deploy_EntryPoint_RunJob'
           - jobName: 'Modern_TestingProcess_Pack_Deploy_RunTests_RunJob'
             configurationName: 'Staging Orchestrator/Modern_TestingProcess_Pack_Deploy_RunTests_RunJob'
           - jobName: 'Modern_TestingProcess_Pack_Deploy_RunTests_RunJobWithType'
