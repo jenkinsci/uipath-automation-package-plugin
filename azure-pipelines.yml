@@ -114,8 +114,8 @@ stages:
     - stageName: 'Alpha'
       stageDisplayName: 'Orchestrator Alpha (Token Auth & External App)'
 
-    - stageName: 'Cloud'
-      stageDisplayName: 'Orchestrator Cloud (Token Auth)'
+    # - stageName: 'Cloud'
+    #   stageDisplayName: 'Orchestrator Cloud (Token Auth)'
 
     - stageName: 'Staging'
       stageDisplayName: 'Orchestrator Staging (Token Auth & External App)'
