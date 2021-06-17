@@ -111,11 +111,14 @@ stages:
     - stageName: 'OrchTestingSol'
       stageDisplayName: 'Orchestrator TestingSol (User/Password Auth)'
 
+    - stageName: 'Alpha'
+      stageDisplayName: 'Orchestrator Alpha (Token Auth & External App)'
+
     - stageName: 'Cloud'
       stageDisplayName: 'Orchestrator Cloud (Token Auth)'
 
     - stageName: 'Staging'
-      stageDisplayName: 'Orchestrator Staging (Token Auth)'
+      stageDisplayName: 'Orchestrator Staging (Token Auth & External App)'
 
     - ${{ if eq(parameters.runLongRunningTests, 'true') }}:
       - stageName: 'Long_Running'

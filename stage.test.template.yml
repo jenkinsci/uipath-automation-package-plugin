@@ -66,6 +66,20 @@ stages:
           - jobName: 'Classic_TestingProcess_Pack_Deploy_RunTests_RunJob'
             configurationName: 'Orchestrator TestingSol/Classic_TestingProcess_Pack_Deploy_RunTests_RunJob'
 
+
+### Alpha ###
+      ${{ if eq('Alpha', configuration.stageName) }}:
+        parameters:
+          configurations:
+          - jobName: 'Modern_Process_Pack_Deploy_WithFeed_ExternalApp'
+            configurationName: 'Alpha Orchestrator/Modern_Process_Pack_Deploy_WithFeed_ExternalApp'
+          - jobName: 'Modern_Process_Pack_Deploy_WithFeed_Token'
+            configurationName: 'Alpha Orchestrator/Modern_Process_Pack_Deploy_WithFeed_Token'
+          - jobName: 'Modern_TestingProcess_RunTests_ExternalApp'
+            configurationName: 'Alpha Orchestrator/Modern_TestingProcess_RunTests_ExternalApp'
+          - jobName: 'Modern_TestingProcess_RunTests_Token'
+            configurationName: 'Alpha Orchestrator/Modern_TestingProcess_RunTests_Token'
+
 ### Cloud ###
       ${{ if eq('Cloud', configuration.stageName) }}:
         parameters:
