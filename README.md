@@ -39,9 +39,9 @@ The `UiPath Run Job` post-build step starts an already deployed process on an Or
 | Priority                      | The job run priority. |
 | Strategy                      | Specify the job run strategy, dynamically allocated job(s) or robot specific job(s). Options: `Allocate dynamically`, `Specific robots` |
 | Job Type                      | This feature is available only on modern folders! Choose the license model of the runtime under which the job is to be executed. |
-| Orchestrator folder           | Specify the folder where assets will be deployed or updated. |
 | Orchestrator address          | The address of the Orchestrator instance where we'll run the process. |
 | Orchestrator tenant           | Specify the Orchestrator tenant. |
+| Orchestrator folder           | Specify the folder where the specified process was deployed. |
 | Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this) *(3)* Authenticate to a Cloud Orchestrator using external app authentication. |
 | Job results output path       | Specify the output full path of the job results, e.g. testResults.json. The results are outputted in json format. If not specified, the results are outputted to the artifact staging directory as UiPathResults.json. The output is in json format. |
 | Timeout                       | Specify the job run(s) timeout in seconds. |
