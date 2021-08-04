@@ -2,11 +2,13 @@ package com.uipath.uipathpackage;
 
 import com.google.common.collect.ImmutableList;
 import com.uipath.uipathpackage.entries.SelectEntry;
+import com.uipath.uipathpackage.entries.authentication.ExternalAppAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
 import com.uipath.uipathpackage.entries.testExecutionTarget.TestProjectEntry;
 import com.uipath.uipathpackage.entries.testExecutionTarget.TestSetEntry;
 import com.uipath.uipathpackage.models.TestOptions;
+import com.uipath.uipathpackage.util.TraceLevel;
 import com.uipath.uipathpackage.util.Utility;
 import hudson.*;
 import hudson.model.*;
@@ -17,6 +19,7 @@ import hudson.tasks.junit.TestDataPublisher;
 import hudson.tasks.junit.TestResultAction;
 import hudson.tasks.test.TestResultProjectAction;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
@@ -45,6 +48,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private final Integer timeout;
     private final String testResultsOutputPath;
     private String testResultIncludes;
+    private final TraceLevel traceLevel;
 
     private static int TimeoutDefault = 7200;
 
@@ -65,9 +69,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
      * @param credentials          UiPath Orchestrator credentials
      * @param testResultsOutputPath Test result output path (JUnit format)
      * @param timeout              Timeout
+     * @param traceLevel            The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
      */
     @DataBoundConstructor
-    public UiPathTest(String orchestratorAddress, String orchestratorTenant, String folderName, SelectEntry testTarget, SelectEntry credentials, String testResultsOutputPath, Integer timeout)  {
+    public UiPathTest(String orchestratorAddress, String orchestratorTenant, String folderName, SelectEntry testTarget, SelectEntry credentials, String testResultsOutputPath, Integer timeout, TraceLevel traceLevel)  {
         this.testTarget = testTarget;
         this.orchestratorAddress = orchestratorAddress;
         this.orchestratorTenant = orchestratorTenant;
@@ -75,6 +80,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         this.credentials = credentials;
         this.timeout = timeout;
         this.testResultsOutputPath = testResultsOutputPath;
+        this.traceLevel = traceLevel;
     }
 
     /**
@@ -153,6 +159,8 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             String country = Locale.getDefault().getCountry();
             String localization = country.isEmpty() ? language : language + "-" + country;
             testOptions.setLanguage(localization);
+
+            testOptions.setTraceLevel(traceLevel);
 
             int result = util.execute("RunTestsOptions", testOptions, tempRemoteDir, listener, envVars, launcher, false);
 
@@ -263,6 +271,15 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         return testResultsOutputPath;
     }
 
+    /**
+     * traceLevel
+     *
+     * @return TraceLevel traceLevel
+     */
+    public TraceLevel getTraceLevel() {
+        return traceLevel;
+    }
+
     private void validateParameters() throws AbortException {
         if (testTarget == null) {
             throw new InvalidParameterException(com.uipath.uipathpackage.Messages.GenericErrors_MissingTestSetOrProjectPath());
@@ -367,7 +384,11 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
          * @return list of the Entry descriptors
          */
         public List<Descriptor> getEntryDescriptors() {
-            Jenkins jenkins = Jenkins.getInstance();
+            Jenkins jenkins = Jenkins.getInstanceOrNull();
+            if (jenkins == null) {
+                return new ArrayList<>();
+            }
+
             List<Descriptor> list = new ArrayList<>();
 
             Descriptor testSetDescriptor = jenkins.getDescriptor(TestSetEntry.class);
@@ -389,7 +410,11 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
          * @return list of the authentication descriptors
          */
         public List<Descriptor> getAuthenticationDescriptors() {
-            Jenkins jenkins = Jenkins.getInstance();
+            Jenkins jenkins = Jenkins.getInstanceOrNull();
+            if (jenkins == null) {
+                return new ArrayList<>();
+            }
+
             List<Descriptor> list = new ArrayList<>();
             Descriptor userPassDescriptor = jenkins.getDescriptor(UserPassAuthenticationEntry.class);
             if (userPassDescriptor != null) {
@@ -398,6 +423,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             Descriptor tokenDescriptor = jenkins.getDescriptor(TokenAuthenticationEntry.class);
             if (tokenDescriptor != null) {
                 list.add(tokenDescriptor);
+            }
+            Descriptor externalAppDescriptor = jenkins.getDescriptor(ExternalAppAuthenticationEntry.class);
+            if (externalAppDescriptor != null) {
+                list.add(externalAppDescriptor);
             }
             return ImmutableList.copyOf(list);
         }
@@ -447,6 +476,26 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             }
 
             return FormValidation.ok();
+        }
+
+        /**
+         * Returns the list of Strings to be filled in choice
+         * If item is null or doesn't have configure permission it will return empty list
+         *
+         * @param item Basic configuration unit in Hudson
+         * @return ListBoxModel list of String
+         */
+        public ListBoxModel doFillTraceLevelItems(@AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
+
+            ListBoxModel result= new ListBoxModel();
+            for (TraceLevel v: TraceLevel.values()) {
+                result.add(v.toString(), v.toString());
+            }
+
+            return result;
         }
     }
 }

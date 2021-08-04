@@ -48,6 +48,9 @@
     <f:entry title="${%OutputType}" field="outputType">
         <f:select/>
     </f:entry>
+    <f:entry title="${%RunWorkflowAnalysis}" field="runWorkflowAnalysis">
+        <f:checkbox default="false"/>
+    </f:entry>
     <f:block>
         <table>
             <f:optionalBlock title="${%UseOrchestrator}" field="useOrchestrator" checked="${instance.useOrchestrator}" inline="true">
@@ -63,4 +66,7 @@
             </f:optionalBlock>
         </table>
     </f:block>
+    <f:entry title="${%TraceLevel}" field="traceLevel">
+        <f:select/>
+    </f:entry>
 </j:jelly>

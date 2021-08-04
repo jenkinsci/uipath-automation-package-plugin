@@ -1,29 +1,27 @@
+parameters:
+  configurations: []
+
 jobs:
 - ${{ each configuration in parameters.configurations }}:
-  - deployment: "Test_${{ configuration.jobName }}"
-    displayName: "Test_${{ configuration.jobName }}"
-    environment: JenkinsCITest
-    dependsOn: DeployJenkinsPlugin
+  - job: "${{ configuration.jobName }}"
+    displayName: "${{ configuration.jobName }}"
     timeoutInMinutes: 90
     pool:
       name: JenkinsTest
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: JenkinsQueueJob@2
-            displayName: "Queue project Jenkins job and wait for completion"
-            inputs:
-              serverEndpoint: 'JenkinsCITest'
-              jobName: 'Jenkins Plugin Test Cases/${{ configuration.configurationName }}'
-              captureConsole: true
-              capturePipeline: true
-              isParameterizedJob: true
+    steps:
+    - task: JenkinsQueueJob@2
+      displayName: 'Queue project Jenkins job and wait for completion'
+      inputs:
+        serverEndpoint: 'JenkinsCITest'
+        jobName: "Jenkins Plugin Test Cases/${{ configuration.configurationName }}"
+        captureConsole: true
+        capturePipeline: true
+        isParameterizedJob: true
 
-          - task: JenkinsDownloadArtifacts@1
-            displayName: "Mirror Jenkins job output"
-            inputs:
-              jenkinsServerConnection: 'JenkinsCITest'
-              jobName: 'Jenkins Plugin Test Cases/${{ configuration.configurationName }}'
-              saveTo: 'jenkinsArtifacts'
-              jenkinsBuild: 'LastSuccessfulBuild'
+    - task: JenkinsDownloadArtifacts@1
+      displayName: 'Mirror Jenkins job output'
+      inputs:
+        jenkinsServerConnection: 'JenkinsCITest'
+        jobName: "Jenkins Plugin Test Cases/${{ configuration.configurationName }}"
+        saveTo: 'jenkinsArtifacts'
+        jenkinsBuild: 'LastSuccessfulBuild'

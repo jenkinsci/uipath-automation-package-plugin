@@ -1,0 +1,139 @@
+parameters:
+  configurations: []
+
+stages:
+- ${{ each configuration in parameters.configurations }}:
+  - stage: "${{ configuration.stageName }}"
+    displayName: "${{ configuration.stageDisplayName }}"
+    dependsOn: 'Deploy'
+    condition: succeeded()
+    jobs:
+    - template: job.ci.test.template.yml
+### OnPrem ###
+      ${{ if eq('Orchestrator_18_4', configuration.stageName) }}:
+        parameters:
+          configurations:
+          - jobName: 'Asset_Deploy_Delete'
+            configurationName: 'Orchestrator 18.4/Asset_Deploy_Delete'
+          - jobName: 'Library_Pack_Deploy'
+            configurationName: 'Orchestrator 18.4/Library_Pack_Deploy'
+          - jobName: 'Process_Pack_Deploy'
+            configurationName: 'Orchestrator 18.4/Process_Pack_Deploy'
+          - jobName: 'SubProcess_Pack_Deploy'
+            configurationName: 'Orchestrator 18.4/SubProcess_Pack_Deploy'
+          - jobName: 'Process_Pack_Deploy_RunJob'
+            configurationName: 'Orchestrator 18.4/Process_Pack_Deploy_RunJob'
+
+      ${{ if eq('Orchestrator_19_10', configuration.stageName) }}:
+        parameters:
+          configurations:
+          - jobName: 'Asset_Deploy_Delete'
+            configurationName: 'Orchestrator 19.10/Asset_Deploy_Delete'
+          - jobName: 'Library_Pack_Deploy'
+            configurationName: 'Orchestrator 19.10/Library_Pack_Deploy'
+          - jobName: 'Process_Pack_Deploy'
+            configurationName: 'Orchestrator 19.10/Process_Pack_Deploy'
+          - jobName: 'SubProcess_Pack_Deploy'
+            configurationName: 'Orchestrator 19.10/SubProcess_Pack_Deploy'
+          - jobName: 'Process_Pack_Deploy_RunJob'
+            configurationName: 'Orchestrator 19.10/Process_Pack_Deploy_RunJob'
+
+      ${{ if eq('OrchTestingSol', configuration.stageName) }}:
+        parameters:
+          configurations:
+          - jobName: 'Classic_Asset_Deploy_Delete'
+            configurationName: 'Orchestrator TestingSol/Classic_Asset_Deploy_Delete'
+          - jobName: 'Classic_Library_Pack_Deploy'
+            configurationName: 'Orchestrator TestingSol/Classic_Library_Pack_Deploy'
+          - jobName: 'Classic_Process_Pack_Deploy'
+            configurationName: 'Orchestrator TestingSol/Classic_Process_Pack_Deploy'
+          - jobName: 'Classic_SubProcess_Pack_Deploy'
+            configurationName: 'Orchestrator TestingSol/Classic_SubProcess_Pack_Deploy'
+
+          - jobName: 'Modern_Asset_Deploy_Delete'
+            configurationName: 'Orchestrator TestingSol/Modern_Asset_Deploy_Delete'
+          - jobName: 'Modern_Library_Pack_Deploy'
+            configurationName: 'Orchestrator TestingSol/Modern_Library_Pack_Deploy'
+          - jobName: 'Modern_Process_Pack_Deploy'
+            configurationName: 'Orchestrator TestingSol/Modern_Process_Pack_Deploy'
+          - jobName: 'Modern_SubProcess_Pack_Deploy'
+            configurationName: 'Orchestrator TestingSol/Modern_SubProcess_Pack_Deploy'
+
+          - jobName: 'Classic_TestingProcess_RunTest'
+            configurationName: 'Orchestrator TestingSol/Classic_TestingProcess_RunTest'
+          - jobName: 'Classic_Process_Pack_Deploy_RunJob'
+            configurationName: 'Orchestrator TestingSol/Classic_Process_Pack_Deploy_RunJob'
+          - jobName: 'Classic_TestingProcess_Pack_Deploy_RunTests_RunJob'
+            configurationName: 'Orchestrator TestingSol/Classic_TestingProcess_Pack_Deploy_RunTests_RunJob'
+
+
+### Alpha ###
+      ${{ if eq('Alpha', configuration.stageName) }}:
+        parameters:
+          configurations:
+          - jobName: 'Modern_Process_Pack_Deploy_WithFeed_ExternalApp'
+            configurationName: 'Alpha Orchestrator/Modern_Process_Pack_Deploy_WithFeed_ExternalApp'
+          - jobName: 'Modern_Process_Pack_Deploy_WithFeed_Token'
+            configurationName: 'Alpha Orchestrator/Modern_Process_Pack_Deploy_WithFeed_Token'
+          - jobName: 'Modern_TestingProcess_RunTests_ExternalApp'
+            configurationName: 'Alpha Orchestrator/Modern_TestingProcess_RunTests_ExternalApp'
+          - jobName: 'Modern_TestingProcess_RunTests_Token'
+            configurationName: 'Alpha Orchestrator/Modern_TestingProcess_RunTests_Token'
+
+### Cloud ###
+      ${{ if eq('Cloud', configuration.stageName) }}:
+        parameters:
+          configurations:
+          - jobName: 'Classic_Asset_Deploy_Delete'
+            configurationName: 'Cloud Orchestrator/Classic_Asset_Deploy_Delete'
+          - jobName: 'Modern_Asset_Deploy_Delete'
+            configurationName: 'Cloud Orchestrator/Modern_Asset_Deploy_Delete'
+          - jobName: 'Modern_Library_Pack_Deploy'
+            configurationName: 'Cloud Orchestrator/Modern_Library_Pack_Deploy'
+          - jobName: 'Modern_Process_Pack_Deploy'
+            configurationName: 'Cloud Orchestrator/Modern_Process_Pack_Deploy'
+
+### Staging ###
+      ${{ if eq('Staging', configuration.stageName) }}:
+        parameters:
+          configurations:
+          - jobName: 'Classic_Library_Pack_Deploy'
+            configurationName: 'Staging Orchestrator/Classic_Library_Pack_Deploy'
+          - jobName: 'Classic_Process_Pack_Deploy_Token'
+            configurationName: 'Staging Orchestrator/Classic_Process_Pack_Deploy_Token'
+          - jobName: 'Classic_Process_Pack_Deploy_ExternalApp'
+            configurationName: 'Staging Orchestrator/Classic_Process_Pack_Deploy_ExternalApp'
+
+          - jobName: 'Modern_Process_RunJob'
+            configurationName: 'Staging Orchestrator/Modern_Process_RunJob'
+          - jobName: 'Modern_TestingProcess_RunTests'
+            configurationName: 'Staging Orchestrator/Modern_TestingProcess_RunTests'
+          - jobName: 'Modern_Process_Pack_Deploy_RunJob'
+            configurationName: 'Staging Orchestrator/Modern_Process_Pack_Deploy_RunJob'
+          - jobName: 'Modern_Process_Pack_Deploy_EntryPoint_RunJob'
+            configurationName: 'Staging Orchestrator/Modern_Process_Pack_Deploy_EntryPoint_RunJob'
+          - jobName: 'Modern_TestingProcess_Pack_Deploy_RunTests_RunJob'
+            configurationName: 'Staging Orchestrator/Modern_TestingProcess_Pack_Deploy_RunTests_RunJob'
+          - jobName: 'Modern_TestingProcess_Pack_Deploy_RunTests_RunJobWithType'
+            configurationName: 'Staging Orchestrator/Modern_TestingProcess_Pack_Deploy_RunTests_RunJobWithType'
+
+### Long Running ###
+      ${{ if eq('Long_Running', configuration.stageName) }}:
+        parameters:
+          configurations:
+          - jobName: 'Cloud_Classic_Token_RunTests'
+            configurationName: 'Long Running/Cloud_Classic_Token_RunTests'
+          - jobName: 'OrchTestingSol_Classic_Password_RunTests'
+            configurationName: 'Long Running/OrchTestingSol_Classic_Password_RunTests'
+
+### Errors Validation ###
+      ${{ if eq('Errors_Validation', configuration.stageName) }}:
+        parameters:
+          configurations:
+          - jobName: 'OrchTestingSol_Run_Job'
+            configurationName: 'Long Running/OrchTestingSol Run Job'
+          - jobName: 'Cloud_Run_Job'
+            configurationName: 'Long Running/Cloud Run Job'
+
+
+            

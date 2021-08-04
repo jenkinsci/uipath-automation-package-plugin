@@ -1,6 +1,6 @@
 package com.uipath.uipathpackage.util;
 
-public enum  StartProcessDtoJobPriority {
+public enum StartProcessDtoJobPriority {
     Low,
     Normal,
     High

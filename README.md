@@ -28,24 +28,26 @@ The Jenkins plugin can be installed from any Jenkins installation connected to t
 
 The `UiPath Run Job` post-build step starts an already deployed process on an Orchestrator instance. The processes this task refers to are found in `Automations->Processes` on newer versions of Orchestrator and directly on the `Processes` tab on older versions of Orchestrator.
 
-[![UiPath Run Job](.github/run-job.png)](.github/run-job.png)
+![UiPath Run Job](https://user-images.githubusercontent.com/74954587/127825462-afcdab36-8c6c-4f27-9a9c-1fc3a7200fc3.png)
 
 **⚙️ Configuration**
 
-| Argument                      | Description           |
+| <div style="width:150px;">Argument</div>                      | Description           |
 | ----------------------------- | -------------         |
 | Process                       | (Required) Process name. You can take the process name from the Orchestrator UI. If the process is deployed in a Modern Folder then this argument should be the `NAME` of the process in the Processes tab. If the process is deployed in a Classic Folder, then the argument must be formed by the `NAME` of the process and the `ENVIRONMENT` (eg: NAME: `ProcessA` ENVIRONMENT: `Production` ProcessName: `ProcessA_Production`). |
 | Parameters                    | The full path to a json input file. This is used when the Process requires input. |
 | Priority                      | The job run priority. |
 | Strategy                      | Specify the job run strategy, dynamically allocated job(s) or robot specific job(s). Options: `Allocate dynamically`, `Specific robots` |
+| Job Type                      | This feature is available only on modern folders! Choose the license model of the runtime under which the job is to be executed. |
 | Orchestrator address          | The address of the Orchestrator instance where we'll run the process. |
 | Orchestrator tenant           | Specify the Orchestrator tenant. |
 | Orchestrator folder           | Specify the folder where the specified process was deployed. |
-| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this). |
+| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this) *(3)* Authenticate to a Cloud Orchestrator using external app authentication. |
 | Job results output path       | Specify the output full path of the job results, e.g. testResults.json. The results are outputted in json format. If not specified, the results are outputted to the artifact staging directory as UiPathResults.json. The output is in json format. |
 | Timeout                       | Specify the job run(s) timeout in seconds. |
 | Fail when job fails           | The task fails when at least one job fails. (default true) |
 | Wait for job completion       | Wait for job run(s) completion. (default true) |
+| Trace logging level           | Setting used to enable the trace logging to one of the following level: None, Critical, Error, Warning, Information, Verbose. (default None). Useful for debugging purposes. |
 |                               | **Parameters used for strategy `Allocate dynamically`** |
 | No. of jobs                   | The number of job runs. (default 1) |
 | User                          | The name of the user. This feature is available only on modern folders! This should be a machine user, not an orchestrator user. For local users, the format should be MachineName\\UserName |
@@ -74,7 +76,7 @@ pipeline {
           priority: 'Low',
           processName: 'ProcessA_EnvB',
           resultFilePath: 'output.json',
-          strategy: Dynamically(jobsCount: 1, machine: 'TestMachine', user: 'TestUser'), timeout: 3600, waitForJobCompletion: true
+          strategy: Dynamically(jobsCount: 1, machine: 'TestMachine', user: 'TestUser'), timeout: 3600, waitForJobCompletion: true, traceLoggingLevel: 'None'
         )
         UiPathRunJob(
           credentials: UserPass('825c83c9-9a14-44eb-883a-af54f8078af0'),
@@ -88,7 +90,8 @@ pipeline {
           resultFilePath: 'output.json',
           strategy: Robot('robot1,robot2'),
           timeout: 1800,
-          waitForJobCompletion: false
+          waitForJobCompletion: false,
+          traceLoggingLevel: 'None'
         )
     }
   }
@@ -99,11 +102,11 @@ pipeline {
 
 The `UiPathManageAssets` step enables you to deploy, update or delete assets on an
 Orchestrator instance. In order to deploy assets you must describe them in a
-CSV file like the one in the example below.
+CSV file like the one in the example below encoded in uft-8.
 
 ```csv
-name,type,value
-asset_1_name,text,asset_value   # we can have comments
+name,type,value,description
+asset_1_name,text,asset_value,this is an test description   # we can have comments
 asset_2_name,integer,123
 asset_3_name,boolean,false
 asset_4_name,credential,"username::password"
@@ -113,18 +116,19 @@ There are 4 types of assets `text`, `integer`, `boolean` and `credential`. For
 the credential you must encode the username and password by using `::` to
 separte the two fields.
 
-[![UiPath Manage Assets](.github/assets.png)](.github/assets.png)
+![UiPath Manage Assets](https://user-images.githubusercontent.com/74954587/127832391-2c24749a-1511-4f1b-867c-b9aec99a833b.png)
 
 **⚙️ Configuration**
 
-| Argument                      | Description           |
+| <div style="width:150px;">Argument</div>                      | Description           |
 | ----------------------------- | -------------         |
 | Action                        | What to do with the provided assets: deploy or delete. If a deployed asset exists then it will be updated instead.|
 | Orchestrator address          | The address of the Orchestrator instance where we'll deploy or update assets. |
 | Orchestrator tenant           | Specify the Orchestrator tenant onto which the assets will be deployed or updated. |
 | Orchestrator folder           | Specify the folder where assets will be deployed or updated. |
-| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this). |
-| CSV File Path                 | The path to the csv file containing assets descriptions. The same file can be used to deploy or update the assets although the `type` isn't required for update. The `type` field can also be empty but the column must be present. For delete, only the name column is used, so the other columns can be empty but they must be present. |
+| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this) *(3)* Authenticate to a Cloud Orchestrator using external app authentication. |
+| CSV File Path                 | The path to the csv file containing the asset details. The same file can be used to deploy or update the assets although the `type` isn't required for update. The `type` field can also be empty but the column must be present. For delete, only the name column is used, so the other columns can be empty but they must be present. You can set an optional description for each asset (e.g. `type`, `value, description`). Make sure to remove any line breaks as each line is interpreted as a new asset. |
+| Trace logging level           | Setting used to enable the trace logging to one of the following level: None, Critical, Error, Warning, Information, Verbose. (default None). Useful for debugging purposes. |
 
 **📖 Pipeline example:**
 
@@ -143,7 +147,8 @@ pipeline {
             filePath: '${WORKSPACE}/test.csv', 
             folderName: 'Default', 
             orchestratorAddress: 'https://test-orchestrator.somedomain.com', 
-            orchestratorTenant: 'Default'
+            orchestratorTenant: 'Default',
+            traceLoggingLevel: 'None'
         )
         UiPathAssets(
             assetsAction: DeleteAssets(),
@@ -151,7 +156,8 @@ pipeline {
             filePath: '${WORKSPACE}/test.csv',
             folderName: 'Default',
             orchestratorAddress: 'https://test-orchestrator.somedomain.com',
-            orchestratorTenant: 'Default'
+            orchestratorTenant: 'Default',
+            traceLoggingLevel: 'None'
         )
     }
   }
@@ -166,20 +172,22 @@ pipeline {
 
 UiPath Pack is available in standard jobs and pipelines, and lets you package an existing UiPath project into a NuGet package.
 
-[![UiPath Pack](.github/pack.png)](.github/pack.png)
+![UiPath Pack](https://user-images.githubusercontent.com/74954587/127833429-98bcbd07-7ab5-459d-b2f9-e2b27d07095b.png)
 
 **⚙️ Configuration**
 
-| Job parameter                 | Description           |
+| <div style="width:150px;">Job parameter</div>                 | Description           |
 | ----------------------------- | -------------         |
 | Choose versioning method      | UiPath packages are versioned. With UiPath pack you can choose between 3 different options: (1) Auto generate (2) Define custom version (3) Use the current version set in the project. |
 | Project(s) path               | The location of the project(s) to be packaged. It can be a direct path to a project.json file or a directory with one or multiple projects. In the latter case, each level one project is packaged individually. |
 | Output folder                 | Path to a folder, where the created package should be placed. |
 | Output type                   | The output type of the project(s). There are 5 options for the project(s) type: *(1)* Output type of the project *(2)* Pack a process project *(3)* Pack a library project *(4)* Pack a tests project *(5)* Pack an objects project. |
-| Use orchestrator              | Use Orchestrator feed when packaging libraries. |
+| Run workflow analysis         | Run the workflow analysis before packing, checking the project via predefined rules for violations. Fail the job in case of errors. By default the analysis is not run. |
+| Trace logging level           | Setting used to enable the trace logging to one of the following level: None, Critical, Error, Warning, Information, Verbose. (default None). Useful for debugging purposes. |
+| Use orchestrator              | Use Orchestrator feed when packaging libraries. The Orchestrator must be 20.4 or higher. The library feed needs to allow API Key authentication in Tenant -> Setting -> Deployment. |
 | Orchestrator address          | The address of the Orchestrator instance from which library dependencies should be restored. |
 | Orchestrator tenant           | The Orchestrator tenant from which library dependencies should be restored. |
-| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this). |
+| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this) *(3)* Authenticate to a Cloud Orchestrator using external app authentication. |
 
 **📖 Pipeline Example:**
 
@@ -198,6 +206,7 @@ pipeline {
           projectJsonPath: "UiBank\\project.json",
           version: [$class: 'ManualVersionEntry', version: "${MAJOR}.${MINOR}.${env.BUILD_NUMBER}"]
           useOrchestrator: true,
+          traceLoggingLevel: "None",
           orchestratorAddress: "OrchestratorUrl",
           orchestratorTenant: "tenant name",
           credentials: [$class: 'UserPassAuthenticationEntry', credentialsId: “credentialsId”]
@@ -216,18 +225,20 @@ pipeline {
 
 UiPath Deploy is available in standard jobs and pipelines, and lets you deploy a UiPath NuGet package onto UiPath Orchestrator.
 
-[![UiPath Deploy](.github/deploy.png)](.github/deploy.png)
+![UiPath Deploy](https://user-images.githubusercontent.com/74954587/127834064-3ee40a81-5665-421a-90f3-755718617cf6.png)
 
 **⚙️ Configuration**
 
-| Job parameter                 | Description           |
+| <div style="width:150px;">Job parameter</div>                 | Description           |
 | ----------------------------- | -------------         |
 | Package(s) path               | The folder that holds your UiPath nuget package(s). |
 | Orchestrator address          | The address of the Orchestrator instance onto which the package(s) will be deployed. |
 | Orchestrator tenant           | The Orchestrator tenant onto which the package(s) will be deployed. |
 | Orchestrator folder           | The folder to deploy to. If the folder is a classic folder, you will also need to set the environments field. For modern folders, setting the environments is not required. |
 | Environments                  | The environment onto which the package will be deployed as a process. For the project and environment with existing processes, the processes will be updated to use the latest project version. Specify the environment onto which the package will be deployed as a process. For the project and environment with existing processes, the processes will be updated to use the latest project version. Required when using a classic folder, otherwise not applicable. |
-| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this). |
+| Entry Points                  | Define the specific entry points to create or update a process. This is the filePath of the entry point starting from the root of the project. For classic folders only one entry point can be specified, for each environment it will be created or updated a process with the specified entry point. Works only for Orchestrator >= 21.4.UiPathDeploy.entryPoints. For more information, see [Orchestrator Entry Points](https://docs.uipath.com/orchestrator/docs/about-processes#entry-points). |
+| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this) *(3)* Authenticate to a Cloud Orchestrator using external app authentication. |
+| Trace logging level           | Setting used to enable the trace logging to one of the following level: None, Critical, Error, Warning, Information, Verbose. (default None). Useful for debugging purposes. |
 
 **📖 Pipeline Example:**
 
@@ -247,7 +258,8 @@ pipeline {
           orchestratorTenant: "tenant name",
           folderName: "folder name",
           environments: "environment",
-          credentials: [$class: 'UserPassAuthenticationEntry', credentialsId: “credentialsId”]
+          credentials: [$class: 'UserPassAuthenticationEntry', credentialsId: “credentialsId”],
+          traceLoggingLevel: 'None'
         )
       }
     }
@@ -267,11 +279,11 @@ After the test run has finished, the Test Result tab will be published to the Je
 
 Depending on the result, the build will be either marked as successful (all test cases are passed), or unstable (at least one test case failed).
 
-[![UiPath Run tests](.github/run-tests.png)](.github/run-tests.png)
+![UiPath Run tests](https://user-images.githubusercontent.com/74954587/127835876-ee4bdf01-d913-4854-9638-adc729cd826e.png)
 
 **⚙️ Configuration**
 
-| Job parameter                 | Description           |
+| <div style="width:150px;">Job parameter</div>                 | Description           |
 | ----------------------------- | -------------         |
 | Target                        | *(1)* Execute test set (specify an existing test set on UiPath Orchestrator) or *(2)* Execute test project (provide the project.json path of a UiPath Testing project) |
 | Test result output path       | The executed test set returns the test result as junit.xml. Specify the path where the result should be stored, relative to the Jenkins workspace directory (e.g. result.xml). *Optional* |
@@ -279,8 +291,9 @@ Depending on the result, the build will be either marked as successful (all test
 | Orchestrator tenant           | The Orchestrator tenant onto which the package(s) will be deployed. |
 | Orchestrator folder           | The folder to deploy to. If the folder is a classic folder, you will also need to set the environments field. For modern folders, setting the environments is not required. |
 | Environments                  | The environment onto which the package will be deployed as a process. For the project and environment with existing processes, the processes will be updated to use the latest project version. Specify the environment onto which the package will be deployed as a process. For the project and environment with existing processes, the processes will be updated to use the latest project version. Required when using a classic folder, otherwise not applicable. |
-| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this). |
+| Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this) *(3)* Authenticate to a Cloud Orchestrator using external app authentication. |
 | Timeout (seconds)             | The execution timeout for the test run. The default value is 7200 seconds. If the timeout exceeds before the execution on Orchestrator is finished and returned the final result, the built will cancel and be marked as failed. |
+| Trace logging level           | Setting used to enable the trace logging to one of the following level: None, Critical, Error, Warning, Information, Verbose. (default None). Useful for debugging purposes. |
 
 **📖 Pipeline Example:**
 
@@ -300,6 +313,7 @@ pipeline {
           orchestratorTenant: "tenant name",
           folderName: "folder name",
           timeout: "10000",
+          traceLoggingLevel: 'None',
           testResultsOutputPath: "result.xml",
           credentials: [$class: 'UserPassAuthenticationEntry', credentialsId: "credentialsId"]
         )
@@ -320,6 +334,10 @@ All paths specified should be local to the current workspace. You can use enviro
 In order to deploy packages or run tests, ensure that the authenticated user has the Folders View (or OrganizationUnits View) and (20.4+ only) Background Tasks View permissions.
 
 In order to package libraries when connected to an Orchestrator instance, ensure that the authenticated user has the Libraries View permission.
+
+Authentication on Cloud Orchestrator using External Apps. 
+
+For further details on managing external apps on Orchestrator, pls refer to the [official documentation.](https://docs.uipath.com/automation-cloud/docs/managing-external-applications) 
 
 ## Questions
 

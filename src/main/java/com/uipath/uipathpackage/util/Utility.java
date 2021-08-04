@@ -3,10 +3,10 @@ package com.uipath.uipathpackage.util;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.uipath.uipathpackage.entries.SelectEntry;
+import com.uipath.uipathpackage.entries.authentication.ExternalAppAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
-import com.uipath.uipathpackage.entries.job.DynamicallyEntry;
-import com.uipath.uipathpackage.entries.job.RobotEntry;
+import com.uipath.uipathpackage.entries.job.*;
 import com.uipath.uipathpackage.models.*;
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -109,7 +109,7 @@ public class Utility {
 
             options.setUsername(cred.getUsername());
             options.setPassword(cred.getPassword().getPlainText());
-        } else {
+        } else if (credentials instanceof TokenAuthenticationEntry) {
             StringCredentials cred = CredentialsProvider.findCredentialById(((TokenAuthenticationEntry) credentials).getCredentialsId(), StringCredentials.class, run, Collections.emptyList());
             if (cred == null || cred.getSecret().getPlainText().isEmpty()) {
                 throw new AbortException("Invalid credentials");
@@ -117,6 +117,17 @@ public class Utility {
 
             options.setRefreshToken(cred.getSecret().getPlainText());
             options.setAccountName(((TokenAuthenticationEntry) credentials).getAccountName());
+        } else {
+            StringCredentials secret = CredentialsProvider.findCredentialById(((ExternalAppAuthenticationEntry) credentials).getApplicationSecret(), StringCredentials.class, run, Collections.emptyList());
+            if (secret == null || secret.getSecret().getPlainText().isEmpty()) {
+                throw new AbortException("Invalid credentials");
+            }
+
+            ExternalAppAuthenticationEntry cred = (ExternalAppAuthenticationEntry) credentials;
+            options.setAccountForApp(cred.getAccountForApp());
+            options.setApplicationId(cred.getApplicationId());
+            options.setApplicationSecret(secret.getSecret().getPlainText());
+            options.setApplicationScope(cred.getApplicationScope());
         }
     }
 
@@ -147,6 +158,18 @@ public class Utility {
             }
         }
     }
+
+    public void setJobRunFromJobTypeEntry(SelectEntry strategy, JobOptions options) {
+        if (strategy instanceof NonProductionJobTypeEntry) {
+            options.setJobType(JobType.NonProduction);
+        }
+        else if (strategy instanceof UnattendedJobTypeEntry)
+        {
+            options.setJobType(JobType.Unattended);
+        }
+    }
+
+
 
     private String[] buildCommandLine(FilePath cliPath, FilePath commandOptionsFile) {
         return new String[] { cliPath.getRemote(), "run", commandOptionsFile.getRemote() };

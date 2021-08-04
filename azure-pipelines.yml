@@ -60,11 +60,13 @@ stages:
     - template: stage.security.yml
 
 - stage: Deploy
-  displayName: "Deploy on Jenkins server & run"
+  displayName: "Deploy on Jenkins server"
+  
   dependsOn: Build
   jobs:
-  - job: DeployJenkinsPlugin
+  - deployment: DeployJenkinsPlugin
     displayName: 'Deploy the new jenkins plugin'
+    environment: JenkinsCITest
     timeoutInMinutes: 90
     workspace:
       clean: outputs
@@ -72,50 +74,56 @@ stages:
       MavenPOMFile: '$(Build.SourcesDirectory)/pom.xml'
     pool:
       name: JenkinsTest
-    steps:
-    - checkout: none
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: none
 
-    - download: current
-      displayName: 'Download Packages'
-      artifact: Packages
-  
-    - powershell: |
-        az storage blob upload -f $(Agent.BuildDirectory)/Packages/uipath-automation-package.hpi -c plugins -n $(Build.BuildNumber)/uipath-automation-package.hpi --account-name $(AzureAccountName) --auth-mode key --account-key $(StorageAccountKey)
-      displayName: "Upload plugin package to blob storage"
+          - download: current
+            displayName: 'Download Packages'
+            artifact: Packages
+        
+          - powershell: |
+              az storage blob upload -f $(Agent.BuildDirectory)/Packages/uipath-automation-package.hpi -c plugins -n $(Build.BuildNumber)/uipath-automation-package.hpi --account-name $(AzureAccountName) --auth-mode key --account-key $(StorageAccountKey)
+            displayName: "Upload plugin package to blob storage"
 
-    - bash: |
-        rm jenkins-cli.jar*
-        wget $(JenkinsUrl)/jnlpJars/jenkins-cli.jar
-        java -jar jenkins-cli.jar -s $(JenkinsUrlHttp) -auth $(JenkinsUsername):$(JenkinsAuthToken) install-plugin https://$(AzureAccountName).blob.core.windows.net/plugins/$(Build.BuildNumber)/uipath-automation-package.hpi -restart
-        timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' $(JenkinsUrl)/login)" != "200" ]]; do echo "waiting for plugin to install" && sleep 5; done'
-      displayName: "Install package on Jenkins server"
+          - bash: |
+              rm jenkins-cli.jar*
+              wget $(JenkinsUrl)/jnlpJars/jenkins-cli.jar
+              java -jar jenkins-cli.jar -s $(JenkinsUrlHttp) -auth $(JenkinsUsername):$(JenkinsAuthToken) install-plugin https://$(AzureAccountName).blob.core.windows.net/plugins/$(Build.BuildNumber)/uipath-automation-package.hpi -restart
+              timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' $(JenkinsUrl)/login)" != "200" ]]; do echo "waiting for plugin to install" && sleep 5; done'
+            displayName: "Install package on Jenkins server"
 
-  - template: job.ci.test.template.yml
-    parameters:
-      configurations:
-      - jobName: 'Orchestrator_v2018_4_TC1'
-        configurationName: 'Orchestrator v2018.4 - TC 1'
-      - jobName: 'Orchestrator_v2018_4_TC2'
-        configurationName: 'Orchestrator v2018.4 - TC 2'
-      - jobName: 'Orchestrator_v2018_4_TC3'
-        configurationName: 'Orchestrator v2018.4 - TC 3'
-      
-      - jobName: 'Orchestrator_2019_10_TC1'
-        configurationName: 'Orchestrator v2019.10 - TC 1'
-      - jobName: 'Orchestrator_2019_10_TC2'
-        configurationName: 'Orchestrator v2019.10 - TC 2'
-      - jobName: 'Orchestrator_2019_10_TC3'
-        configurationName: 'Orchestrator v2019.10 - TC 3'
+- template: stage.test.template.yml
+  parameters:
+    configurations:
+    - stageName: 'Orchestrator_18_4'
+      stageDisplayName: 'Orchestrator 18.4 (Classic Folder and User/Password Auth)'
 
-      - jobName: 'Orchestrator_2020_4_2_TC1'
-        configurationName: 'Orchestrator v2020.4.2 - TC 1'
-      - jobName: 'Orchestrator_2020_4_2_TC2'
-        configurationName: 'Orchestrator v2020.4.2 - TC 2'
-      - jobName: 'Orchestrator_2020_4_2_TC3'
-        configurationName: 'Orchestrator v2020.4.2 - TC 3'
+    - stageName: 'Orchestrator_19_10'
+      stageDisplayName: 'Orchestrator 19.10 (Classic Folder and User/Password Auth)'
 
-      - ${{ if eq(parameters.runLongRunningTests, 'true') }}:
-        - jobName: 'Orchestrator_2020_4_2_TC4'
-          configurationName: 'Orchestrator v2020.4.2 - TC 4'
-        - jobName: 'Orchestrator_2020_4_2_TC5'
-          configurationName: 'Orchestrator v2020.4.2 - TC 5'
+## TODO add 20.4 tests
+    # - stageName: 'Orchestrator_20_4'
+    #   stageDisplayName: 'Orchestrator 20.4'
+
+    - stageName: 'OrchTestingSol'
+      stageDisplayName: 'Orchestrator TestingSol (User/Password Auth)'
+
+    - stageName: 'Alpha'
+      stageDisplayName: 'Orchestrator Alpha (Token Auth & External App)'
+
+    # - stageName: 'Cloud'
+    #   stageDisplayName: 'Orchestrator Cloud (Token Auth)'
+
+    - stageName: 'Staging'
+      stageDisplayName: 'Orchestrator Staging (Token Auth & External App)'
+
+    - ${{ if eq(parameters.runLongRunningTests, 'true') }}:
+      - stageName: 'Long_Running'
+        stageDisplayName: 'Long Running Tests'
+
+## TODO add errors validation tests
+    # - stageName: 'Errors_Validation'
+    #   stageDisplayName: 'Errors Validation Tests'

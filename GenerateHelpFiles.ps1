@@ -7,16 +7,17 @@ $UrlRegex = "https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6
 
 $ResourcesRelativePath = "src\\main\\resources\\com\\uipath\\uipathpackage\\"
 $FolderName = "help"
-$ActivitiesFolders = @{"TokenAuthenticationEntry" = "entries\\authentication\\TokenAuthenticationEntry";
-                        "DynamicallyEntry" = "entries\\job\\DynamicallyEntry";
-                        "RobotEntry" = "entries\\job\\RobotEntry";
-                        "TestProjectEntry" = "entries\\testExecutionTarget\\TestProjectEntry";
-                        "TestSetEntry" = "entries\\testExecutionTarget\\TestSetEntry";
-                        "UiPathAssets" = "UiPathAssets";
-                        "UiPathDeploy" = "UiPathDeploy";
-                        "UiPathPack" = "UiPathPack";
-                        "UiPathRunJob" = "UiPathRunJob";
-                        "UiPathTest" = "UiPathTest"}
+$ActivitiesFolders = @{"ExternalAppAuthenticationEntry" = "entries\\authentication\\ExternalAppAuthenticationEntry";
+                       "TokenAuthenticationEntry" = "entries\\authentication\\TokenAuthenticationEntry";
+                       "DynamicallyEntry" = "entries\\job\\DynamicallyEntry";
+                       "RobotEntry" = "entries\\job\\RobotEntry";
+                       "TestProjectEntry" = "entries\\testExecutionTarget\\TestProjectEntry";
+                       "TestSetEntry" = "entries\\testExecutionTarget\\TestSetEntry";
+                       "UiPathAssets" = "UiPathAssets";
+                       "UiPathDeploy" = "UiPathDeploy";
+                       "UiPathPack" = "UiPathPack";
+                       "UiPathRunJob" = "UiPathRunJob";
+                       "UiPathTest" = "UiPathTest"}
 
 $Languages = @("", "_de", "_es", "_es-MX", "_fr", "_ja", "_ko", "_pt", "_pt-BR", "_ru", "_tr", "_zh-CN")
 

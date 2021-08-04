@@ -57,4 +57,7 @@
     <f:entry field="timeout" title="${%Timeout}">
         <f:textbox/>
     </f:entry>
+    <f:entry title="${%TraceLevel}" field="traceLevel">
+        <f:select/>
+    </f:entry>
 </j:jelly>

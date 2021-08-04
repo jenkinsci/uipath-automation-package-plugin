@@ -8,6 +8,9 @@ parameters:
   TestOrchestratorCloudTenant: ''
   TestOrchestratorAccountName: ''
   TestOrchestratorAuthenticationToken: ''
+  TestOrchestratorApplicationId: ''
+  TestOrchestratorApplicationSecret: ''
+  TestOrchestratorApplicationScope: ''
   TestOrchestratorCloudModernFolderName: ''
   TestOrchestratorClientIdOverride: ''
   TestOrchestratorAuthorizationUriOverride: ''
@@ -47,6 +50,9 @@ steps:
     TestOrchestratorCloudTenant: ${{parameters.TestOrchestratorCloudTenant}}
     TestOrchestratorAccountName: ${{parameters.TestOrchestratorAccountName}}
     TestOrchestratorAuthenticationToken: ${{parameters.TestOrchestratorAuthenticationToken}}
+    TestOrchestratorApplicationId: ${{parameters.TestOrchestratorApplicationId}}
+    TestOrchestratorApplicationSecret: ${{parameters.TestOrchestratorApplicationSecret}}
+    TestOrchestratorApplicationScope: ${{parameters.TestOrchestratorApplicationScope}}
     TestOrchestratorCloudModernFolderName: ${{parameters.TestOrchestratorCloudModernFolderName}}
     TestOrchestratorClientIdOverride: ${{parameters.TestOrchestratorClientIdOverride}}
     TestOrchestratorAuthorizationUriOverride: ${{parameters.TestOrchestratorAuthorizationUriOverride}}

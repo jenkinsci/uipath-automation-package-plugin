@@ -2,12 +2,13 @@ package com.uipath.uipathpackage;
 
 import com.google.common.collect.ImmutableList;
 import com.uipath.uipathpackage.entries.SelectEntry;
+import com.uipath.uipathpackage.entries.authentication.ExternalAppAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
-import com.uipath.uipathpackage.entries.job.DynamicallyEntry;
-import com.uipath.uipathpackage.entries.job.RobotEntry;
+import com.uipath.uipathpackage.entries.job.*;
 import com.uipath.uipathpackage.models.JobOptions;
 import com.uipath.uipathpackage.util.StartProcessDtoJobPriority;
+import com.uipath.uipathpackage.util.TraceLevel;
 import com.uipath.uipathpackage.util.Utility;
 import hudson.*;
 import hudson.model.*;
@@ -41,6 +42,7 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
     private String processName;
     private String parametersFilePath;
     private StartProcessDtoJobPriority priority;
+    private final SelectEntry jobType;
 
     private SelectEntry strategy;
 
@@ -48,6 +50,8 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
     private Integer timeout;
     private Boolean failWhenJobFails;
     private Boolean waitForJobCompletion;
+
+    private TraceLevel traceLevel;
 
     private final String orchestratorAddress;
     private final String orchestratorTenant;
@@ -65,18 +69,20 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
      * @param timeout               The timeout for job executions in seconds. (default 1800)
      * @param failWhenJobFails      The command fails when at least one job fails. (default true)
      * @param waitForJobCompletion  Wait for job runs completion. (default true)
+     * @param traceLevel            The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
      * @param orchestratorAddress   Orchestrator base URL
      * @param orchestratorTenant    Orchestrator tenant
      * @param folderName            Orchestrator folder
      * @param credentials           Orchestrator credentials
      */
     @DataBoundConstructor
-    public UiPathRunJob(String processName, String parametersFilePath, StartProcessDtoJobPriority priority, SelectEntry strategy, String resultFilePath,
-                        Integer timeout, Boolean failWhenJobFails, Boolean waitForJobCompletion,
+    public UiPathRunJob(String processName, String parametersFilePath, StartProcessDtoJobPriority priority, SelectEntry strategy, SelectEntry jobType, String resultFilePath,
+                        Integer timeout, Boolean failWhenJobFails, Boolean waitForJobCompletion, TraceLevel traceLevel,
                         String orchestratorAddress, String orchestratorTenant, String folderName, SelectEntry credentials) {
         this.processName = processName;
         this.parametersFilePath = parametersFilePath;
         this.priority = priority;
+        this.jobType = jobType;
 
         this.strategy = strategy;
 
@@ -85,11 +91,15 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
         this.failWhenJobFails = failWhenJobFails;
         this.waitForJobCompletion = waitForJobCompletion;
 
+        this.traceLevel = traceLevel;
+
         this.orchestratorAddress = orchestratorAddress;
         this.orchestratorTenant = orchestratorTenant;
         this.credentials = credentials;
         this.folderName = folderName;
     }
+
+    public SelectEntry getJobType() {return this.jobType;}
 
 
     @DataBoundSetter
@@ -210,6 +220,18 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
         this.resultFilePath = resultFilePath;
     }
 
+    @DataBoundSetter
+    public void setTraceLevel(TraceLevel traceLevel) {
+        this.traceLevel = traceLevel;
+    }
+
+    /**
+     * traceLevel
+     *
+     * @return TraceLevel traceLevel
+     */
+    public TraceLevel getTraceLevel() { return traceLevel; }
+
     public String getResultFilePath() { return resultFilePath; }
 
     @DataBoundSetter
@@ -281,8 +303,11 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
             jobOptions.setFailWhenJobFails(failWhenJobFails);
             jobOptions.setWaitForJobCompletion(waitForJobCompletion);
 
+            jobOptions.setTraceLevel(traceLevel);
+
             jobOptions.setOrchestratorUrl(orchestratorAddress);
             jobOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
+            util.setJobRunFromJobTypeEntry(jobType, jobOptions);
 
             ResourceBundle rb = ResourceBundle.getBundle("config");
             String orchestratorTenantFormatted = envVars.expand(orchestratorTenant.trim()).isEmpty() ? util.getConfigValue(rb, "UiPath.DefaultTenant") : envVars.expand(orchestratorTenant.trim());
@@ -444,10 +469,14 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
         /**
          * Provides the list of descriptors to the choice in hetero-radio
          *
-         * @return list of the authentication descriptors
+         * @return list of the strategy descriptors
          */
         public List<Descriptor> getStrategyDescriptors() {
-            Jenkins jenkins = Jenkins.getInstance();
+            Jenkins jenkins = Jenkins.getInstanceOrNull();
+            if (jenkins == null) {
+                return new ArrayList<>();
+            }
+
             List<Descriptor> list = new ArrayList<>();
 
             // Add dynamically entry option
@@ -468,10 +497,42 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
         /**
          * Provides the list of descriptors to the choice in hetero-radio
          *
+         * @return list of the job type descriptors
+         */
+        public List<Descriptor> getJobTypeDescriptors() {
+            Jenkins jenkins = Jenkins.getInstanceOrNull();
+            if (jenkins == null) {
+                return new ArrayList<>();
+            }
+
+            List<Descriptor> list = new ArrayList<>();
+
+            // Add unattended job type entry option
+            Descriptor unattendedDescriptor = jenkins.getDescriptor(UnattendedJobTypeEntry.class);
+            if (unattendedDescriptor != null) {
+                list.add(unattendedDescriptor);
+            }
+
+            // Add unattended job type entry option
+            Descriptor nonProductionDescriptor = jenkins.getDescriptor(NonProductionJobTypeEntry.class);
+            if (nonProductionDescriptor != null) {
+                list.add(nonProductionDescriptor);
+            }
+
+            return ImmutableList.copyOf(list);
+        }
+
+        /**
+         * Provides the list of descriptors to the choice in hetero-radio
+         *
          * @return list of the authentication descriptors
          */
         public List<Descriptor> getAuthenticationDescriptors() {
-            Jenkins jenkins = Jenkins.getInstance();
+            Jenkins jenkins = Jenkins.getInstanceOrNull();
+            if (jenkins == null) {
+                return new ArrayList<>();
+            }
+
             List<Descriptor> list = new ArrayList<>();
             Descriptor userPassDescriptor = jenkins.getDescriptor(UserPassAuthenticationEntry.class);
             if (userPassDescriptor != null) {
@@ -481,7 +542,31 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
             if (tokenDescriptor != null) {
                 list.add(tokenDescriptor);
             }
+            Descriptor externalAppDescriptor = jenkins.getDescriptor(ExternalAppAuthenticationEntry.class);
+            if (externalAppDescriptor != null) {
+                list.add(externalAppDescriptor);
+            }
             return ImmutableList.copyOf(list);
+        }
+
+        /**
+         * Returns the list of Strings to be filled in choice
+         * If item is null or doesn't have configure permission it will return empty list
+         *
+         * @param item Basic configuration unit in Hudson
+         * @return ListBoxModel list of String
+         */
+        public ListBoxModel doFillTraceLevelItems(@AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
+
+            ListBoxModel result= new ListBoxModel();
+            for (TraceLevel v: TraceLevel.values()) {
+                result.add(v.toString(), v.toString());
+            }
+
+            return result;
         }
     }
 }
