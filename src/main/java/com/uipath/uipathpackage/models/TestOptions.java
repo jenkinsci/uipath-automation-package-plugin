@@ -6,6 +6,7 @@ public class TestOptions extends AuthenticatedOptions {
     private String environment;
     private String testReportType;
     private String testReportDestination;
+    private String parametersFilePath;
     private Integer timeout;
 
     public String getEnvironment() {
@@ -54,5 +55,13 @@ public class TestOptions extends AuthenticatedOptions {
 
     public void setTestReportDestination(String testReportDestination) {
         this.testReportDestination = testReportDestination;
+    }
+
+    public String getParametersFilePath() {
+        return parametersFilePath;
+    }
+
+    public void setParametersFilePath(String parametersFilePath) {
+        this.parametersFilePath = parametersFilePath;
     }
 }

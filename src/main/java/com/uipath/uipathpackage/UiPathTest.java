@@ -47,6 +47,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private final SelectEntry testTarget;
     private final Integer timeout;
     private final String testResultsOutputPath;
+    private final String parametersFilePath;
     private String testResultIncludes;
     private final TraceLevel traceLevel;
 
@@ -140,7 +141,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             testOptions.setOrchestratorUrl(orchestratorAddress);
             testOptions.setOrchestratorTenant(orchestratorTenantFormatted);
             testOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
-
+            testOptions.setParametersFilePath(this.parametersFilePath);
             testOptions.setTestReportType("junit");
 
             String resultsOutputPath = testResultsOutputPath != null && !testResultsOutputPath.trim().isEmpty()
@@ -280,6 +281,15 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         return traceLevel;
     }
 
+    /**
+     * parametersFilePath
+     *
+     * @return String parametersFilePath
+     */
+    public String getParametersFilePath() {
+        return parametersFilePath;
+    }
+
     private void validateParameters() throws AbortException {
         if (testTarget == null) {
             throw new InvalidParameterException(com.uipath.uipathpackage.Messages.GenericErrors_MissingTestSetOrProjectPath());
@@ -298,6 +308,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         credentials.validateParameters();
 
         if (testResultsOutputPath != null && testResultsOutputPath.toUpperCase().contains("${JENKINS_HOME}")) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidPath());
+        }
+        
+        if (parametersFilePath != null && parametersFilePath.toUpperCase().contains("${JENKINS_HOME}")) {
             throw new AbortException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidPath());
         }
     }
