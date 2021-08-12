@@ -305,6 +305,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private void publishTestResults(Run<?,?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
         try {
             TestResultAction action = JUnitResultArchiver.parseAndAttach(this, null, run, workspace, launcher, listener);
+            if (action != null && StringUtils.isNotEmpty(action.getResult().getStdout())) {
+                String stdOut = action.getResult().getStdout();
+                listener.getLogger().println(Messages.UiPathTest_DescriptorImpl_TestRunUrl()+stdOut.substring(stdOut.indexOf("ms.")+3,stdOut.length()));        
+            }
             if (action != null && action.getResult().getFailCount() > 0) {
                 run.setResult(Result.UNSTABLE);
             }
