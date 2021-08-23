@@ -47,7 +47,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private final SelectEntry testTarget;
     private final Integer timeout;
     private final String testResultsOutputPath;
-    private final String parametersFilePath;
+    private String parametersFilePath;
     private String testResultIncludes;
     private final TraceLevel traceLevel;
 
