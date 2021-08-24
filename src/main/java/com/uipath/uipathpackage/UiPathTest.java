@@ -322,10 +322,6 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         if (testResultsOutputPath != null && testResultsOutputPath.toUpperCase().contains("${JENKINS_HOME}")) {
             throw new AbortException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidPath());
         }
-        
-        if (parametersFilePath != null && parametersFilePath.toUpperCase().contains("${JENKINS_HOME}")) {
-            throw new AbortException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidPath());
-        }
     }
 
     private void publishTestResults(Run<?,?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
@@ -487,6 +483,20 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             return FormValidation.ok();
         }
 
+        /**
+         * Validates ParametersFilePath
+         *
+         * @param value value of parameters file path
+         * @return FormValidation
+         */
+        public FormValidation doCheckParametersFilePath(@QueryParameter String value) {
+            if (value.trim().toUpperCase().contains("${JENKINS_HOME}")) {
+                return FormValidation.error(Messages.GenericErrors_MustUseSlavePaths());
+            }
+
+            return FormValidation.ok();
+        }
+        
         /**
          * Validates that the timeout is specified
          *
