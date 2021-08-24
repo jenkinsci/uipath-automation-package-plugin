@@ -116,39 +116,39 @@ public class UiPathTestTests {
 
     @Test
     public void testTestWithUsernamePasswordAndTestSetConfigRoundTrip() throws Exception {
-        UiPathTest publisher = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testSetTarget, userPassCredentials, "", timeout, traceLevel);
+        UiPathTest publisher = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testSetTarget, userPassCredentials, "", timeout, traceLevel,"");
         project.getPublishersList().add(publisher);
         project = jenkins.configRoundtrip(project);
-        jenkins.assertEqualDataBoundBeans(new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testSetTarget, userPassCredentials, "", timeout, traceLevel), project.getPublishersList().get(0));
+        jenkins.assertEqualDataBoundBeans(new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testSetTarget, userPassCredentials, "", timeout, traceLevel,""), project.getPublishersList().get(0));
     }
 
     @Test
     public void testTestWithUsernamePasswordAndTestPackagePathConfigRoundTrip() throws Exception {
-        UiPathTest publisher = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testPackageTarget, userPassCredentials, "", timeout, traceLevel);
+        UiPathTest publisher = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testPackageTarget, userPassCredentials, "", timeout, traceLevel,"");
         project.getPublishersList().add(publisher);
         project = jenkins.configRoundtrip(project);
-        jenkins.assertEqualDataBoundBeans(new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testPackageTarget, userPassCredentials, "", timeout, traceLevel), project.getPublishersList().get(0));
+        jenkins.assertEqualDataBoundBeans(new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testPackageTarget, userPassCredentials, "", timeout, traceLevel,""), project.getPublishersList().get(0));
     }
 
     @Test
     public void testTestWithTokenAndTestSetConfigRoundTrip() throws Exception {
-        UiPathTest publisher = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testSetTarget, tokenCredentials, "", timeout, traceLevel);
+        UiPathTest publisher = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testSetTarget, tokenCredentials, "", timeout, traceLevel,"");
         project.getPublishersList().add(publisher);
         project = jenkins.configRoundtrip(project);
-        jenkins.assertEqualDataBoundBeans(new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testSetTarget, tokenCredentials, "", timeout, traceLevel), project.getPublishersList().get(0));
+        jenkins.assertEqualDataBoundBeans(new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testSetTarget, tokenCredentials, "", timeout, traceLevel,""), project.getPublishersList().get(0));
     }
 
     @Test
     public void testTestWithTokenAndTestPackagePathConfigRoundTrip() throws Exception {
-        UiPathTest publisher = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testPackageTarget, tokenCredentials, "", timeout, traceLevel);
+        UiPathTest publisher = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testPackageTarget, tokenCredentials, "", timeout, traceLevel,"");
         project.getPublishersList().add(publisher);
         project = jenkins.configRoundtrip(project);
-        jenkins.assertEqualDataBoundBeans(new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testPackageTarget, tokenCredentials, "", timeout, traceLevel), project.getPublishersList().get(0));
+        jenkins.assertEqualDataBoundBeans(new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testPackageTarget, tokenCredentials, "", timeout, traceLevel,""), project.getPublishersList().get(0));
     }
 
    @Test
    public void testExecuteTestWithTestSetReturnsExpectedOutput() throws Exception {
-       UiPathTest publisher = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testSetTarget, userPassCredentials, "results.xml", timeout, traceLevel);
+       UiPathTest publisher = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testSetTarget, userPassCredentials, "results.xml", timeout, traceLevel,"");
        project.getPublishersList().add(publisher);
        FreeStyleBuild build = jenkins.assertBuildStatus(Result.UNSTABLE, project.scheduleBuild2(0));
 
@@ -162,7 +162,7 @@ public class UiPathTestTests {
    /* Experiencing issues on orch-testingsol: endlessly waiting for upload background tasks
    @Test
    public void testExecuteTestWithTestPackageReturnsExpectedOutput() throws Exception {
-       UiPathTest publisher = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testPackageTarget, userPassCredentials, "results.xml", timeout, traceLevel);
+       UiPathTest publisher = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testPackageTarget, userPassCredentials, "results.xml", timeout, traceLevel,"");
        project.getPublishersList().add(publisher);
        FreeStyleBuild build = jenkins.assertBuildStatus(Result.UNSTABLE, project.scheduleBuild2(0));
 
@@ -175,7 +175,7 @@ public class UiPathTestTests {
 
     @Test
     public void testExecuteTestWithPassingTestPackageReturnsExpectedOutput() throws Exception {
-        UiPathTest publisher = new UiPathTest(cloudOrchestratorAddress, cloudOrchestratorTenant, couldModernFolderName, testPackagePassTarget, cloudTokenCredentials, "results.xml", timeout, traceLevel);
+        UiPathTest publisher = new UiPathTest(cloudOrchestratorAddress, cloudOrchestratorTenant, couldModernFolderName, testPackagePassTarget, cloudTokenCredentials, "results.xml", timeout, traceLevel, "");
         project.getPublishersList().add(publisher);
         FreeStyleBuild build = jenkins.assertBuildStatus(Result.SUCCESS, project.scheduleBuild2(0));
 
@@ -188,7 +188,7 @@ public class UiPathTestTests {
 
     @Test
     public void testUiPathTestClass() {
-        UiPathTest uiPathTest = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testPackageTarget, userPassCredentials, "", timeout, traceLevel);
+        UiPathTest uiPathTest = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testPackageTarget, userPassCredentials, "", timeout, traceLevel,"");
         assertEquals(testPackageTarget, uiPathTest.getTestTarget());
         assertEquals(orchestratorAddress, uiPathTest.getOrchestratorAddress());
         assertEquals(orchestratorTenant, uiPathTest.getOrchestratorTenant());

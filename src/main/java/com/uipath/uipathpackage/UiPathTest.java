@@ -49,7 +49,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private final SelectEntry testTarget;
     private final Integer timeout;
     private final String testResultsOutputPath;
-    private String parametersFilePath;
+    private final String parametersFilePath;
     private String testResultIncludes;
     private final TraceLevel traceLevel;
 
@@ -75,7 +75,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
      * @param traceLevel            The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
      */
     @DataBoundConstructor
-    public UiPathTest(String orchestratorAddress, String orchestratorTenant, String folderName, SelectEntry testTarget, SelectEntry credentials, String testResultsOutputPath, Integer timeout, TraceLevel traceLevel)  {
+    public UiPathTest(String orchestratorAddress, String orchestratorTenant, String folderName, SelectEntry testTarget, SelectEntry credentials, String testResultsOutputPath, Integer timeout, TraceLevel traceLevel, String parametersFilePath)  {
         this.testTarget = testTarget;
         this.orchestratorAddress = orchestratorAddress;
         this.orchestratorTenant = orchestratorTenant;
@@ -83,6 +83,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         this.credentials = credentials;
         this.timeout = timeout;
         this.testResultsOutputPath = testResultsOutputPath;
+		this.parametersFilePath = parametersFilePath;
         this.traceLevel = traceLevel;
     }
 
@@ -143,7 +144,6 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             testOptions.setOrchestratorUrl(orchestratorAddress);
             testOptions.setOrchestratorTenant(orchestratorTenantFormatted);
             testOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
-            testOptions.setParametersFilePath(this.parametersFilePath);
             testOptions.setTestReportType("junit");
 
             String resultsOutputPath = testResultsOutputPath != null && !testResultsOutputPath.trim().isEmpty()
@@ -165,6 +165,16 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
             testOptions.setTraceLevel(traceLevel);
 
+            if (parametersFilePath != null && !parametersFilePath.isEmpty())
+            {
+                FilePath parametersPath = parametersFilePath.contains("${WORKSPACE}") ?
+                        new FilePath(launcher.getChannel(), envVars.expand(parametersFilePath)) :
+                        workspace.child(envVars.expand(parametersFilePath));
+                parametersPath.mkdirs();
+
+                testOptions.setParametersFilePath(parametersPath.getRemote());
+            }
+            
             int result = util.execute("RunTestsOptions", testOptions, tempRemoteDir, listener, envVars, launcher, false);
 
             if (result != 0 && !expandedTestResultsOutputPath.exists()) {
