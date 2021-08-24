@@ -53,6 +53,10 @@ public class UiPathTestTests {
     private static TestProjectEntry testPackagePassTarget;
     private static String testSet;
     private static Integer timeout = 7200;
+	private static String cloudOrchestratorAddress;
+	private static String cloudOrchestratorTenant;
+	private static String couldModernFolderName;
+	private static TokenAuthenticationEntry cloudTokenCredentials;
 
     @Rule
     public final JenkinsRule jenkins = new JenkinsRule();
@@ -87,6 +91,14 @@ public class UiPathTestTests {
 
         String projectPathAllPassed = new FilePath(new File(Objects.requireNonNull(classLoader.getResource("TestProjectAllPassed")).getPath())).child("project.json").getRemote();
         testPackagePassTarget = new TestProjectEntry(projectPathAllPassed, environments);
+    
+        cloudOrchestratorAddress = System.getenv("TestOrchestratorCloudUrl");
+        cloudOrchestratorTenant = System.getenv("TestOrchestratorCloudTenant");
+
+        String accountName = System.getenv("TestOrchestratorAccountName");
+        token = System.getenv("TestOrchestratorAuthenticationToken");
+        couldModernFolderName = System.getenv("TestOrchestratorCloudModernFolderName");
+        cloudTokenCredentials = new TokenAuthenticationEntry(tokenCredentialsId, accountName);
     }
 
     @Before
@@ -163,7 +175,7 @@ public class UiPathTestTests {
 
     @Test
     public void testExecuteTestWithPassingTestPackageReturnsExpectedOutput() throws Exception {
-        UiPathTest publisher = new UiPathTest(orchestratorAddress, orchestratorTenant, folderName, testPackagePassTarget, userPassCredentials, "results.xml", timeout, traceLevel);
+        UiPathTest publisher = new UiPathTest(cloudOrchestratorAddress, cloudOrchestratorTenant, couldModernFolderName, testPackagePassTarget, cloudTokenCredentials, "results.xml", timeout, traceLevel);
         project.getPublishersList().add(publisher);
         FreeStyleBuild build = jenkins.assertBuildStatus(Result.SUCCESS, project.scheduleBuild2(0));
 
