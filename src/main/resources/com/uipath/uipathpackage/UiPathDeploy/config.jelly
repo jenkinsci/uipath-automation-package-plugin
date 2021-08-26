@@ -52,7 +52,7 @@
         <f:textbox/>
     </f:entry>
     <f:entry title="${%EntryPoints}" field="entryPointPaths">
-        <f:textbox/>
+        <f:textbox default="Main.xaml"/>
     </f:entry>
     <f:entry title="${%ChooseAuthenticationMethod}" field="credentialsEntry">
         <f:hetero-radio field="credentials" descriptors="${descriptor.authenticationDescriptors}"/>

@@ -190,7 +190,7 @@ public class UiPathDeployTests {
         UiPathPack pack = new UiPathPack(new AutoVersionEntry(), packagePath, workspaceOutputPath, traceLevel);
         project.getBuildersList().add(pack);
 
-        UiPathDeploy publisher = new UiPathDeploy(workspaceOutputPath, orchestratorAddress, orchestratorTenant, folderName, environments, tokenCredentials, traceLevel, null);
+        UiPathDeploy publisher = new UiPathDeploy(workspaceOutputPath, orchestratorAddress, orchestratorTenant, folderName, environments, tokenCredentials, traceLevel, "");
         project.getPublishersList().add(publisher);
 
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
@@ -203,7 +203,7 @@ public class UiPathDeployTests {
         UiPathPack pack = new UiPathPack(new AutoVersionEntry(), packagePath, workspaceOutputPath, traceLevel);
         project.getBuildersList().add(pack);
 
-        UiPathDeploy publisher = new UiPathDeploy(workspaceOutputPath, orchestratorAddress, orchestratorTenant, folderName, environments, tokenCredentials, traceLevel, null);
+        UiPathDeploy publisher = new UiPathDeploy(workspaceOutputPath, orchestratorAddress, orchestratorTenant, folderName, environments, tokenCredentials, traceLevel, "");
 
         DumbSlave node = jenkins.createSlave("aNode", "", null);
         project.setAssignedNode(node);
@@ -214,13 +214,14 @@ public class UiPathDeployTests {
 
     @Test
     public void testUiPathDeployClass() {
-        UiPathDeploy uiPathDeploy = new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, folderName, environments, tokenCredentials, traceLevel, null);
+        UiPathDeploy uiPathDeploy = new UiPathDeploy(packagePath, orchestratorAddress, orchestratorTenant, folderName, environments, tokenCredentials, traceLevel, "");
         assertEquals(packagePath, uiPathDeploy.getPackagePath());
         assertEquals(orchestratorAddress, uiPathDeploy.getOrchestratorAddress());
         assertEquals(orchestratorTenant, uiPathDeploy.getOrchestratorTenant());
         assertEquals(tokenCredentials, uiPathDeploy.getCredentials());
         assertEquals(folderName, uiPathDeploy.getFolderName());
         assertEquals(traceLevel, uiPathDeploy.getTraceLevel());
+        assertEquals("Main.xaml", uiPathDeploy.getEntryPointPaths());
     }
 
     @Test
@@ -232,6 +233,7 @@ public class UiPathDeployTests {
         assertEquals(String.valueOf(FormValidation.ok()), String.valueOf(descriptor.doCheckOrchestratorAddress(orchestratorAddress)));
         assertEquals(String.valueOf(FormValidation.error(com.uipath.uipathpackage.Messages.GenericErrors_MissingFolder())), String.valueOf(descriptor.doCheckFolderName("")));
         assertEquals(String.valueOf(FormValidation.ok()), String.valueOf(descriptor.doCheckFolderName(folderName)));
+        assertEquals(String.valueOf(FormValidation.ok()), String.valueOf(descriptor.doCheckEntryPointPaths(entryPointPaths)));
     }
 
     @Test
@@ -239,7 +241,7 @@ public class UiPathDeployTests {
         UiPathPack pack = new UiPathPack(new AutoVersionEntry(), packagePath, workspaceOutputPath, traceLevel);
         project.getBuildersList().add(pack);
 
-        UiPathDeploy publisher = new UiPathDeploy(workspaceOutputPath, orchestratorAddress, orchestratorTenant, folderName, environments, tokenCredentials, traceLevel, null);
+        UiPathDeploy publisher = new UiPathDeploy(workspaceOutputPath, orchestratorAddress, orchestratorTenant, folderName, environments, tokenCredentials, traceLevel, "");
         project.getPublishersList().add(publisher);
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
         jenkins.assertLogContains("Deployed", build);
@@ -255,7 +257,7 @@ public class UiPathDeployTests {
         UiPathPack pack = new UiPathPack(new AutoVersionEntry(), packagePath, workspaceOutputPath, traceLevel);
         project.getBuildersList().add(pack);
 
-        UiPathDeploy publisher = new UiPathDeploy(".", orchestratorAddress, orchestratorTenant, folderName, environments, tokenCredentials, traceLevel, null);
+        UiPathDeploy publisher = new UiPathDeploy(".", orchestratorAddress, orchestratorTenant, folderName, environments, tokenCredentials, traceLevel, "");
         project.getPublishersList().add(publisher);
 
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
@@ -273,7 +275,7 @@ public class UiPathDeployTests {
         UiPathPack builder = new UiPathPack(new AutoVersionEntry(), projectJsonPath, nugetPackagePath, traceLevel);
 
         project.getBuildersList().add(builder);
-        UiPathDeploy publisher = new UiPathDeploy(nugetPackagePath, orchestratorAddress, orchestratorTenant, folderName, environments, tokenCredentials, traceLevel, null);
+        UiPathDeploy publisher = new UiPathDeploy(nugetPackagePath, orchestratorAddress, orchestratorTenant, folderName, environments, tokenCredentials, traceLevel, "");
         project.getPublishersList().add(publisher);
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
         jenkins.assertLogContains("Deployed", build);
