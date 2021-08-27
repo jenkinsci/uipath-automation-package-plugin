@@ -279,7 +279,7 @@ After the test run has finished, the Test Result tab will be published to the Je
 
 Depending on the result, the build will be either marked as successful (all test cases are passed), or unstable (at least one test case failed).
 
-![UiPath Run tests](https://user-images.githubusercontent.com/74954587/127835876-ee4bdf01-d913-4854-9638-adc729cd826e.png)
+![UiPath Run tests](https://user-images.githubusercontent.com/74954587/131098701-a4e90782-2d47-4ad7-b0ac-24a98a54e6b7.png)
 
 **⚙️ Configuration**
 
@@ -287,6 +287,7 @@ Depending on the result, the build will be either marked as successful (all test
 | ----------------------------- | -------------         |
 | Target                        | *(1)* Execute test set (specify an existing test set on UiPath Orchestrator) or *(2)* Execute test project (provide the project.json path of a UiPath Testing project) |
 | Test result output path       | The executed test set returns the test result as junit.xml. Specify the path where the result should be stored, relative to the Jenkins workspace directory (e.g. result.xml). *Optional* |
+| Input Parameters | Define custom Arguments for your test cases to override default values at the test set level. Through the arguments, you can parameterize the test cases at runtime. To define arguments, you need to have published a package with arguments. *Optional* |
 | Orchestrator address          | The address of the Orchestrator instance onto which the package(s) will be deployed. |
 | Orchestrator tenant           | The Orchestrator tenant onto which the package(s) will be deployed. |
 | Orchestrator folder           | The folder to deploy to. If the folder is a classic folder, you will also need to set the environments field. For modern folders, setting the environments is not required. |
