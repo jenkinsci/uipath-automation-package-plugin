@@ -238,7 +238,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         util.validateParams(packagePath, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidPackage());
         util.validateParams(orchestratorAddress, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchAddress());
         util.validateParams(folderName, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchFolder());
-        util.validateParams(entryPointPaths, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidEntryPoint());
+        util.validateParams(getEntryPointPaths(), com.uipath.uipathpackage.Messages.ValidationErrors_InvalidEntryPoint());
 
         if (credentials == null) {
             throw new InvalidParameterException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidCredentialsType());
