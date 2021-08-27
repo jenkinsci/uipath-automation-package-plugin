@@ -236,7 +236,7 @@ UiPath Deploy is available in standard jobs and pipelines, and lets you deploy a
 | Orchestrator tenant           | The Orchestrator tenant onto which the package(s) will be deployed. |
 | Orchestrator folder           | The folder to deploy to. If the folder is a classic folder, you will also need to set the environments field. For modern folders, setting the environments is not required. |
 | Environments                  | The environment onto which the package will be deployed as a process. For the project and environment with existing processes, the processes will be updated to use the latest project version. Specify the environment onto which the package will be deployed as a process. For the project and environment with existing processes, the processes will be updated to use the latest project version. Required when using a classic folder, otherwise not applicable. |
-| Entry Points                  | Define the specific entry points to create or update a process. This is the filePath of the entry point starting from the root of the project. For classic folders only one entry point can be specified, for each environment it will be created or updated a process with the specified entry point. Works only for Orchestrator >= 21.4.UiPathDeploy.entryPoints. For more information, see [Orchestrator Entry Points](https://docs.uipath.com/orchestrator/docs/about-processes#entry-points). |
+| Entry Points                  | Specify entry points to create or update a process. The entry point specifies the filePath starting from the root of the project.<br/><br/> Conditions:<ul><li>Entry points are available for Orchestrator version 21.4 or higher (e.g. 21.4.UiPathDeploy.entryPoints). For Orchestrator versions lower than 21.4, you need to enter any value, as the field must not remain empty. </li><li> Default entry point set to `Main.xaml`. </li><li>For classic folders (deprecated) you can specify only one entry point for each environment</li></ul>For more information, see [Orchestrator Entry Points](https://docs.uipath.com/orchestrator/docs/about-processes#entry-points) |
 | Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this) *(3)* Authenticate to a Cloud Orchestrator using external app authentication. |
 | Trace logging level           | Setting used to enable the trace logging to one of the following level: None, Critical, Error, Warning, Information, Verbose. (default None). Useful for debugging purposes. |
 
@@ -279,7 +279,7 @@ After the test run has finished, the Test Result tab will be published to the Je
 
 Depending on the result, the build will be either marked as successful (all test cases are passed), or unstable (at least one test case failed).
 
-![UiPath Run tests](https://user-images.githubusercontent.com/74954587/127835876-ee4bdf01-d913-4854-9638-adc729cd826e.png)
+![UiPath Run tests](https://user-images.githubusercontent.com/74954587/131098701-a4e90782-2d47-4ad7-b0ac-24a98a54e6b7.png)
 
 **⚙️ Configuration**
 
@@ -287,6 +287,7 @@ Depending on the result, the build will be either marked as successful (all test
 | ----------------------------- | -------------         |
 | Target                        | *(1)* Execute test set (specify an existing test set on UiPath Orchestrator) or *(2)* Execute test project (provide the project.json path of a UiPath Testing project) |
 | Test result output path       | The executed test set returns the test result as junit.xml. Specify the path where the result should be stored, relative to the Jenkins workspace directory (e.g. result.xml). *Optional* |
+| Input Parameters | Define custom Arguments for your test cases to override default values at the test set level. Through the arguments, you can parameterize the test cases at runtime. To define arguments, you need to have published a package with arguments. *Optional* |
 | Orchestrator address          | The address of the Orchestrator instance onto which the package(s) will be deployed. |
 | Orchestrator tenant           | The Orchestrator tenant onto which the package(s) will be deployed. |
 | Orchestrator folder           | The folder to deploy to. If the folder is a classic folder, you will also need to set the environments field. For modern folders, setting the environments is not required. |
@@ -326,6 +327,11 @@ pipeline {
 ## Obtaining the Cloud Orchestrator API Key
 
 [![How to obtain the Cloud Orchestrator API Key](.github/cloud-orchestrator-howto.png)](.github/cloud-orchestrator-howto.png)
+
+## Configure service connection for external apps
+Step 1: [Configure your external application and scopes in Automation Cloud](https://docs.uipath.com/orchestrator/docs/managing-external-applications#adding-an-external-application). After adding the application, keep the App ID, Secret and Application Scopes at hand, to be used for the next step. 
+<br/><t><b>Note:</b> If you generate and use a new Secret, the old one is going to be invalidated.  
+Step 2: [Configure application credentials as secret text in Jenkins](https://www.jenkins.io/doc/book/using/using-credentials/). For this step you need the Secret generated in Automation Cloud. <br/> Step 3: Configure the Authentication for each task under Post-Build Actions, by adding the Account Name, followed by the App ID, Secret and Application Scopes generated through Automation Cloud. <br/><br/><b>Note:</b> Consider using the external app in individual pipelines to avoid invalidation errors.
 
 ## Additional information
 

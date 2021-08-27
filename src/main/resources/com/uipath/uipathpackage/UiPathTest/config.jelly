@@ -54,6 +54,9 @@
     <f:entry field="testResultsOutputPath" title="${%TestResultsOutputPath}">
         <f:textbox/>
     </f:entry>
+    <f:entry field="parametersFilePath" title="${%ParametersFilePath}">
+        <f:textbox/>
+    </f:entry>
     <f:entry field="timeout" title="${%Timeout}">
         <f:textbox/>
     </f:entry>
