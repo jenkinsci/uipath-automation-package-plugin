@@ -139,7 +139,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
      * @return the entry points
      */
     public String getEntryPointPaths() {
-        return entryPointPaths;
+        return entryPointPaths == null || entryPointPaths.trim().isEmpty() ? "Main.xaml" : entryPointPaths;
     }
 
     /**
@@ -238,6 +238,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         util.validateParams(packagePath, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidPackage());
         util.validateParams(orchestratorAddress, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchAddress());
         util.validateParams(folderName, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchFolder());
+        util.validateParams(entryPointPaths, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidEntryPoint());
 
         if (credentials == null) {
             throw new InvalidParameterException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidCredentialsType());
@@ -319,6 +320,19 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         public FormValidation doCheckFolderName(@QueryParameter String value) {
             if (value.trim().isEmpty()) {
                 return FormValidation.error(com.uipath.uipathpackage.Messages.GenericErrors_MissingFolder());
+            }
+            return FormValidation.ok();
+        }
+
+        /**
+         * Validates Entry Point Paths
+         *
+         * @param value value of entry point paths
+         * @return FormValidation
+         */
+        public FormValidation doCheckEntryPointPaths(@QueryParameter String value) {
+            if (value.trim().isEmpty()) {
+                return FormValidation.error(com.uipath.uipathpackage.Messages.GenericErrors_MissingEntryPoint());
             }
             return FormValidation.ok();
         }
