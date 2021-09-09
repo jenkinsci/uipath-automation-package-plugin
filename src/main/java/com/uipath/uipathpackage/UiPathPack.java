@@ -93,7 +93,12 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         }
 
         FilePath tempRemoteDir = tempDir(workspace);
-        tempRemoteDir.mkdirs();
+        if (null != tempRemoteDir) {
+            tempRemoteDir.mkdirs();
+        } else {
+            listener.getLogger().println(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempPack());
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempPack());
+        }
 
         try {
             EnvVars envVars = run.getEnvironment(listener);

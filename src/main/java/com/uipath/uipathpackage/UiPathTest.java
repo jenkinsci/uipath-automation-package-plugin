@@ -53,7 +53,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private String testResultIncludes;
     private final TraceLevel traceLevel;
 
-    private static int TimeoutDefault = 7200;
+    private static int timeoutDefault = 7200;
 
     /**
      * Gets the timeout.
@@ -102,7 +102,12 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         validateParameters();
 
         FilePath tempRemoteDir = tempDir(workspace);
-        tempRemoteDir.mkdirs();
+        if (null != tempRemoteDir) {
+            tempRemoteDir.mkdirs();
+        } else {
+            listener.getLogger().println(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempTest());
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempTest());
+        }
 
         if (launcher.isUnix()) {
             throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
@@ -154,7 +159,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
                     workspace.child(envVars.expand(resultsOutputPath));
 
             testOptions.setTestReportDestination(expandedTestResultsOutputPath.getRemote());
-            testOptions.setTimeout(timeout != null ? timeout : TimeoutDefault);
+            testOptions.setTimeout(timeout != null ? timeout : timeoutDefault);
 
             util.setCredentialsFromCredentialsEntry(credentials, testOptions, run);
 

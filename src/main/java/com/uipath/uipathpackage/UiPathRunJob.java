@@ -273,7 +273,12 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
         PrintStream logger = listener.getLogger();
 
         FilePath tempRemoteDir = tempDir(workspace);
-        tempRemoteDir.mkdirs();
+        if (null != tempRemoteDir) {
+            tempRemoteDir.mkdirs();
+        } else {
+            logger.println(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempRunJob());
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempRunJob());
+        }
 
         if (launcher.isUnix()) {
             throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());

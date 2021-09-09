@@ -76,7 +76,12 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
         PrintStream logger = listener.getLogger();
 
         FilePath tempRemoteDir = tempDir(workspace);
-        tempRemoteDir.mkdirs();
+        if (null != tempRemoteDir) {
+            tempRemoteDir.mkdirs();
+        } else {
+            logger.println(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempAssets());
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempAssets());
+        }
 
         if (launcher.isUnix()) {
             throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());

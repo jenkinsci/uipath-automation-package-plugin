@@ -172,7 +172,12 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         PrintStream logger = listener.getLogger();
 
         FilePath tempRemoteDir = tempDir(workspace);
-        tempRemoteDir.mkdirs();
+        if (null != tempRemoteDir) {
+            tempRemoteDir.mkdirs();
+        } else {
+            logger.println(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempDeploy());
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempDeploy());
+        }
 
         if (launcher.isUnix()) {
             throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());

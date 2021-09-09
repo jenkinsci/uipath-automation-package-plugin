@@ -52,7 +52,7 @@ stages:
     steps:
     - template: job.ci.build.yml
 
-- ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/develop'), startsWith(variables['Build.SourceBranch'], 'refs/heads/masters/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/support/')) }}:
+- ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/develop'), startsWith(variables['Build.SourceBranch'], 'refs/heads/masters/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/support/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/fix/')) }}:
   - stage: BuildSecurityScan
     displayName: Build and Security Scan
     dependsOn: []
