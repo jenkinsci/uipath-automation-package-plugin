@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <!-- Parent pom updated to the latest one -->
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
@@ -12,9 +11,19 @@
     <version>2.6.0-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <properties>
-        <!-- Upgraded to the latest one as on 2021-08-25 release -->
-        <jenkins.version>2.312</jenkins.version>
+        <!-- Upgraded to the latest LTS version -->
+        <jenkins.version>2.303.1</jenkins.version>
         <java.level>8</java.level>
+        <powershell.version>1.5</powershell.version>
+        <envinject.version>2.4.0</envinject.version>
+        <localization-support.version>1.1</localization-support.version>
+        <mockito-core.version>3.12.4</mockito-core.version>
+        <plain-credentials.version>1.7</plain-credentials.version>
+        <json.version>20210307</json.version>
+        <credentials.version>2.5</credentials.version>
+        <junit.version>1.53</junit.version>
+        <JUnitParams.version>1.1.1</JUnitParams.version>
+        <matrix-project.version>1.19</matrix-project.version>
     </properties>
     <name>UiPath Plugin</name>
     <description>
@@ -156,106 +165,59 @@
   </scm>
     <!-- List of dependencies of the project. -->
     <dependencies>
-        <!-- Upgraded to the latest one -->
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>envinject-api</artifactId>
-            <version>1.7</version>
-        </dependency>
-        <!-- Upgraded to the latest one -->
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>matrix-project</artifactId>
-            <version>1.19</version>
-        </dependency>
-        <!-- Upgraded to the latest one -->
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>script-security</artifactId>
-            <version>1.78</version>
-        </dependency>
-        <!-- Upgraded to the latest one -->
         <dependency>
             <groupId>pl.pragmatists</groupId>
             <artifactId>JUnitParams</artifactId>
-            <version>1.1.1</version>
+            <version>${JUnitParams.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- Upgraded to the latest one -->
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>junit</artifactId>
-            <version>1.53</version>
+            <version>${junit.version}</version>
         </dependency>
-        <!-- Updated to the latest one -->
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>credentials</artifactId>
-            <version>2.6.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.jenkins-ci.plugins</groupId>
-                    <artifactId>structs</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${credentials.version}</version>
         </dependency>
-        <!-- Updated to latest version -->
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>structs</artifactId>
-            <version>1.23</version>
-        </dependency>
-        <!-- Updated to latest version -->
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20210307</version>
+            <version>${json.version}</version>
         </dependency>
-        <!-- Updated to latest version -->
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>plain-credentials</artifactId>
-            <version>1.7</version>
+            <version>${plain-credentials.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
-        <!-- Updated to latest version -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>3.12.4</version>
+            <version>${mockito-core.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- Updated to latest version -->
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>powershell</artifactId>
-            <version>1.5</version>
+            <version>${powershell.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- Updated to latest version -->
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>envinject</artifactId>
-            <version>2.4.0</version>
+            <version>${envinject.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- Updated to latest version -->
         <dependency>
             <groupId>io.jenkins.plugins</groupId>
             <artifactId>localization-support</artifactId>
-            <version>1.1</version>
+            <version>${localization-support.version}</version>
         </dependency>
-        <!-- Updated to latest version -->
         <dependency>
-            <groupId>org.apache.ant</groupId>
-            <artifactId>ant</artifactId>
-            <version>1.10.11</version>
-        </dependency>
-        <!-- Updated to latest version -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>30.1.1-jre</version>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>matrix-project</artifactId>
+            <version>${matrix-project.version}</version>
         </dependency>
     </dependencies>
     <repositories>
