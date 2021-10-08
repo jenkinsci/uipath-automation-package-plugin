@@ -518,6 +518,12 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
             if (nonProductionDescriptor != null) {
                 list.add(nonProductionDescriptor);
             }
+            
+            // Add Test job type entry option
+            Descriptor testAutomationDescriptor = jenkins.getDescriptor(TestAutomationJobTypeEntry.class);
+            if (testAutomationDescriptor != null) {
+                list.add(testAutomationDescriptor);
+            }
 
             return ImmutableList.copyOf(list);
         }
