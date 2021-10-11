@@ -38,6 +38,7 @@ public class UiPathRunJobTests {
     private static TraceLevel traceLevel;
     private static NonProductionJobTypeEntry nonProductionJobTypeEntry;
     private static UnattendedJobTypeEntry unattendedJobTypeEntry;
+    private static TestAutomationJobTypeEntry testAutomationJobTypeEntry;
 
     private static String cloudOrchestratorAddress = "null";
     private static String cloudOrchestratorTenant = null;
@@ -92,7 +93,8 @@ public class UiPathRunJobTests {
         robotStrategy = new RobotEntry(unattendedRobotName);
         unattendedJobTypeEntry = new UnattendedJobTypeEntry();
         nonProductionJobTypeEntry = new NonProductionJobTypeEntry();
-
+        testAutomationJobTypeEntry = new TestAutomationJobTypeEntry();
+        
         userPassCredentials = new UserPassAuthenticationEntry(userPassCredentialsId);
         tokenCredentials = new TokenAuthenticationEntry(tokenCredentialsId, "randomaccount");
         cloudTokenCredentials = new TokenAuthenticationEntry(tokenCredentialsId, accountName);
@@ -286,6 +288,28 @@ public class UiPathRunJobTests {
     @Test
     public void runJobNonProductionJobTypeModernFolder() throws Exception {
         UiPathRunJob publisher = new UiPathRunJob(cloudModernProcessName, null, StartProcessDtoJobPriority.High, completeDynamicallyStrategy, nonProductionJobTypeEntry, null,
+                10000, true, true, traceLevel,
+                cloudOrchestratorAddress, cloudOrchestratorTenant, couldModernFolderName, cloudTokenCredentials);
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("OrchestratorClientIdOverride=");
+        stringBuilder.append(System.getenv("TestOrchestratorClientIdOverride"));
+        stringBuilder.append("\nOrchestratorAuthorizationUriOverride=");
+        stringBuilder.append(System.getenv("TestOrchestratorAuthorizationUriOverride"));
+
+        project.getPublishersList().add(publisher);
+        project.getBuildersList().add(new EnvInjectBuilder(null, stringBuilder.toString()));
+
+        FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
+
+        jenkins.assertLogContains("Starting job run", build);
+        jenkins.assertLogContains("Finished running job for process with id", build);
+        jenkins.assertLogContains("Running jobs... 2 passed, 0 stopped or terminated, 0 total. Waiting for 20s.", build);
+    }
+    
+    @Test
+    public void runJobTestAutomationJobTypeModernFolder() throws Exception {
+        UiPathRunJob publisher = new UiPathRunJob(cloudModernProcessName, null, StartProcessDtoJobPriority.High, completeDynamicallyStrategy, testAutomationJobTypeEntry, null,
                 10000, true, true, traceLevel,
                 cloudOrchestratorAddress, cloudOrchestratorTenant, couldModernFolderName, cloudTokenCredentials);
 
