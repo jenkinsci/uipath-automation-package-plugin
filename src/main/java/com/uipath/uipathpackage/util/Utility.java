@@ -166,6 +166,8 @@ public class Utility {
         else if (strategy instanceof UnattendedJobTypeEntry)
         {
             options.setJobType(JobType.Unattended);
+        }else if (strategy instanceof TestAutomationJobTypeEntry){
+        	options.setJobType(JobType.TestAutomation);
         }
     }
 
