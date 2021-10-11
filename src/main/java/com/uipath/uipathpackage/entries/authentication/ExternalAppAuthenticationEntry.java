@@ -80,7 +80,6 @@ public class ExternalAppAuthenticationEntry extends SelectEntry {
     @Override
     public boolean validateParameters() {
         Utility util = new Utility();
-        //util.validateParams(accountForApp, Messages.ExternalAppAuthenticationEntry_DescriptorImpl_Errors_MissingAccountForApp());
         util.validateParams(applicationId, Messages.ExternalAppAuthenticationEntry_DescriptorImpl_Errors_MissingApplicationId());
         util.validateParams(applicationSecret, Messages.ExternalAppAuthenticationEntry_DescriptorImpl_Errors_MissingApplicationSecret());
         util.validateParams(applicationScope, Messages.ExternalAppAuthenticationEntry_DescriptorImpl_Errors_MissingApplicationScope());
