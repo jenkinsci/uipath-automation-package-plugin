@@ -98,7 +98,7 @@ stages:
               echo 'Build.BuildNumber' $(Build.BuildNumber)
               wget $(JenkinsUrl)/jnlpJars/jenkins-cli.jar
               java -verbose -jar jenkins-cli.jar -s $(JenkinsUrlHttp) -auth $(JenkinsUsername):$(JenkinsAuthToken) install-plugin https://$(AzureAccountName).blob.core.windows.net/plugins/$(Build.BuildNumber)/uipath-automation-package.hpi -restart
-              timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' $(JenkinsUrl)/login)" != "200" ]]; do echo "waiting for plugin to install" && sleep 5; done'
+              timeout 300 bash -c 'while [[ "$(curl -k -s -o /dev/null -w ''%{http_code}'' $(JenkinsUrl)/login)" != "200" ]]; do echo "waiting for plugin to install" && sleep 5; done'
             displayName: "Install package on Jenkins server"
 
 - template: stage.test.template.yml
