@@ -240,6 +240,16 @@ UiPath Deploy is available in standard jobs and pipelines, and lets you deploy a
 | Authentication                | For authentication towards Orchestrator, credentials have to be created in Jenkins upfront. There are 2 options to authenticate: *(1)* Authenticate to an On-Premise Orchestrator using username and password *(2)* Authenticate to a Cloud Orchestrator using a refresh token (API key). The account name and API key are accessible via Services->API Access (see below for a detailed explanation on how to retrieve this) *(3)* Authenticate to a Cloud Orchestrator using external app authentication. |
 | Trace logging level           | Setting used to enable the trace logging to one of the following level: None, Critical, Error, Warning, Information, Verbose. (default None). Useful for debugging purposes. |
 
+### Note :
+
+Make sure that your network allows access to the following NuGet package feed:
+ - https://api.nuget.org/v3/index.json
+ - https://uipath.pkgs.visualstudio.com/_packaging/nuget-packages/nuget/v3/index.json
+ - https://uipath.pkgs.visualstudio.com/Public.Feeds/_packaging/UiPath-Internal/nuget/v3/index.json
+ - https://www.myget.org/F/workflow
+ - http://www.myget.org/F/uipath
+ - https://www.myget.org/F/uipath-dev/api/v3/index.json
+
 **📖 Pipeline Example:**
 
 ```Groovy
