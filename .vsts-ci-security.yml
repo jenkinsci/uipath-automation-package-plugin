@@ -32,11 +32,11 @@ stages:
             options: '-DskipTests -Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
       - template: Security/security.yml@common
         parameters:
-            removeSpecificPath: true
-            OS: 'windows'
-            azureSubscription: 'Azure-DevTest-EA'
-            FOSSAFlags: '--branch "AUTO-PluginsJenkins-$(Build.SourceBranch)-$(System.PipelineStartTime)"'
-            FOSSAInitFlags: ''
-            FOSSAPathToRemove: ''
-            FOSSAPathInclusionRegex: ''
-            FOSSAExclusionRegex: ''
+          removeSpecificPath: true
+          OS: 'windows'
+          azureSubscription: 'Azure-DevTest-EA'
+          FOSSAFlags: '--branch "AUTO-PluginsJenkins-$(Build.SourceBranch)-$(System.PipelineStartTime)"'
+          FOSSAInitFlags: ''
+          FOSSAPathToRemove: ''
+          FOSSAPathInclusionRegex: ''
+          FOSSAExclusionRegex: ''
