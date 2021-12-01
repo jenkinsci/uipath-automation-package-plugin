@@ -8,6 +8,7 @@ public abstract class AuthenticatedOptions extends LocalizationOptions implement
     private String accountName;
     private String refreshToken;
 
+    private String identityUrl;
     private String accountForApp;
     private String applicationId;
     private String applicationSecret;
@@ -113,4 +114,13 @@ public abstract class AuthenticatedOptions extends LocalizationOptions implement
     public void setTraceLevel(TraceLevel traceLevel) {
         this.traceLevel = traceLevel;
     }
+
+	public String getIdentityUrl() {
+		return identityUrl;
+	}
+
+	public void setIdentityUrl(String identityUrl) {
+		this.identityUrl = identityUrl;
+	}
+    
 }

@@ -128,6 +128,7 @@ public class Utility {
             options.setApplicationId(cred.getApplicationId());
             options.setApplicationSecret(secret.getSecret().getPlainText());
             options.setApplicationScope(cred.getApplicationScope());
+            options.setIdentityUrl(cred.getIdentityUrl());
         }
     }
 

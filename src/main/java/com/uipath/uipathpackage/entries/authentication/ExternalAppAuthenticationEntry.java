@@ -25,6 +25,7 @@ import java.util.Collections;
  */
 public class ExternalAppAuthenticationEntry extends SelectEntry {
 
+	private final String identityUrl;
     private final String accountForApp;
     private final String applicationId;
     private final String applicationSecret;
@@ -38,11 +39,12 @@ public class ExternalAppAuthenticationEntry extends SelectEntry {
      * @param applicationScope The external application scope(s)
      */
     @DataBoundConstructor
-    public ExternalAppAuthenticationEntry(String accountForApp, String applicationId, String applicationSecret, String applicationScope) {
+    public ExternalAppAuthenticationEntry(String accountForApp, String applicationId, String applicationSecret, String applicationScope, String identityUrl) {
         this.accountForApp = accountForApp;
         this.applicationId = applicationId;
         this.applicationSecret = applicationSecret;
         this.applicationScope = applicationScope;
+        this.identityUrl = identityUrl;
     }
 
     /**
@@ -76,8 +78,16 @@ public class ExternalAppAuthenticationEntry extends SelectEntry {
     public String getApplicationScope() {
         return applicationScope;
     }
+    
+    /**
+     * Gets the identityUrl
+     * @return String identityUrl
+     */
+    public String getIdentityUrl() {
+		return identityUrl;
+	}
 
-    @Override
+	@Override
     public boolean validateParameters() {
         Utility util = new Utility();
         util.validateParams(applicationId, Messages.ExternalAppAuthenticationEntry_DescriptorImpl_Errors_MissingApplicationId());
