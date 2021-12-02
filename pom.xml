@@ -96,8 +96,8 @@
                         <configuration>
                             <target>
                                 <mkdir dir="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}" />
-                                <get dest="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}" src="https://www.myget.org/F/uipath-dev/api/v2/package/UiPath.CLI/${UiPath.CLI.Version}" />
-                                <unzip src="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}/${UiPath.CLI.Version}" dest="${project.build.directory}/classes/cli-${UiPath.CLI.Version}" />
+                                <get dest="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}" src="https://uipath.pkgs.visualstudio.com/Public.Feeds/_packaging/UiPath-Official/nuget/v3/flat2/UiPath.CLI/${UiPath.CLI.Version}/UiPath.CLI.${UiPath.CLI.Version}.nupkg" />
+                                <unzip src="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}/UiPath.CLI.${UiPath.CLI.Version}.nupkg" dest="${project.build.directory}/classes/cli-${UiPath.CLI.Version}" />
                             </target>
                             <failOnError>true</failOnError>
                         </configuration>
