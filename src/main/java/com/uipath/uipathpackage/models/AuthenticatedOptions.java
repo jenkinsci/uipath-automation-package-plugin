@@ -115,12 +115,12 @@ public abstract class AuthenticatedOptions extends LocalizationOptions implement
         this.traceLevel = traceLevel;
     }
 
-	public String getIdentityUrl() {
-		return identityUrl;
-	}
+    public String getIdentityUrl() {
+	    return identityUrl;
+    }
 
-	public void setIdentityUrl(String identityUrl) {
-		this.identityUrl = identityUrl;
-	}
+    public void setIdentityUrl(String identityUrl) {
+	    this.identityUrl = identityUrl;
+    }
     
 }

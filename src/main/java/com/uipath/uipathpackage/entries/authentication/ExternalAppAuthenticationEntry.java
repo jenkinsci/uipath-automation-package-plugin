@@ -25,7 +25,7 @@ import java.util.Collections;
  */
 public class ExternalAppAuthenticationEntry extends SelectEntry {
 
-	private final String identityUrl;
+    private final String identityUrl;
     private final String accountForApp;
     private final String applicationId;
     private final String applicationSecret;
