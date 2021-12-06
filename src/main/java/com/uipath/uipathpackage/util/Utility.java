@@ -14,6 +14,8 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.json.JSONObject;
 
@@ -128,7 +130,11 @@ public class Utility {
             options.setApplicationId(cred.getApplicationId());
             options.setApplicationSecret(secret.getSecret().getPlainText());
             options.setApplicationScope(cred.getApplicationScope());
-            options.setAuthorizationUrl(cred.getIdentityUrl());
+            if (StringUtils.isNotBlank(cred.getIdentityUrl())) {
+            	options.setAuthorizationUrl(cred.getIdentityUrl());
+            }else {
+            	options.setAuthorizationUrl(options.getOrchestratorUrl());
+            }
         }
     }
 
