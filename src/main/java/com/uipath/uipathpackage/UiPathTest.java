@@ -27,6 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
@@ -52,7 +53,8 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private final String parametersFilePath;
     private String testResultIncludes;
     private final TraceLevel traceLevel;
-
+    private boolean attachRobotLogs;
+    
     private static int TimeoutDefault = 7200;
 
     /**
@@ -85,6 +87,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         this.testResultsOutputPath = testResultsOutputPath;
 		this.parametersFilePath = parametersFilePath;
         this.traceLevel = traceLevel;
+        this.attachRobotLogs = false;
     }
 
     /**
@@ -174,6 +177,8 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
                 testOptions.setParametersFilePath(parametersPath.getRemote());
             }
+            
+            testOptions.setAttachRobotLogs(attachRobotLogs);
             
             int result = util.execute("RunTestsOptions", testOptions, tempRemoteDir, listener, envVars, launcher, false);
 
@@ -301,8 +306,22 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     public String getParametersFilePath() {
         return parametersFilePath;
     }
+    
+    /**
+     * attachRobotLogs
+     *
+     * @return boolean attachRobotLogs
+     */
+    public boolean getAttachRobotLogs() {
+		return attachRobotLogs;
+	}
 
-    private void validateParameters() throws AbortException {
+    @DataBoundSetter
+    public void setAttachRobotLogs(boolean attachRobotLogs) {
+    	this.attachRobotLogs = attachRobotLogs;
+    }
+    
+	private void validateParameters() throws AbortException {
         if (testTarget == null) {
             throw new InvalidParameterException(com.uipath.uipathpackage.Messages.GenericErrors_MissingTestSetOrProjectPath());
         }

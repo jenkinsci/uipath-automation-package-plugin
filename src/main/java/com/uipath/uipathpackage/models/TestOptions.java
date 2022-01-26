@@ -7,6 +7,7 @@ public class TestOptions extends AuthenticatedOptions {
     private String testReportType;
     private String testReportDestination;
     private String parametersFilePath;
+    private boolean attachRobotLogs;
     private Integer timeout;
 
     public String getEnvironment() {
@@ -64,4 +65,13 @@ public class TestOptions extends AuthenticatedOptions {
     public void setParametersFilePath(String parametersFilePath) {
         this.parametersFilePath = parametersFilePath;
     }
+
+	public boolean getAttachRobotLogs() {
+		return attachRobotLogs;
+	}
+
+	public void setAttachRobotLogs(boolean attachRobotLogs) {
+		this.attachRobotLogs = attachRobotLogs;
+	}
+
 }
