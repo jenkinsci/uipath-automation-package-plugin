@@ -316,6 +316,11 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 		return attachRobotLogs;
 	}
 
+    /**
+     * attachRobotLogs
+     *
+     * @param boolean attachRobotLogs
+     */
     @DataBoundSetter
     public void setAttachRobotLogs(boolean attachRobotLogs) {
     	this.attachRobotLogs = attachRobotLogs;
