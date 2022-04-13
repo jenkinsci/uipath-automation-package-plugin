@@ -65,6 +65,7 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
      * @param parametersFilePath    The full path to a json input file.
      * @param priority              The priority of job runs. One of the following values: Low, Normal, High. (default Normal)
      * @param strategy              Strategy
+     * @param jobType               Type of job which needs to run
      * @param resultFilePath        The full path to a json file or a folder where the result json file will be created.
      * @param timeout               The timeout for job executions in seconds. (default 1800)
      * @param failWhenJobFails      The command fails when at least one job fails. (default true)
@@ -76,23 +77,30 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
      * @param credentials           Orchestrator credentials
      */
     @DataBoundConstructor
-    public UiPathRunJob(String processName, String parametersFilePath, StartProcessDtoJobPriority priority, SelectEntry strategy, SelectEntry jobType, String resultFilePath,
-                        Integer timeout, Boolean failWhenJobFails, Boolean waitForJobCompletion, TraceLevel traceLevel,
-                        String orchestratorAddress, String orchestratorTenant, String folderName, SelectEntry credentials) {
+    public UiPathRunJob(String processName,
+                        String parametersFilePath,
+                        StartProcessDtoJobPriority priority,
+                        SelectEntry strategy,
+                        SelectEntry jobType,
+                        String resultFilePath,
+                        Integer timeout,
+                        Boolean failWhenJobFails,
+                        Boolean waitForJobCompletion,
+                        TraceLevel traceLevel,
+                        String orchestratorAddress,
+                        String orchestratorTenant,
+                        String folderName,
+                        SelectEntry credentials) {
         this.processName = processName;
         this.parametersFilePath = parametersFilePath;
         this.priority = priority;
         this.jobType = jobType;
-
         this.strategy = strategy;
-
         this.resultFilePath = resultFilePath;
         this.timeout = timeout;
         this.failWhenJobFails = failWhenJobFails;
         this.waitForJobCompletion = waitForJobCompletion;
-
         this.traceLevel = traceLevel;
-
         this.orchestratorAddress = orchestratorAddress;
         this.orchestratorTenant = orchestratorTenant;
         this.credentials = credentials;

@@ -68,13 +68,15 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     /**
      * Data bound constructor responsible for setting the values param values to state
      *
-     * @param orchestratorAddress  UiPath Orchestrator base URL
-     * @param orchestratorTenant   UiPath Orchestrator tenant
-     * @param testTarget           Test target
-     * @param credentials          UiPath Orchestrator credentials
+     * @param orchestratorAddress   UiPath Orchestrator base URL
+     * @param orchestratorTenant    UiPath Orchestrator tenant
+     * @param folderName            Folder Name
+     * @param testTarget            Test target
+     * @param credentials           UiPath Orchestrator credentials
      * @param testResultsOutputPath Test result output path (JUnit format)
-     * @param timeout              Timeout
+     * @param timeout               Timeout
      * @param traceLevel            The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
+     * @param parametersFilePath    Path of the parameter file
      */
     @DataBoundConstructor
     public UiPathTest(String orchestratorAddress, String orchestratorTenant, String folderName, SelectEntry testTarget, SelectEntry credentials, String testResultsOutputPath, Integer timeout, TraceLevel traceLevel, String parametersFilePath)  {
@@ -319,7 +321,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     /**
      * attachRobotLogs
      *
-     * @param boolean attachRobotLogs
+     * @param attachRobotLogs   Boolean field whether to attach the robot logs
      */
     @DataBoundSetter
     public void setAttachRobotLogs(boolean attachRobotLogs) {

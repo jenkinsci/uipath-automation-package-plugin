@@ -33,10 +33,11 @@ public class ExternalAppAuthenticationEntry extends SelectEntry {
 
     /**
      * Constructs a new instance of an external application authentication entry
-     * @param accountForApp The account name
-     * @param applicationId The external application id
+     * @param accountForApp     The account name
+     * @param applicationId     The external application id
      * @param applicationSecret The external application secret
-     * @param applicationScope The external application scope(s)
+     * @param applicationScope  The external application scope(s)
+     * @param identityUrl       IdentityUrl in case of paas environment
      */
     @DataBoundConstructor
     public ExternalAppAuthenticationEntry(String accountForApp, String applicationId, String applicationSecret, String applicationScope, String identityUrl) {
