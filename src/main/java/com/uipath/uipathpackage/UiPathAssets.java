@@ -45,12 +45,23 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
     /**
      * Data bound constructor responsible for setting the values param values to state
      * 
-     * @param assetsAction  What to do with the assets: deploy or update.
-     * @param traceLevel    The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
+     * @param assetsAction          What to do with the assets: deploy or update.
+     * @param orchestratorAddress   Address of the orchestrator
+     * @param orchestratorTenant    Tenant on which the task needs to run
+     * @param folderName            Name of the folder in which the asset needs to updated
+     * @param credentials           credentials to make a connection
+     * @param filePath              json filePath
+     * @param traceLevel            The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
+     *
      */
     @DataBoundConstructor
-    public UiPathAssets(SelectEntry assetsAction, String orchestratorAddress, String orchestratorTenant,
-    String folderName, SelectEntry credentials, String filePath, TraceLevel traceLevel) {
+    public UiPathAssets(SelectEntry assetsAction,
+                        String orchestratorAddress,
+                        String orchestratorTenant,
+                        String folderName,
+                        SelectEntry credentials,
+                        String filePath,
+                        TraceLevel traceLevel) {
         this.assetsAction = assetsAction;
         this.orchestratorAddress = orchestratorAddress;
         this.orchestratorTenant = orchestratorTenant;
