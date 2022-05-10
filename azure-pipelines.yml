@@ -46,7 +46,7 @@ stages:
     variables:
       MavenPOMFile: '$(Build.SourcesDirectory)/pom.xml'
     pool:
-      vmImage: vs2017-win2016
+      vmImage: windows-latest
       demands:
         - maven
     steps:

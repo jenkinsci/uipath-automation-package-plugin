@@ -2,7 +2,7 @@ jobs:
 - deployment: BuildAndScan
   displayName: Build and Security Scan
   pool:
-    vmImage: vs2017-win2016
+    vmImage: windows-latest
     demands:
       - maven
   environment: Security-Scan
