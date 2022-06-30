@@ -9,35 +9,6 @@ stages:
     condition: succeeded()
     jobs:
     - template: job.ci.test.template.yml
-### OnPrem ###
-      ${{ if eq('Orchestrator_18_4', configuration.stageName) }}:
-        parameters:
-          configurations:
-          - jobName: 'Asset_Deploy_Delete'
-            configurationName: 'Orchestrator 18.4/Asset_Deploy_Delete'
-          - jobName: 'Library_Pack_Deploy'
-            configurationName: 'Orchestrator 18.4/Library_Pack_Deploy'
-          - jobName: 'Process_Pack_Deploy'
-            configurationName: 'Orchestrator 18.4/Process_Pack_Deploy'
-          - jobName: 'SubProcess_Pack_Deploy'
-            configurationName: 'Orchestrator 18.4/SubProcess_Pack_Deploy'
-          - jobName: 'Process_Pack_Deploy_RunJob'
-            configurationName: 'Orchestrator 18.4/Process_Pack_Deploy_RunJob'
-
-      ${{ if eq('Orchestrator_19_10', configuration.stageName) }}:
-        parameters:
-          configurations:
-          - jobName: 'Asset_Deploy_Delete'
-            configurationName: 'Orchestrator 19.10/Asset_Deploy_Delete'
-          - jobName: 'Library_Pack_Deploy'
-            configurationName: 'Orchestrator 19.10/Library_Pack_Deploy'
-          - jobName: 'Process_Pack_Deploy'
-            configurationName: 'Orchestrator 19.10/Process_Pack_Deploy'
-          - jobName: 'SubProcess_Pack_Deploy'
-            configurationName: 'Orchestrator 19.10/SubProcess_Pack_Deploy'
-          - jobName: 'Process_Pack_Deploy_RunJob'
-            configurationName: 'Orchestrator 19.10/Process_Pack_Deploy_RunJob'
-
       ${{ if eq('OrchTestingSol', configuration.stageName) }}:
         parameters:
           configurations:
