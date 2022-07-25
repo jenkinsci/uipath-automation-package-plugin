@@ -79,7 +79,7 @@ public class Utility {
         PrintStream logger = listener.getLogger();
         ResourceBundle rb = ResourceBundle.getBundle("config");
         String cliFolderName = "cli-" + this.getConfigValue(rb, "UiPath.CLI.Version");
-        FilePath targetCliPath = tempRemoteDir.child(cliFolderName).child("tools").child("uipcli.exe");
+        FilePath targetCliPath = tempRemoteDir.child(cliFolderName).child("lib").child("net461").child("uipcli.exe");
 
         if (targetCliPath.exists())
         {
