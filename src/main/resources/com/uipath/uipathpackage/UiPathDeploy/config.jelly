@@ -51,6 +51,9 @@
     <f:entry title="${%Environments}" field="environments">
         <f:textbox/>
     </f:entry>
+    <f:entry title="${%CreateProcess}" field="createProcess">
+        <f:checkbox default="true"/>
+    </f:entry>
     <f:entry title="${%EntryPoints}" field="entryPointPaths">
         <f:textbox default="Main.xaml"/>
     </f:entry>
