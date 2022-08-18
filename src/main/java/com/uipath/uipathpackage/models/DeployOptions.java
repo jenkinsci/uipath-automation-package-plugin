@@ -6,6 +6,7 @@ public class DeployOptions extends AuthenticatedOptions {
     private String packagesPath;
     private List<String> environments;
     private List<String> entryPointPaths;
+    private boolean createProcess;
     private final String telemetryOrigin = "Jenkins";
 
     public String getPackagesPath() {
@@ -34,5 +35,13 @@ public class DeployOptions extends AuthenticatedOptions {
     
     public String getTelemetryOrigin() {
         return telemetryOrigin;
+    }
+
+    public boolean getCreateProcess() {
+        return createProcess;
+    }
+
+    public void setCreateProcess(boolean createProcess) {
+        this.createProcess = createProcess;
     }
 }
