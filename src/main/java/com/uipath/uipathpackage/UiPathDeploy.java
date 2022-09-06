@@ -43,6 +43,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
     private final String folderName;
     private TraceLevel traceLevel;
     private final String entryPointPaths;
+    private final boolean createProcess;
 
     /**
      * Data bound constructor which is responsible for setting/saving of the values
@@ -56,10 +57,18 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
      * @param environments        Environments on which to deploy
      * @param traceLevel          The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
      * @param entryPointPaths     Entry points with which processes will be created
+     * @param createProcess       Create process flag (default true)
      */
     @DataBoundConstructor
-    public UiPathDeploy(String packagePath, String orchestratorAddress, String orchestratorTenant,
-            String folderName, String environments, SelectEntry credentials, TraceLevel traceLevel, String entryPointPaths) {
+    public UiPathDeploy(String packagePath,
+                        String orchestratorAddress,
+                        String orchestratorTenant,
+                        String folderName,
+                        String environments,
+                        SelectEntry credentials,
+                        TraceLevel traceLevel,
+                        String entryPointPaths,
+                        boolean createProcess) {
         this.packagePath = packagePath;
         this.orchestratorAddress = orchestratorAddress;
         this.orchestratorTenant = orchestratorTenant;
@@ -68,6 +77,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         this.environments = environments;
         this.traceLevel = traceLevel;
         this.entryPointPaths = entryPointPaths;
+        this.createProcess = createProcess;
     }
 
     /**
@@ -140,6 +150,14 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
      */
     public String getEntryPointPaths() {
         return entryPointPaths == null || entryPointPaths.trim().isEmpty() ? "Main.xaml" : entryPointPaths;
+    }
+
+    /**
+     * Whether the process should be created automatically or not (default true)
+     * @return createProcess flag
+     */
+    public boolean getCreateProcess() {
+        return createProcess;
     }
 
     /**
@@ -219,6 +237,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
             else {
                 deployOptions.setEntryPointPaths(new ArrayList<>());
             }
+            deployOptions.setCreateProcess(createProcess);
 
             util.execute("DeployOptions", deployOptions, tempRemoteDir, listener, envVars, launcher, true);
         } catch (URISyntaxException e) {

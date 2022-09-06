@@ -25,10 +25,18 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
@@ -102,7 +110,7 @@ public class UiPathTestTests {
     }
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() throws IOException, NoSuchAlgorithmException, KeyManagementException {
         deletePackage();
         project = jenkins.createFreeStyleProject("freeStyleProject1");
         CredentialsStore store = CredentialsProvider.lookupStores(jenkins).iterator().next();
@@ -212,10 +220,26 @@ public class UiPathTestTests {
         assertEquals(String.valueOf(FormValidation.ok()), String.valueOf(testSetDescriptor.doCheckTestSet(null, "a")));
     }
 
-    private void deletePackage() throws IOException {
+    private void deletePackage() throws IOException, NoSuchAlgorithmException, KeyManagementException {
+        TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            }
+
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
+        } };
+
+        SSLContext sc = SSLContext.getInstance("SSL");
+        sc.init(null, trustAllCerts, new java.security.SecureRandom());
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
         URL url = new URL(orchestratorAddress + "/api/Account/Authenticate");
         String body = "{\"tenancyName\": \"" + orchestratorTenant + "\",\"usernameOrEmailAddress\": \"" + username + "\",\"password\": \"" + password + "\"}";
-        HttpURLConnection postCon = (HttpURLConnection) url.openConnection();
+        HttpsURLConnection postCon = (HttpsURLConnection) url.openConnection();
         postCon.setRequestMethod("POST");
         postCon.addRequestProperty("User-Agent", "Mozilla/4.76");
         postCon.setRequestProperty("Content-Type", "application/json");
@@ -231,7 +255,7 @@ public class UiPathTestTests {
         postCon.disconnect();
 
         url = new URL(orchestratorAddress + "/odata/Processes('TestProject')");
-        HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
+        HttpsURLConnection httpCon = (HttpsURLConnection) url.openConnection();
         httpCon.setDoOutput(true);
         httpCon.setRequestProperty("Authorization", "Bearer " + token);
         httpCon.setRequestProperty("Content-Type", "application/json");

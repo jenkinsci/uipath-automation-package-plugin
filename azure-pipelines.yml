@@ -46,7 +46,7 @@ stages:
     variables:
       MavenPOMFile: '$(Build.SourcesDirectory)/pom.xml'
     pool:
-      vmImage: vs2017-win2016
+      vmImage: windows-2022
       demands:
         - maven
     steps:
@@ -98,12 +98,6 @@ stages:
 - template: stage.test.template.yml
   parameters:
     configurations:
-    - stageName: 'Orchestrator_18_4'
-      stageDisplayName: 'Orchestrator 18.4 (Classic Folder and User/Password Auth)'
-
-    - stageName: 'Orchestrator_19_10'
-      stageDisplayName: 'Orchestrator 19.10 (Classic Folder and User/Password Auth)'
-
 ## TODO add 20.4 tests
     # - stageName: 'Orchestrator_20_4'
     #   stageDisplayName: 'Orchestrator 20.4'
