@@ -56,6 +56,17 @@ steps:
     PathtoPublish: '$(system.defaultworkingdirectory)/target/uipath-automation-package.hpi'
     ArtifactName: Packages
 
+- task: DownloadSecureFile@1
+  displayName: "Download onpremise self signed orchestrator certificate on build agent"
+  inputs:
+    secureFile: 'test-orch-sol-20-10.southindia.cloudapp.azure.com.cer'
+
+- task: PowerShell@2
+  displayName: "Install onpremise self signed orchestrator certificate on build agent"
+  inputs:
+    targetType: 'inline'
+    script: 'Import-Certificate -FilePath $(Agent.TempDirectory)\test-orch-sol-20-10.southindia.cloudapp.azure.com.cer  -CertStoreLocation Cert:\LocalMachine\Root\'
+
 # The output of this task should not be published as it is only used for testing - Java 8 is still required for Jenkins, but it now also supports Java 11.
 # The reason for not using only Java 8 is that Sonar does not support Java 8 any longer.
 - task: Maven@3
