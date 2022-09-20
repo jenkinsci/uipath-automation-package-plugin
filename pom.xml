@@ -15,7 +15,7 @@
     <packaging>hpi</packaging>
 
     <properties>
-        <jenkins.version>2.346.1</jenkins.version>
+        <jenkins.version>2.357</jenkins.version>
         <powershell.version>1.7</powershell.version>
         <envinject.version>2.4.0</envinject.version>
         <mockito-core.version>4.8.0</mockito-core.version>
