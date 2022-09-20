@@ -43,16 +43,12 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
     private String parametersFilePath;
     private StartProcessDtoJobPriority priority;
     private final SelectEntry jobType;
-
     private SelectEntry strategy;
-
     private String resultFilePath;
     private Integer timeout;
     private Boolean failWhenJobFails;
     private Boolean waitForJobCompletion;
-
     private TraceLevel traceLevel;
-
     private final String orchestratorAddress;
     private final String orchestratorTenant;
     private final SelectEntry credentials;
@@ -281,6 +277,13 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
         PrintStream logger = listener.getLogger();
 
         FilePath tempRemoteDir = tempDir(workspace);
+        /**
+         * Adding the null check here as above method "tempDir" is annotated with @CheckForNull
+         * and findbugs plugin will report an error of NPE while building the plugin.
+         */
+        if (Objects.isNull(tempRemoteDir)) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempFolderRunJob());
+        }
         tempRemoteDir.mkdirs();
 
         if (launcher.isUnix()) {

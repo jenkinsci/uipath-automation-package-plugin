@@ -4,16 +4,13 @@ import com.uipath.uipathpackage.util.TraceLevel;
 public abstract class AuthenticatedOptions extends LocalizationOptions implements SerializableCliOptions {
     private String username;
     private String password;
-
     private String accountName;
     private String refreshToken;
-
     private String authorizationUrl;
     private String accountForApp;
     private String applicationId;
     private String applicationSecret;
     private String applicationScope;
-
     private String organizationUnit;
     private String orchestratorUrl;
     private String orchestratorTenant;

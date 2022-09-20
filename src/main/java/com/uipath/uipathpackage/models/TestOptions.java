@@ -9,7 +9,7 @@ public class TestOptions extends AuthenticatedOptions {
     private String parametersFilePath;
     private boolean attachRobotLogs;
     private Integer timeout;
-    private final String telemetryOrigin = "Jenkins";
+    private static final String telemetryOrigin = "Jenkins";
 
     public String getEnvironment() {
         return environment;

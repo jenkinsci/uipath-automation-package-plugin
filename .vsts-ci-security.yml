@@ -22,7 +22,7 @@ stages:
       steps:
       - task: BuildProcessCleaner@0
       - task: Maven@3
-        displayName: 'Build plugin package (Java 8)'
+        displayName: 'Build plugin package (Java 11)'
         inputs:
           mavenPomFile: $(MavenPOMFile)
           sqMavenPluginVersionChoice: 'latest'

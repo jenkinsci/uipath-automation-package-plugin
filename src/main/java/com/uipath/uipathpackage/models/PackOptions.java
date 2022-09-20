@@ -6,7 +6,7 @@ public class PackOptions extends AuthenticatedOptions {
     private String outputType;
     private String version;
     private boolean autoVersion;
-    private final String telemetryOrigin = "Jenkins";
+    private static final String telemetryOrigin = "Jenkins";
 
     public boolean getAutoVersion() {
         return autoVersion;

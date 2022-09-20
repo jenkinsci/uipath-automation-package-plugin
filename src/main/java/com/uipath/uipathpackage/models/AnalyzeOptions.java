@@ -5,7 +5,6 @@ public class AnalyzeOptions extends AuthenticatedOptions {
     private String analyzerTraceLevel = "Verbose";
     private boolean stopOnRuleViolation = true;
     private boolean treatWarningsAsErrors = false;
-    private String resultPath = null;
     private String ignoredRules = "";
 
     public String getProjectPath() {

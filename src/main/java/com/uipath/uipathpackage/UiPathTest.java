@@ -107,6 +107,13 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         validateParameters();
 
         FilePath tempRemoteDir = tempDir(workspace);
+        /**
+         * Adding the null check here as above method "tempDir" is annotated with @CheckForNull
+         * and findbugs plugin will report an error of NPE while building the plugin.
+         */
+        if (Objects.isNull(tempRemoteDir)) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempFolderTest());
+        }
         tempRemoteDir.mkdirs();
 
         if (launcher.isUnix()) {

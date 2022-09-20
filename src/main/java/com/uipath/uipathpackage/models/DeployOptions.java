@@ -7,7 +7,7 @@ public class DeployOptions extends AuthenticatedOptions {
     private List<String> environments;
     private List<String> entryPointPaths;
     private boolean createProcess;
-    private final String telemetryOrigin = "Jenkins";
+    private static final String telemetryOrigin = "Jenkins";
 
     public String getPackagesPath() {
         return packagesPath;
