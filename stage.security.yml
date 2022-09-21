@@ -28,7 +28,7 @@ jobs:
           parameters:
             removeSpecificPath: true
             OS: 'windows'
-            azureSubscription: 'Azure-DevTest-EA'
+            azureSubscription: 'Internal-Production-EA'
             FOSSAFlags: '--branch "AUTO-PluginsJenkins-$(Build.SourceBranch)-$(System.PipelineStartTime)"'
             FOSSAInitFlags: ''
             FOSSAPathToRemove: ''
