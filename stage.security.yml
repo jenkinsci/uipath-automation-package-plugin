@@ -3,8 +3,8 @@ jobs:
   displayName: Build and Security Scan
   pool:
     vmImage: windows-latest
+    demands:
       - maven
-      - -
   environment: Security-Scan
   strategy:
     runOnce:
@@ -16,9 +16,9 @@ jobs:
         - task: Maven@3
           displayName: 'Build plugin package (Java 11)'
           inputs:
+            mavenPomFile: $(MavenPOMFile)
             javaHomeOption: 'JDKVersion'
             jdkVersionOption: '1.11'
-            mavenPomFile: $(MavenPOMFile)
             sqMavenPluginVersionChoice: 'latest'
             ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
               options: '-Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
