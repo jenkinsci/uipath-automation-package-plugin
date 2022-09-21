@@ -5,6 +5,7 @@ jobs:
     vmImage: windows-2022
     demands:
       - maven
+      - -
   environment: Security-Scan
   strategy:
     runOnce:
@@ -14,8 +15,9 @@ jobs:
         - download: none
         - task: BuildProcessCleaner@0
         - task: Maven@3
-          displayName: 'Build plugin package (Java 8)'
+          displayName: 'Build plugin package (Java 11)'
           inputs:
+            jdkVersionOption: '1.11'
             mavenPomFile: $(MavenPOMFile)
             sqMavenPluginVersionChoice: 'latest'
             ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
