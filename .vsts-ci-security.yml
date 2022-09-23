@@ -3,7 +3,7 @@ resources:
     - repository: common
       type: github
       name: UiPath/AzurePipelinesTemplates
-      ref: master
+      ref: refs/tags/uipath.security.scans.1.5.17
       endpoint: "GitHub connection"
 
 variables:
