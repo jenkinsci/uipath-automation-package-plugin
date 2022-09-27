@@ -178,6 +178,13 @@
     </scm>
     <!-- List of dependencies of the project. -->
     <dependencies>
+        <!-- This explicit dependency is added because the older version
+            which gets added by parent pom has the vulnerability -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.32</version>
+        </dependency>
         <dependency>
             <groupId>pl.pragmatists</groupId>
             <artifactId>JUnitParams</artifactId>
@@ -227,11 +234,6 @@
             <artifactId>envinject</artifactId>
             <version>${envinject.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>matrix-project</artifactId>
-            <version>${matrix-project.version}</version>
         </dependency>
     </dependencies>
     <dependencyManagement>
