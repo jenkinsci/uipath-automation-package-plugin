@@ -22,7 +22,7 @@
         <plain-credentials.version>1.8</plain-credentials.version>
         <json.version>20220320</json.version>
         <credentials.version>2.6.1.1</credentials.version>
-        <junit.version>1.63</junit.version>
+        <org.jenkins-ci.plugins.junit.version>1.63</org.jenkins-ci.plugins.junit.version>
         <JUnitParams.version>1.1.1</JUnitParams.version>
         <matrix-project.version>1.20</matrix-project.version>
         <native2ascii-maven-plugin.version>2.0.1</native2ascii-maven-plugin.version>
@@ -31,6 +31,7 @@
         <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <maven-checkstyle-plugin.version>3.2.0</maven-checkstyle-plugin.version>
         <symbol-annotation.version>1.23</symbol-annotation.version>
+        <junit.junit.version>4.13.2</junit.junit.version>
     </properties>
 
     <name>UiPath Plugin</name>
@@ -194,7 +195,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
+            <version>${org.jenkins-ci.plugins.junit.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.jenkins-ci.plugins</groupId>
@@ -233,6 +234,12 @@
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>envinject</artifactId>
             <version>${envinject.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
