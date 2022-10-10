@@ -15,7 +15,7 @@
     <packaging>hpi</packaging>
 
     <properties>
-        <jenkins.version>2.357</jenkins.version>
+        <jenkins.version>2.346.1</jenkins.version>
         <powershell.version>1.7</powershell.version>
         <envinject.version>2.4.0</envinject.version>
         <mockito-core.version>4.8.0</mockito-core.version>
@@ -32,6 +32,8 @@
         <maven-checkstyle-plugin.version>3.2.0</maven-checkstyle-plugin.version>
         <symbol-annotation.version>1.23</symbol-annotation.version>
         <junit.junit.version>4.13.2</junit.junit.version>
+        <localization-support.version>1.2</localization-support.version>
+        <snakeyaml.version>1.33</snakeyaml.version>
     </properties>
 
     <name>UiPath Plugin</name>
@@ -184,7 +186,12 @@
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.32</version>
+            <version>${snakeyaml.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jenkins.plugins</groupId>
+            <artifactId>localization-support</artifactId>
+            <version>${localization-support.version}</version>
         </dependency>
         <dependency>
             <groupId>pl.pragmatists</groupId>
