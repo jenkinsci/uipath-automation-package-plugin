@@ -33,7 +33,7 @@ steps:
     mavenPomFile: ${{parameters.mavenPomFile}}
     testResultsFiles: '**/TEST-*.xml'
     sonarQubeRunAnalysis: false
-    findBugsRunAnalysis: true
+    findBugsRunAnalysis: false
     sqMavenPluginVersionChoice: 'latest'
     ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
       options: '-Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'

@@ -88,7 +88,7 @@ steps:
     mavenPomFile: $(MavenPOMFile)
     testResultsFiles: '**/TEST-*.xml'
     sonarQubeRunAnalysis: true
-    findBugsRunAnalysis: true
+    findBugsRunAnalysis: false
     sqMavenPluginVersionChoice: 'latest'
     options: '-Djenkins.version=2.357 -Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
   env:
