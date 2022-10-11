@@ -37,7 +37,6 @@ stages:
           - jobName: 'Classic_TestingProcess_Pack_Deploy_RunTests_RunJob'
             configurationName: 'Orchestrator TestingSol/Classic_TestingProcess_Pack_Deploy_RunTests_RunJob'
 
-
 ### Alpha ###
       ${{ if eq('Alpha', configuration.stageName) }}:
         parameters:
@@ -105,6 +104,3 @@ stages:
             configurationName: 'Long Running/OrchTestingSol Run Job'
           - jobName: 'Cloud_Run_Job'
             configurationName: 'Long Running/Cloud Run Job'
-
-
-            

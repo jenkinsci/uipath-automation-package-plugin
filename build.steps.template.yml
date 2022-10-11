@@ -24,10 +24,12 @@ parameters:
 steps:
 - task: Maven@3
   ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-    displayName: 'Build plugin package (Java 8)'
+    displayName: 'Build plugin package (Java 11)'
   ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-    displayName: 'Build plugin package & run unit tests (Java 8)'
+    displayName: 'Build plugin package & run unit tests (Java 11)'
   inputs:
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: 1.11
     mavenPomFile: ${{parameters.mavenPomFile}}
     testResultsFiles: '**/TEST-*.xml'
     sonarQubeRunAnalysis: false
