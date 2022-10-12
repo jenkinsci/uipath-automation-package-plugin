@@ -9,17 +9,17 @@ stages:
     condition: succeeded()
     jobs:
     - template: job.ci.test.template.yml
-      ${{ if eq('OrchTestingSol', configuration.stageName) }}:
+      ${{ if eq('Orchestrator-20.10', configuration.stageName) }}:
         parameters:
           configurations:
           - jobName: 'Classic_Asset_Deploy_Delete'
-            configurationName: 'Orchestrator TestingSol/Classic_Asset_Deploy_Delete'
+            configurationName: 'Orchestrator-20.10/Classic_Asset_Deploy_Delete'
           - jobName: 'Classic_Library_Pack_Deploy'
-            configurationName: 'Orchestrator TestingSol/Classic_Library_Pack_Deploy'
+            configurationName: 'Orchestrator-20.10/Classic_Library_Pack_Deploy'
           - jobName: 'Classic_Process_Pack_Deploy'
-            configurationName: 'Orchestrator TestingSol/Classic_Process_Pack_Deploy'
+            configurationName: 'Orchestrator-20.10/Classic_Process_Pack_Deploy'
           - jobName: 'Classic_SubProcess_Pack_Deploy'
-            configurationName: 'Orchestrator TestingSol/Classic_SubProcess_Pack_Deploy'
+            configurationName: 'Orchestrator-20.10/Classic_SubProcess_Pack_Deploy'
 
           - jobName: 'Modern_Asset_Deploy_Delete'
             configurationName: 'Orchestrator TestingSol/Modern_Asset_Deploy_Delete'

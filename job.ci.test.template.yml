@@ -7,7 +7,7 @@ jobs:
     displayName: "${{ configuration.jobName }}"
     timeoutInMinutes: 90
     pool:
-      name: JenkinsTest
+      name: Plugins-Jenkins
     steps:
     - task: JenkinsQueueJob@2
       displayName: 'Queue project Jenkins job and wait for completion'
