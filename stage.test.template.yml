@@ -9,7 +9,7 @@ stages:
     condition: succeeded()
     jobs:
     - template: job.ci.test.template.yml
-      ${{ if eq('Orchestrator-20.10', configuration.stageName) }}:
+      ${{ if eq('Orchestrator_20_10', configuration.stageName) }}:
         parameters:
           configurations:
           - jobName: 'Classic_Asset_Deploy_Delete'
