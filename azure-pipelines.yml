@@ -102,17 +102,17 @@ stages:
     # - stageName: 'Orchestrator_20_4'
     #   stageDisplayName: 'Orchestrator 20.4'
 
-    - stageName: 'Orchestrator-20.10'
-      stageDisplayName: 'Orchestrator-20.10 (User/Password Auth)'
+    - stageName: 'Orchestrator_20_10'
+      stageDisplayName: 'Orchestrator 20.10 (User/Password Auth)'
 
-    - stageName: 'Orchestrator-21.4'
-      stageDisplayName: 'Orchestrator-21.4 (User/Password Auth)'
+    - stageName: 'Orchestrator_21_4'
+      stageDisplayName: 'Orchestrator 21.4 (User/Password Auth)'
 
-    - stageName: 'Orchestrator-21.10'
-      stageDisplayName: 'Orchestrator-21.10 (User/Password Auth)'
+    - stageName: 'Orchestrator_21_10'
+      stageDisplayName: 'Orchestrator 21.10 (User/Password Auth)'
 
-    - stageName: 'Orchestrator-22.4'
-      stageDisplayName: 'Orchestrator-22.4 (User/Password Auth)'
+    - stageName: 'Orchestrator_22_4'
+      stageDisplayName: 'Orchestrator 22.4 (User/Password Auth)'
 
     - stageName: 'Alpha'
       stageDisplayName: 'Orchestrator Alpha (Token Auth & External App)'
