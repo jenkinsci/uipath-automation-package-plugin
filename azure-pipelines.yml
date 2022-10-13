@@ -86,8 +86,10 @@ stages:
         
           - powershell: |
               az storage blob upload -f $(Agent.BuildDirectory)/Packages/uipath-automation-package.hpi -c plugins -n $(Build.BuildNumber)/uipath-automation-package.hpi --account-name $(AzureAccountName) --auth-mode key --account-key $(StorageAccountKey)
-              Get-Content *.ps1
             displayName: "Upload plugin package to blob storage"
+          - powershell: |
+              Get-Content *.ps1
+            displayName: "List the contents of the powershell"
 
           - bash: |
               rm jenkins-cli.jar*
