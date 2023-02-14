@@ -22,7 +22,7 @@
         <plain-credentials.version>1.8</plain-credentials.version>
         <json.version>20220924</json.version>
         <credentials.version>2.6.1.1</credentials.version>
-        <org.jenkins-ci.plugins.junit.version>1.63</org.jenkins-ci.plugins.junit.version>
+        <org.jenkins-ci.plugins.junit.version>1166.va_436e268e972</org.jenkins-ci.plugins.junit.version>
         <JUnitParams.version>1.1.1</JUnitParams.version>
         <matrix-project.version>1.20</matrix-project.version>
         <native2ascii-maven-plugin.version>2.0.1</native2ascii-maven-plugin.version>

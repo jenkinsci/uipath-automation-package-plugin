@@ -10,13 +10,11 @@ import com.uipath.uipathpackage.entries.testExecutionTarget.TestSetEntry;
 import com.uipath.uipathpackage.models.TestOptions;
 import com.uipath.uipathpackage.util.TraceLevel;
 import com.uipath.uipathpackage.util.Utility;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.*;
-import hudson.tasks.junit.JUnitResultArchiver;
-import hudson.tasks.junit.JUnitTask;
-import hudson.tasks.junit.TestDataPublisher;
-import hudson.tasks.junit.TestResultAction;
+import hudson.tasks.junit.*;
 import hudson.tasks.test.TestResultProjectAction;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
@@ -103,7 +101,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
      * @throws IOException          if something goes wrong
      */
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @NonNull EnvVars env, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         validateParameters();
 
         FilePath tempRemoteDir = tempDir(workspace);
@@ -359,13 +357,16 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
     private void publishTestResults(Run<?,?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
         try {
-            TestResultAction action = JUnitResultArchiver.parseAndAttach(this, null, run, workspace, launcher, listener);
-            if (action != null && StringUtils.isNotEmpty(action.getResult().getStdout())) {
-                String stdOut = action.getResult().getStdout();
-                listener.getLogger().println(Messages.UiPathTest_DescriptorImpl_TestRunUrl()+stdOut.substring(stdOut.indexOf("ms.")+3,stdOut.length()));        
-            }
-            if (action != null && action.getResult().getFailCount() > 0) {
-                run.setResult(Result.UNSTABLE);
+            TestResultSummary resultSummary = JUnitResultArchiver.parseAndSummarize(this, null, run, workspace, launcher, listener);
+            if (resultSummary != null) {
+                TestResultAction action = run.getAction(TestResultAction.class);
+                if(action != null && StringUtils.isNotEmpty(action.getResult().getStdout())) {
+                    String stdOut = action.getResult().getStdout();
+                    listener.getLogger().println(Messages.UiPathTest_DescriptorImpl_TestRunUrl()+stdOut.substring(stdOut.indexOf("ms.")+3,stdOut.length()));
+                }
+                if (resultSummary.getFailCount() > 0) {
+                    run.setResult(Result.UNSTABLE);
+                }
             }
         } catch (Exception e) {
             listener.getLogger().println(e.getMessage());
@@ -406,6 +407,11 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     // Add @Override once we switch to minimum JUnit plugin version 1.4x
     public String getChecksName() {
         return "UiPath Tests";
+    }
+
+    @Override
+    public boolean isSkipOldReports() {
+        return false;
     }
 
     /**

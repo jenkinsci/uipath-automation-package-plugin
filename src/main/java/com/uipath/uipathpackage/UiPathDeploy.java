@@ -187,6 +187,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
     @Override
     public void perform(@Nonnull Run<?, ?> run,
                         @Nonnull FilePath workspace,
+                        @Nonnull EnvVars env,
                         @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) throws InterruptedException, IOException {
         validateParameters();
