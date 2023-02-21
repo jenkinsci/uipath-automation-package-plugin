@@ -20,9 +20,7 @@ import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.InvalidParameterException;
@@ -78,9 +76,8 @@ public class Utility {
     public FilePath extractCliApp(@Nonnull FilePath tempRemoteDir, @Nonnull TaskListener listener, @Nonnull EnvVars env) throws IOException, InterruptedException, URISyntaxException {
         PrintStream logger = listener.getLogger();
         ResourceBundle rb = ResourceBundle.getBundle("config");
-        String cliFolderName = "cli-" + this.getConfigValue(rb, "UiPath.CLI.Version");
-        FilePath targetCliPath = tempRemoteDir.child(cliFolderName).child("lib").child("net461").child("uipcli.exe");
-
+        String cliFolderName = CliConfiguration.LEGACY_CLI_PREFIX + this.getConfigValue(rb, "UiPath.CLI.Version");
+        FilePath targetCliPath = targetRootCacheDir.child(cliFolderName).child("lib").child("net461").child("uipcli.exe");
         if (targetCliPath.exists())
         {
             logger.println("Using previously extracted UiPath CLI from " + targetCliPath);
