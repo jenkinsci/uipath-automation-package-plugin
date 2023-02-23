@@ -6,7 +6,6 @@ public class PackOptions extends AuthenticatedOptions {
     private String outputType;
     private String version;
     private boolean autoVersion;
-    private static final String telemetryOrigin = "Jenkins";
 
     public boolean getAutoVersion() {
         return autoVersion;
@@ -14,10 +13,6 @@ public class PackOptions extends AuthenticatedOptions {
 
     public void setAutoVersion(boolean autoVersion) {
         this.autoVersion = autoVersion;
-    }
-
-    public String getTelemetryOrigin() {
-        return telemetryOrigin;
     }
 
     public String getProjectPath() {
