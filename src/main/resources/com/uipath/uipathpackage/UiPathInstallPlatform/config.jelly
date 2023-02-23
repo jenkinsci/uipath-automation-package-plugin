@@ -37,7 +37,7 @@
         </style>
     </f:block>
     <f:entry title="${%CliVersion}" field="cliVersion">
-        <f:select/>
+        <f:select default="WIN_21.10.8319.10920"/>
     </f:entry>
     <f:entry title="${%CliNupkgPath}" field="cliNupkgPath">
         <f:textbox default=""/>

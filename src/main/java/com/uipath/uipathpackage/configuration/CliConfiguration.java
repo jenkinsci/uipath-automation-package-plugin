@@ -63,7 +63,7 @@ public final class CliConfiguration {
     }
 
     public FilePath getCliHomeDirectory(@Nonnull Launcher launcher, @Nonnull EnvVars env) throws IOException, InterruptedException {
-        FilePath cliHomeDir = new FilePath(launcher.getChannel(), env.expand("${JENKINS_HOME}")).child("CLI");
+        FilePath cliHomeDir = new FilePath(launcher.getChannel(), env.expand("${WORKSPACE}")).child("CLI");
         cliHomeDir.mkdirs();
         return cliHomeDir;
     }
