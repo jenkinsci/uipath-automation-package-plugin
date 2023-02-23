@@ -16,6 +16,7 @@
 
     <properties>
         <jenkins.version>2.361.2</jenkins.version>
+        <java.level>11</java.level>
         <powershell.version>1.7</powershell.version>
         <envinject.version>2.4.0</envinject.version>
         <mockito-core.version>4.8.0</mockito-core.version>
