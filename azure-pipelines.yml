@@ -73,7 +73,7 @@ stages:
     variables:
       MavenPOMFile: '$(Build.SourcesDirectory)/pom.xml'
     pool:
-      name: JenkinsTest
+      name: Plugins-Jenkins
     strategy:
       runOnce:
         deploy:
@@ -85,14 +85,15 @@ stages:
             artifact: Packages
         
           - powershell: |
-              az storage blob upload -f $(Agent.BuildDirectory)/Packages/uipath-automation-package.hpi -c plugins -n $(Build.BuildNumber)/uipath-automation-package.hpi --account-name $(AzureAccountName) --auth-mode key --account-key $(StorageAccountKey)
+              az storage blob upload -f $(Agent.BuildDirectory)/Packages/uipath-automation-package.hpi -c $(ContainerName) -n $(Build.BuildNumber)/uipath-automation-package.hpi --account-name $(AzureAccountName) --auth-mode key --account-key $(StorageAccountKey)
             displayName: "Upload plugin package to blob storage"
 
           - bash: |
               rm jenkins-cli.jar*
               wget $(JenkinsUrl)/jnlpJars/jenkins-cli.jar
-              java -jar jenkins-cli.jar -s $(JenkinsUrlHttp) -auth $(JenkinsUsername):$(JenkinsAuthToken) install-plugin https://$(AzureAccountName).blob.core.windows.net/plugins/$(Build.BuildNumber)/uipath-automation-package.hpi -restart
-              timeout 300 bash -c 'while [[ "$(curl -k -s -o /dev/null -w ''%{http_code}'' $(JenkinsUrl)/login)" != "200" ]]; do echo "waiting for plugin to install" && sleep 5; done'
+              java -jar jenkins-cli.jar -s $(JenkinsUrlHttp) -auth $(JenkinsUsername):$(JenkinsAuthToken) install-plugin https://$(AzureAccountName).blob.core.windows.net/$(ContainerName)/$(Build.BuildNumber)/uipath-automation-package.hpi -restart
+              end=$((SECONDS+300)); while [[ "$(curl -k -s -o /dev/null -w ''%{http_code}'' $(JenkinsUrl)/login)" != "200" ]]; do if [[ $SECONDS -gt $end ]]; then echo "Operation timed out of checking p
+              lugin installation status"; break; fi; echo "waiting for plugin to install" && sleep 5; done
             displayName: "Install package on Jenkins server"
 
 - template: stage.test.template.yml
@@ -102,11 +103,20 @@ stages:
     # - stageName: 'Orchestrator_20_4'
     #   stageDisplayName: 'Orchestrator 20.4'
 
-    - stageName: 'OrchTestingSol'
-      stageDisplayName: 'Orchestrator TestingSol (User/Password Auth)'
+    - stageName: 'Orchestrator_20_10'
+      stageDisplayName: 'Orchestrator 20.10 (User/Password Auth)'
 
-    - stageName: 'Alpha'
-      stageDisplayName: 'Orchestrator Alpha (Token Auth & External App)'
+    #- stageName: 'Orchestrator_21_4'
+    #  stageDisplayName: 'Orchestrator 21.4 (User/Password Auth)'
+
+    #- stageName: 'Orchestrator_21_10'
+    #  stageDisplayName: 'Orchestrator 21.10 (User/Password Auth)'
+
+    #- stageName: 'Orchestrator_22_4'
+    #  stageDisplayName: 'Orchestrator 22.4 (User/Password Auth)'
+
+    #- stageName: 'Alpha'
+    #  stageDisplayName: 'Orchestrator Alpha (Token Auth & External App)'
 
     # - stageName: 'Cloud'
     #   stageDisplayName: 'Orchestrator Cloud (Token Auth)'

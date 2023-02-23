@@ -149,7 +149,7 @@ public class UiPathPackTests {
         builder.setOutputType(outputType);
 
         doNothing().when(util).validateParams(isA(String.class), isA(String.class));
-        project.getBuildersList().add(new PowerShell("Copy-Item -Path \"" + parentProjectPath + "\\*\" -Destination \".\" -Recurse", true, false));
+        project.getBuildersList().add(new PowerShell("Copy-Item -Path \"" + parentProjectPath + "\\*\" -Destination \".\" -Recurse", true, false, 0));
         project.getBuildersList().add(builder);
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
         FilePath workspace = project.getSomeBuildWithWorkspace().getWorkspace();

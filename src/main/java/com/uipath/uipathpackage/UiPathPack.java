@@ -45,7 +45,6 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     private final String outputPath;
     private String outputType;
     private boolean runWorkflowAnalysis;
-
     private boolean useOrchestrator;
     private String orchestratorAddress;
     private String orchestratorTenant;
@@ -85,7 +84,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      * @throws IOException          if something goes wrong
      */
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull EnvVars env, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         validateParameters();
 
         if (launcher.isUnix()) {
@@ -93,6 +92,13 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         }
 
         FilePath tempRemoteDir = tempDir(workspace);
+        /**
+         * Adding the null check here as above method "tempDir" is annotated with @CheckForNull
+         * and findbugs plugin will report an error of NPE while building the plugin.
+         */
+        if (Objects.isNull(tempRemoteDir)) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempFolderPack());
+        }
         tempRemoteDir.mkdirs();
 
         try {

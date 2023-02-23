@@ -82,11 +82,22 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
      * @throws IOException          if something goes wrong
      */
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> run,
+                        @Nonnull FilePath workspace,
+                        @Nonnull EnvVars env,
+                        @Nonnull Launcher launcher,
+                        @Nonnull TaskListener listener) throws InterruptedException, IOException {
         validateParameters();
         PrintStream logger = listener.getLogger();
 
         FilePath tempRemoteDir = tempDir(workspace);
+        /**
+         * Adding the null check here as above method "tempDir" is annotated with @CheckForNull
+         * and findbugs plugin will report an error of NPE while building the plugin.
+         */
+        if (Objects.isNull(tempRemoteDir)) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempFolderAssets());
+        }
         tempRemoteDir.mkdirs();
 
         if (launcher.isUnix()) {
@@ -107,12 +118,17 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
             assetsOptions.setAssetsFile(expandedCsvFilePath.getRemote());
 
             ResourceBundle rb = ResourceBundle.getBundle("config");
-            String orchestratorTenantFormatted = envVars.expand(orchestratorTenant.trim()).isEmpty() ? util.getConfigValue(rb, "UiPath.DefaultTenant") : envVars.expand(orchestratorTenant.trim());
+            String orchestratorTenantFormatted = envVars.expand(orchestratorTenant.trim()).isEmpty()
+                                                ? util.getConfigValue(rb, "UiPath.DefaultTenant")
+                                                : envVars.expand(orchestratorTenant.trim());
 
             assetsOptions.setOrchestratorTenant(orchestratorTenantFormatted);
             util.setCredentialsFromCredentialsEntry(credentials, assetsOptions, run);
-            String assetAction = assetsAction instanceof DeployAssetsEntry ? "DeployAssetsOptions"
-                               : assetsAction instanceof DeleteAssetsEntry ? "DeleteAssetsOptions" : "None";
+            String assetAction = assetsAction instanceof DeployAssetsEntry
+                                ? "DeployAssetsOptions"
+                                : assetsAction instanceof DeleteAssetsEntry
+                                    ? "DeleteAssetsOptions"
+                                    : "None";
 
             String language = Locale.getDefault().getLanguage();
             String country = Locale.getDefault().getCountry();
