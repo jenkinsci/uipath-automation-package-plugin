@@ -203,9 +203,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         }
         tempRemoteDir.mkdirs();
 
-        if (launcher.isUnix()) {
-            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
-        }
+        util.validateRuntime(env,launcher);
 
         try {
             EnvVars envVars = run.getEnvironment(listener);
