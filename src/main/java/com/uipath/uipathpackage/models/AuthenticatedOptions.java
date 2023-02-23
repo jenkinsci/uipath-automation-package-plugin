@@ -2,6 +2,7 @@ package com.uipath.uipathpackage.models;
 import com.uipath.uipathpackage.util.TraceLevel;
 
 public abstract class AuthenticatedOptions extends LocalizationOptions implements SerializableCliOptions {
+    private static final String telemetryOrigin = "Jenkins";
     private String username;
     private String password;
     private String accountName;
@@ -119,5 +120,8 @@ public abstract class AuthenticatedOptions extends LocalizationOptions implement
     public void setAuthorizationUrl(String authorizationUrl) {
 	    this.authorizationUrl = authorizationUrl;
     }
-    
+
+    public String getTelemetryOrigin() {
+        return telemetryOrigin;
+    }
 }

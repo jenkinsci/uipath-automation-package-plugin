@@ -35,6 +35,7 @@
         <localization-support.version>1.2</localization-support.version>
         <snakeyaml.version>1.33</snakeyaml.version>
         <structs.version>324.va_f5d6774f3a_d</structs.version>
+        <caffeine-api.version>2.9.3-65.v6a_47d0f4d1fe</caffeine-api.version>
     </properties>
 
     <name>UiPath Plugin</name>
@@ -292,6 +293,11 @@
             <artifactId>junit</artifactId>
             <version>${junit.junit.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jenkins.plugins</groupId>
+            <artifactId>caffeine-api</artifactId>
+            <version>${caffeine-api.version}</version>
         </dependency>
     </dependencies>
     <dependencyManagement>

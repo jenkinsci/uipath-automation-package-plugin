@@ -80,37 +80,36 @@ steps:
 
 # The output of this task should not be published as it is only used for testing - Java 8 is still required for Jenkins, but it now also supports Java 11.
 # The reason for not using only Java 8 is that Sonar does not support Java 8 any longer.
-## FOR TESTING
-#- task: Maven@3
-#  displayName: 'Run unit tests (Java 11)'
-#  inputs:
-#    javaHomeOption: 'JDKVersion'
-#    jdkVersionOption: '1.11'
-#    mavenPomFile: $(MavenPOMFile)
-#    testResultsFiles: '**/TEST-*.xml'
-#    sonarQubeRunAnalysis: true
-#    findBugsRunAnalysis: false
-#    sqMavenPluginVersionChoice: 'latest'
-#    options: '-Djenkins.version=2.357 -Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
-#  env:
-#    TestOrchestratorUrl: $(TestOrchestratorUrl)
-#    TestOrchestratorUsername: $(TestOrchestratorUsername)
-#    TestOrchestratorPassword: $(TestOrchestratorPassword)
-#    TestOrchestratorFolderName: $(TestOrchestratorFolderName)
-#
-#    OrchestratorAuthorizationUriOverride: $(OrchestratorAuthorizationUriOverride)
-#    OrchestratorClientIdOverride: $(OrchestratorClientIdOverride)
-#
-#    TestOrchestratorCloudUrl: $(TestOrchestratorCloudUrl)
-#    TestOrchestratorCloudTenant: $(TestOrchestratorCloudTenant)
-#    TestOrchestratorAccountName: $(TestOrchestratorAccountName)
-#    TestOrchestratorAuthenticationToken: $(TestOrchestratorAuthenticationToken)
-#    TestOrchestratorApplicationId: $(TestOrchestratorApplicationId)
-#    TestOrchestratorApplicationSecret: $(TestOrchestratorApplicationSecret)
-#    TestOrchestratorApplicationScope: $(TestOrchestratorApplicationScope)
-#    TestOrchestratorCloudModernFolderName: $(TestOrchestratorCloudModernFolderName)
-#    TestOrchestratorClientIdOverride: $(TestOrchestratorClientIdOverride)
-#    TestOrchestratorAuthorizationUriOverride: $(TestOrchestratorAuthorizationUriOverride)
-#    TestOrchestratorCloudUserName: $(TestOrchestratorCloudUserName)
-#    TestOrchestratorCloudMachineName: $(TestOrchestratorCloudMachineName)
-#    TestOrchestratorCloudUnattendedRobotName: $(TestOrchestratorCloudUnattendedRobotName)
+- task: Maven@3
+  displayName: 'Run unit tests (Java 11)'
+  inputs:
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.11'
+    mavenPomFile: $(MavenPOMFile)
+    testResultsFiles: '**/TEST-*.xml'
+    sonarQubeRunAnalysis: true
+    findBugsRunAnalysis: false
+    sqMavenPluginVersionChoice: 'latest'
+    options: '-Djenkins.version=2.357 -Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
+  env:
+    TestOrchestratorUrl: $(TestOrchestratorUrl)
+    TestOrchestratorUsername: $(TestOrchestratorUsername)
+    TestOrchestratorPassword: $(TestOrchestratorPassword)
+    TestOrchestratorFolderName: $(TestOrchestratorFolderName)
+
+    OrchestratorAuthorizationUriOverride: $(OrchestratorAuthorizationUriOverride)
+    OrchestratorClientIdOverride: $(OrchestratorClientIdOverride)
+
+    TestOrchestratorCloudUrl: $(TestOrchestratorCloudUrl)
+    TestOrchestratorCloudTenant: $(TestOrchestratorCloudTenant)
+    TestOrchestratorAccountName: $(TestOrchestratorAccountName)
+    TestOrchestratorAuthenticationToken: $(TestOrchestratorAuthenticationToken)
+    TestOrchestratorApplicationId: $(TestOrchestratorApplicationId)
+    TestOrchestratorApplicationSecret: $(TestOrchestratorApplicationSecret)
+    TestOrchestratorApplicationScope: $(TestOrchestratorApplicationScope)
+    TestOrchestratorCloudModernFolderName: $(TestOrchestratorCloudModernFolderName)
+    TestOrchestratorClientIdOverride: $(TestOrchestratorClientIdOverride)
+    TestOrchestratorAuthorizationUriOverride: $(TestOrchestratorAuthorizationUriOverride)
+    TestOrchestratorCloudUserName: $(TestOrchestratorCloudUserName)
+    TestOrchestratorCloudMachineName: $(TestOrchestratorCloudMachineName)
+    TestOrchestratorCloudUnattendedRobotName: $(TestOrchestratorCloudUnattendedRobotName)
