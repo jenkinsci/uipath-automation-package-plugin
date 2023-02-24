@@ -2,6 +2,8 @@ package com.uipath.uipathpackage.util;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.uipath.uipathpackage.configuration.UiPathCliConfiguration;
 import com.uipath.uipathpackage.entries.SelectEntry;
 import com.uipath.uipathpackage.entries.authentication.ExternalAppAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
@@ -18,11 +20,12 @@ import hudson.model.TaskListener;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.json.JSONObject;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.*;
 
 import javax.annotation.Nonnull;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.InvalidParameterException;
@@ -63,7 +66,17 @@ public class Utility {
             throw new AbortException("The plugin cannot be executed in a workspace path inside the WINDOWS folder. Please use a custom workspace folder that is outside the WINDOWS folder for this build definition or reinstall Jenkins and use a local user account instead.");
         }
 
-        FilePath cliPath = extractCliApp(remoteTempDir, listener, envVars);
+        UiPathCliConfiguration cliConfiguration = UiPathCliConfiguration.getInstance();
+        Optional<FilePath> cachedCliPath = cliConfiguration.getCliPath(launcher, envVars, cliConfiguration.getSelectedOrDefaultCliVersionKey());
+
+        FilePath cliPath;
+        if(cachedCliPath.isPresent()) {
+            cliPath = cachedCliPath.get();
+        }else {
+            FilePath cliRootCacheDirPath = cliConfiguration.getCliRootCachedDirectoryPath(launcher, envVars, cliConfiguration.getDefaultCliVersionKey());
+            cliPath = extractCliApp(cliRootCacheDirPath, listener, envVars);
+        }
+
         FilePath commandOptionsFile = remoteTempDir.createTextTempFile("uipcliargs", "", new JSONObject(new RunOptions(command, options)).toString());
 
         int result = launcher.launch().cmds(this.buildCommandLine(cliPath, commandOptionsFile)).envs(envVars).stdout(listener).pwd(cliPath.getParent()).start().join();
@@ -74,13 +87,29 @@ public class Utility {
         return result;
     }
 
+    public void validateRuntime(@Nonnull Launcher launcher) throws AbortException, JsonProcessingException {
+        UiPathCliConfiguration configuration = UiPathCliConfiguration.getInstance();
+        String selectedCliVersionKey = configuration.getSelectedOrDefaultCliVersionKey();
+        UiPathCliConfiguration.Configuration cliConfig = configuration.getConfiguration().get(selectedCliVersionKey);
 
-    public FilePath extractCliApp(@Nonnull FilePath tempRemoteDir, @Nonnull TaskListener listener, @Nonnull EnvVars env) throws IOException, InterruptedException, URISyntaxException {
+        if (launcher.isUnix() && cliConfig.getWindowsCompatible()) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseLinux());
+        }
+        if(cliConfig.getLinuxCompatible() && !launcher.isUnix()) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
+        }
+    }
+
+    /**
+     * This method is only to be used for extracting legacy cli (ver.21.xx.xxx.xxx).
+     * This method needs to be changed once we deprecate the legacy cli and start packing a different version of cli i.e. greater than or equal 22.xx.xxx.xxx
+     * as line 113 of this method tries to locate uipcli.exe after extracting the cli's nuget , if used for other versions will result in runtime failures.
+     *  */
+    public FilePath extractCliApp(@Nonnull FilePath targetRootCacheDir, @Nonnull TaskListener listener, @Nonnull EnvVars env) throws IOException, InterruptedException, URISyntaxException {
         PrintStream logger = listener.getLogger();
         ResourceBundle rb = ResourceBundle.getBundle("config");
-        String cliFolderName = "cli-" + this.getConfigValue(rb, "UiPath.CLI.Version");
-        FilePath targetCliPath = tempRemoteDir.child(cliFolderName).child("lib").child("net461").child("uipcli.exe");
-
+        String cliFolderName = UiPathCliConfiguration.LEGACY_CLI_PREFIX + this.getConfigValue(rb, "UiPath.CLI.Version");
+        FilePath targetCliPath = targetRootCacheDir.child(cliFolderName).child("lib").child("net461").child("uipcli.exe");
         if (targetCliPath.exists())
         {
             logger.println("Using previously extracted UiPath CLI from " + targetCliPath);
@@ -98,8 +127,46 @@ public class Utility {
         logger.println("Expected plugin jar path on Jenkins master: " + pluginJarPath + ", extracting...");
 
         // Copy relevant files to temp directory
-        copyPluginFilesToTempDir(listener, tempRemoteDir, pluginJarPath);
+        copyPluginFilesToTempDir(listener, targetRootCacheDir, pluginJarPath);
         return targetCliPath;
+    }
+
+    public void downloadCli(String feedUrl,@Nonnull FilePath downloadPath, @Nonnull TaskListener listener) throws AbortException {
+        PrintStream logger = listener.getLogger();
+
+        RestTemplate restTemplate = new RestTemplate();
+        try {
+            logger.println("Downloading CLI from "+ feedUrl);
+
+            RequestCallback requestCallback = request -> request.getHeaders()
+                    .setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
+
+            ResponseExtractor<Void> responseExtractor = response -> {
+                try {
+                    downloadPath.copyFrom(response.getBody());
+                } catch (InterruptedException e) {
+                    e.printStackTrace(logger);
+                    throw new AbortException("error while writing nupkg to download directory ");
+                }
+                return null;
+            };
+
+            restTemplate.execute(feedUrl, HttpMethod.GET, requestCallback, responseExtractor);
+
+            logger.println("Downloaded CLI successfully. @"+ downloadPath);
+        }
+        catch (HttpClientErrorException hcre) {
+            if(Arrays.asList(301,302,303).contains(hcre.getRawStatusCode())) {
+                logger.println("Retrying Downloading CLI....");
+                downloadCli(hcre.getResponseHeaders().getLocation().toString(),downloadPath, listener);
+            }
+            logger.println("Aborting Task Unable to Download CLI.... HttpStatus " + hcre.getRawStatusCode()+ " Response " + hcre.getResponseBodyAsString() + " Error " + hcre.getMessage());
+            throw new AbortException("unable to download the CLI from the public feed");
+        }
+        catch (RestClientException rce) {
+            logger.println("Aborting Task Unable to Download CLI.... Error "+ rce.getMessage() + " Download Path "+downloadPath.getRemote());
+            throw new AbortException("unable to download the CLI from the public feed");
+        }
     }
 
     public void setCredentialsFromCredentialsEntry(SelectEntry credentials, AuthenticatedOptions options, @Nonnull Run<?, ?> run) throws AbortException {
@@ -178,9 +245,20 @@ public class Utility {
         }
     }
 
+    private String[] buildCommandLine(FilePath cliPath, FilePath commandOptionsFile) throws JsonProcessingException {
+        UiPathCliConfiguration configuration = UiPathCliConfiguration.getInstance();
+        String selectedCliVersionKey = System.getProperty(UiPathCliConfiguration.SELECTED_CLI_VERSION_KEY);
 
+        if(StringUtils.isBlank(selectedCliVersionKey)) {
+            selectedCliVersionKey = configuration.getDefaultCliVersionKey();
+        }
 
-    private String[] buildCommandLine(FilePath cliPath, FilePath commandOptionsFile) {
+        UiPathCliConfiguration.Configuration cliConfig = configuration.getConfiguration().get(selectedCliVersionKey);
+
+        if(cliConfig.getVersion().getMajor() >= 22) {
+            return new String[] {"dotnet", cliPath.getRemote(), "run", commandOptionsFile.getRemote() };
+        }
+
         return new String[] { cliPath.getRemote(), "run", commandOptionsFile.getRemote() };
     }
 
@@ -232,7 +310,7 @@ public class Utility {
         }
     }
 
-    private boolean isServerOSWindows() {
+    public static boolean isServerOSWindows() {
         return System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH).contains("win");
     }
 }

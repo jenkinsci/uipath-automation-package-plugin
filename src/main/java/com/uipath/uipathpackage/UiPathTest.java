@@ -114,9 +114,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         }
         tempRemoteDir.mkdirs();
 
-        if (launcher.isUnix()) {
-            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
-        }
+        util.validateRuntime(launcher);
 
         try {
             ResourceBundle rb = ResourceBundle.getBundle("config");
