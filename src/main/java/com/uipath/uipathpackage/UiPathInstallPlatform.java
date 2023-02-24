@@ -1,7 +1,7 @@
 package com.uipath.uipathpackage;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.uipath.uipathpackage.configuration.CliConfiguration;
+import com.uipath.uipathpackage.configuration.UiPathCliConfiguration;
 import com.uipath.uipathpackage.util.TraceLevel;
 import com.uipath.uipathpackage.util.Utility;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -23,7 +23,6 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.Map;
-import java.util.Optional;
 
 public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
 
@@ -37,11 +36,11 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
 
     private final TraceLevel traceLevel;
 
-    private static final CliConfiguration cliConfiguration;
+    private static final UiPathCliConfiguration cliConfiguration;
 
     static {
         try {
-            cliConfiguration = CliConfiguration.getInstance();
+            cliConfiguration = UiPathCliConfiguration.getInstance();
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -58,12 +57,9 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
 
     @Override
     public void perform(@NonNull Run<?, ?> run, @NonNull FilePath workspace, @NonNull EnvVars env, @NonNull Launcher launcher, @NonNull TaskListener listener) throws AbortException {
-        String defaultVersion = cliConfiguration.getDefaultCliVersionKey();
         PrintStream logger = listener.getLogger();
-
-        System.setProperty(CliConfiguration.GLOBAL_SELECTED_CLI_VERSION_KEY, cliVersion);
-
         try {
+            cliConfiguration.updateSelectedCliVersionKey(cliVersion);
             boolean isSelectedCliAlreadyCached = cliConfiguration.getCliPath(launcher, env, cliVersion).isPresent();
 
             logger.println(isSelectedCliAlreadyCached ? "cli is already cached.." : "cli is not found in cache..");
@@ -74,16 +70,12 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
                     logger.println("force installing the cli , any previous cache for version "+cliVersion+" will be invalidate..");
                 }
 
-                Optional<FilePath> cliRootCacheDirPath = cliConfiguration.getCliRootCachedDirectoryPath(launcher, env, cliVersion);
+                FilePath cliRootCacheDirPath = cliConfiguration.getCliRootCachedDirectoryPath(launcher, env, cliVersion);
 
-                if(!cliRootCacheDirPath.isPresent()) {
-                    logger.println("invalid cli configuration might have caused this issue.");
-                    throw new AbortException("invalid cli configuration might have caused this issue.");
-                }
-
-                if(cliVersion.equals(defaultVersion)) {
+                if(cliVersion.equals(cliConfiguration.getDefaultCliVersionKey())) {
                     logger.print("(caching) extracting the pre-packaged cli...");
-                    util.extractCliApp(cliRootCacheDirPath.get(), listener, env);
+                    util.extractCliApp(cliRootCacheDirPath, listener, env);
+
                 } else if(StringUtils.isNotBlank(cliNupkgPath)) {
 
                     FilePath actualCliNupkgPath = cliNupkgPath.contains("${WORKSPACE}") ?
@@ -95,22 +87,19 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
                         throw new AbortException(Messages.UiPathInstallPlatform_DescriptorImpl_Error_CliNupkgPath());
                     }
                     logger.print("(caching) extracting the provided cli-nuget...");
-                    actualCliNupkgPath.unzip(cliRootCacheDirPath.get());
+                    actualCliNupkgPath.unzip(cliRootCacheDirPath);
                 } else {
-                    CliConfiguration.Configuration configuration = cliConfiguration.getConfiguration().get(cliVersion);
-                    Optional<FilePath> downloadsRootPath = cliConfiguration.getCliRootDownloadsDirectoryPath(launcher, env, cliVersion);
-                    if(!downloadsRootPath.isPresent()) {
-                        logger.println("(downloadsRootPath) invalid cli configuration might have caused this issue.");
-                        throw new AbortException("invalid cli configuration might have caused this issue.");
-                    }
-                    String fileName = configuration.getName().concat(".").concat(configuration.getVersion().getComplete()).concat(".nupkg");
-                    downloadsRootPath.get().child(fileName);
+                    UiPathCliConfiguration.Configuration configuration = cliConfiguration.getConfiguration().get(cliVersion);
+                    FilePath downloadsRootPath = cliConfiguration.getCliRootDownloadsDirectoryPath(launcher, env, cliVersion);
 
-                    FilePath downloadCliPath = new FilePath(new File(downloadsRootPath.get().getRemote()));
+                    String fileName = configuration.getName().concat(".").concat(configuration.getVersion().getComplete()).concat(".nupkg");
+                    downloadsRootPath.child(fileName);
+
+                    FilePath downloadCliPath = new FilePath(new File(downloadsRootPath.getRemote()));
                     util.downloadCli(configuration.getFeedUrl(), downloadCliPath, listener);
 
                     logger.print("(caching) extracting the downloaded cli...");
-                    downloadCliPath.unzip(cliRootCacheDirPath.get());
+                    downloadCliPath.unzip(cliRootCacheDirPath);
                 }
                 logger.println(" done!!");
             }
@@ -118,7 +107,7 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
             if(traceLevel.equals(TraceLevel.Verbose) || traceLevel.equals(TraceLevel.Error)) {
                 e.printStackTrace(logger);
             }
-            throw new AbortException("unable to install the cli "+e.getMessage());
+            throw new AbortException("unable to install the cli "+ e.getMessage());
         }
     }
 
@@ -189,7 +178,7 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
 
             ListBoxModel result= new ListBoxModel();
 
-            for (Map.Entry<String, CliConfiguration.Configuration> v: cliConfiguration.getConfiguration().entrySet()) {
+            for (Map.Entry<String, UiPathCliConfiguration.Configuration> v: cliConfiguration.getConfiguration().entrySet()) {
                 result.add(v.getValue().getDisplayName(), v.getKey());
             }
 

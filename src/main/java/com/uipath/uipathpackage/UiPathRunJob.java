@@ -286,7 +286,7 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
         }
         tempRemoteDir.mkdirs();
 
-        util.validateRuntime(env,launcher);
+        util.validateRuntime(launcher);
 
         try {
             EnvVars envVars = run.getEnvironment(listener);

@@ -114,7 +114,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         }
         tempRemoteDir.mkdirs();
 
-        util.validateRuntime(env,launcher);
+        util.validateRuntime(launcher);
 
         try {
             ResourceBundle rb = ResourceBundle.getBundle("config");

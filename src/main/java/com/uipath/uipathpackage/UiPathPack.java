@@ -87,7 +87,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull EnvVars env, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         validateParameters();
 
-        util.validateRuntime(env,launcher);
+        util.validateRuntime(launcher);
 
         FilePath tempRemoteDir = tempDir(workspace);
         /**

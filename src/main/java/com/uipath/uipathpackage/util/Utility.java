@@ -3,7 +3,7 @@ package com.uipath.uipathpackage.util;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.uipath.uipathpackage.configuration.CliConfiguration;
+import com.uipath.uipathpackage.configuration.UiPathCliConfiguration;
 import com.uipath.uipathpackage.entries.SelectEntry;
 import com.uipath.uipathpackage.entries.authentication.ExternalAppAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
@@ -66,15 +66,15 @@ public class Utility {
             throw new AbortException("The plugin cannot be executed in a workspace path inside the WINDOWS folder. Please use a custom workspace folder that is outside the WINDOWS folder for this build definition or reinstall Jenkins and use a local user account instead.");
         }
 
-        String selectedCliVersionKey = System.getProperty(CliConfiguration.GLOBAL_SELECTED_CLI_VERSION_KEY);
-        CliConfiguration cliConfiguration = CliConfiguration.getInstance();
-        Optional<FilePath> cachedCliPath = cliConfiguration.getCliPath(launcher, envVars, selectedCliVersionKey);
+        UiPathCliConfiguration cliConfiguration = UiPathCliConfiguration.getInstance();
+        Optional<FilePath> cachedCliPath = cliConfiguration.getCliPath(launcher, envVars, cliConfiguration.getSelectedOrDefaultCliVersionKey());
 
         FilePath cliPath;
         if(cachedCliPath.isPresent()) {
             cliPath = cachedCliPath.get();
         }else {
-            cliPath = extractCliApp(remoteTempDir, listener, envVars);
+            FilePath cliRootCacheDirPath = cliConfiguration.getCliRootCachedDirectoryPath(launcher, envVars, cliConfiguration.getDefaultCliVersionKey());
+            cliPath = extractCliApp(cliRootCacheDirPath, listener, envVars);
         }
 
         FilePath commandOptionsFile = remoteTempDir.createTextTempFile("uipcliargs", "", new JSONObject(new RunOptions(command, options)).toString());
@@ -87,10 +87,10 @@ public class Utility {
         return result;
     }
 
-    public void validateRuntime(@Nonnull EnvVars env,@Nonnull Launcher launcher) throws AbortException, JsonProcessingException {
-        CliConfiguration configuration = CliConfiguration.getInstance();
-        String selectedCliVersionKey = env.get(CliConfiguration.GLOBAL_SELECTED_CLI_VERSION_KEY,configuration.getDefaultCliVersionKey());
-        CliConfiguration.Configuration cliConfig = configuration.getConfiguration().get(selectedCliVersionKey);
+    public void validateRuntime(@Nonnull Launcher launcher) throws AbortException, JsonProcessingException {
+        UiPathCliConfiguration configuration = UiPathCliConfiguration.getInstance();
+        String selectedCliVersionKey = configuration.getSelectedOrDefaultCliVersionKey();
+        UiPathCliConfiguration.Configuration cliConfig = configuration.getConfiguration().get(selectedCliVersionKey);
 
         if (launcher.isUnix() && cliConfig.getWindowsCompatible()) {
             throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseLinux());
@@ -100,10 +100,15 @@ public class Utility {
         }
     }
 
+    /**
+     * This method is only to be used for extracting legacy cli (ver.21.xx.xxx.xxx).
+     * This method needs to be changed once we deprecate the legacy cli and start packing a different version of cli i.e. greater than or equal 22.xx.xxx.xxx
+     * as line 113 of this method tries to locate uipcli.exe after extracting the cli's nuget , if used for other versions will result in runtime failures.
+     *  */
     public FilePath extractCliApp(@Nonnull FilePath targetRootCacheDir, @Nonnull TaskListener listener, @Nonnull EnvVars env) throws IOException, InterruptedException, URISyntaxException {
         PrintStream logger = listener.getLogger();
         ResourceBundle rb = ResourceBundle.getBundle("config");
-        String cliFolderName = CliConfiguration.LEGACY_CLI_PREFIX + this.getConfigValue(rb, "UiPath.CLI.Version");
+        String cliFolderName = UiPathCliConfiguration.LEGACY_CLI_PREFIX + this.getConfigValue(rb, "UiPath.CLI.Version");
         FilePath targetCliPath = targetRootCacheDir.child(cliFolderName).child("lib").child("net461").child("uipcli.exe");
         if (targetCliPath.exists())
         {
@@ -241,14 +246,14 @@ public class Utility {
     }
 
     private String[] buildCommandLine(FilePath cliPath, FilePath commandOptionsFile) throws JsonProcessingException {
-        CliConfiguration configuration = CliConfiguration.getInstance();
-        String selectedCliVersionKey = System.getProperty(CliConfiguration.GLOBAL_SELECTED_CLI_VERSION_KEY);
+        UiPathCliConfiguration configuration = UiPathCliConfiguration.getInstance();
+        String selectedCliVersionKey = System.getProperty(UiPathCliConfiguration.SELECTED_CLI_VERSION_KEY);
 
         if(StringUtils.isBlank(selectedCliVersionKey)) {
             selectedCliVersionKey = configuration.getDefaultCliVersionKey();
         }
 
-        CliConfiguration.Configuration cliConfig = configuration.getConfiguration().get(selectedCliVersionKey);
+        UiPathCliConfiguration.Configuration cliConfig = configuration.getConfiguration().get(selectedCliVersionKey);
 
         if(cliConfig.getVersion().getMajor() >= 22) {
             return new String[] {"dotnet", cliPath.getRemote(), "run", commandOptionsFile.getRemote() };
