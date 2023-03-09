@@ -33,7 +33,7 @@
         <symbol-annotation.version>1.23</symbol-annotation.version>
         <junit.junit.version>4.13.2</junit.junit.version>
         <localization-support.version>1.2</localization-support.version>
-        <snakeyaml.version>1.33</snakeyaml.version>
+        <snakeyaml.version>2.0</snakeyaml.version>
         <structs.version>324.va_f5d6774f3a_d</structs.version>
         <caffeine-api.version>2.9.3-65.v6a_47d0f4d1fe</caffeine-api.version>
     </properties>
