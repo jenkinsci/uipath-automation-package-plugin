@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
@@ -11,7 +9,7 @@
     </parent>
 
     <artifactId>uipath-automation-package</artifactId>
-    <version>3.0-SNAPSHOT</version>
+    <version>3.1-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <properties>
@@ -128,11 +126,8 @@
                             <target>
                                 <echo message="Downloading the CLI" />
                                 <mkdir dir="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}" />
-                                <get dest="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}"
-                                     src="https://uipath.pkgs.visualstudio.com/Public.Feeds/_packaging/UiPath-Official/nuget/v3/flat2/UiPath.CLI/${UiPath.CLI.Version}/UiPath.CLI.${UiPath.CLI.Version}.nupkg"
-                                     skipexisting="true"/>
-                                <unzip src="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}/UiPath.CLI.${UiPath.CLI.Version}.nupkg"
-                                       dest="${project.build.directory}/classes/cli-${UiPath.CLI.Version}" />
+                                <get dest="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}" src="https://uipath.pkgs.visualstudio.com/Public.Feeds/_packaging/UiPath-Official/nuget/v3/flat2/UiPath.CLI/${UiPath.CLI.Version}/UiPath.CLI.${UiPath.CLI.Version}.nupkg" skipexisting="true" />
+                                <unzip src="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}/UiPath.CLI.${UiPath.CLI.Version}.nupkg" dest="${project.build.directory}/classes/cli-${UiPath.CLI.Version}" />
                             </target>
                             <failOnError>true</failOnError>
                         </configuration>
