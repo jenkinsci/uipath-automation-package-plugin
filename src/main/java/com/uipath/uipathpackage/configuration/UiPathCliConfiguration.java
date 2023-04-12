@@ -3,6 +3,7 @@ package com.uipath.uipathpackage.configuration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.uipath.uipathpackage.util.Utility;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
@@ -18,8 +19,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+import static com.uipath.uipathpackage.util.TraceLevel.Error;
+import static com.uipath.uipathpackage.util.TraceLevel.Verbose;
+
 public final class UiPathCliConfiguration {
 
+    Utility util = new Utility();
     private static UiPathCliConfiguration INSTANCE = null;
     public static final String WIN_PLATFORM = "WIN";
     public static final String X_PLATFORM = "X";
@@ -75,27 +80,37 @@ public final class UiPathCliConfiguration {
         System.setProperty(SELECTED_CLI_VERSION_KEY, cliVersionKey);
     }
 
-    public FilePath getCliHomeDirectory(@Nonnull Launcher launcher, @Nonnull EnvVars env) throws IOException, InterruptedException {
+    public FilePath getCliHomeDirectory(@Nonnull Launcher launcher,
+                                        @Nonnull EnvVars env) throws IOException,
+                                                                     InterruptedException {
+        util.logger(Verbose, launcher.getListener(), "Expanded ${WORKSPACE} environment variable " + env.expand("${WORKSPACE}"));
         FilePath cliHomeDir = new FilePath(launcher.getChannel(), env.expand("${WORKSPACE}")).child("CLI");
+        util.logger(Verbose, launcher.getListener(), "CLI home directory " + cliHomeDir);
         cliHomeDir.mkdirs();
         return cliHomeDir;
     }
 
-    public FilePath getCliRootCachedDirectoryPath(@Nonnull Launcher launcher, @Nonnull EnvVars env, String cliVersionKey) throws IOException, InterruptedException {
+    public FilePath getCliRootCachedDirectoryPath(@Nonnull Launcher launcher,
+                                                  @Nonnull EnvVars env,
+                                                  String cliVersionKey) throws IOException,
+                                                                               InterruptedException {
         if(!cliConfigurationMap.containsKey(cliVersionKey)) {
-            launcher.getListener().getLogger().println("(cacheRootPath) invalid cli configuration might have caused this issue.");
+            util.logger(Error, launcher.getListener(), "(cacheRootPath) invalid cli configuration might have caused this issue.");
             throw new AbortException("(cacheRootPath) invalid cli configuration might have caused this issue.");
         }
 
         Configuration configuration = cliConfigurationMap.get(cliVersionKey);
 
-        FilePath cliHomeDir = getCliHomeDirectory(launcher,env);
+        FilePath cliHomeDir = getCliHomeDirectory(launcher, env);
         FilePath cachedRootPath = cliHomeDir.child("cached").child(configuration.getName()).child(configuration.getVersion().getComplete());
         cachedRootPath.mkdirs();
         return cachedRootPath;
     }
 
-    public FilePath getCliRootDownloadsDirectoryPath(@Nonnull Launcher launcher, @Nonnull EnvVars env, String cliVersionKey) throws IOException, InterruptedException {
+    public FilePath getCliRootDownloadsDirectoryPath(@Nonnull Launcher launcher,
+                                                     @Nonnull EnvVars env,
+                                                     String cliVersionKey) throws IOException,
+                                                                                  InterruptedException {
         if(!cliConfigurationMap.containsKey(cliVersionKey)) {
             launcher.getListener().getLogger().println("(downloadsRootPath) invalid cli configuration might have caused this issue.");
             throw new AbortException("(downloadsRootPath) invalid cli configuration might have caused this issue.");
@@ -103,13 +118,15 @@ public final class UiPathCliConfiguration {
 
         Configuration configuration = cliConfigurationMap.get(cliVersionKey);
 
-        FilePath cliHomeDir = getCliHomeDirectory(launcher,env);
+        FilePath cliHomeDir = getCliHomeDirectory(launcher, env);
         FilePath downloadsRootPath = cliHomeDir.child("downloads").child(configuration.getName()).child(configuration.getVersion().getComplete());
         downloadsRootPath.mkdirs();
         return downloadsRootPath;
     }
 
-    public Optional<FilePath> getCliPath(@Nonnull Launcher launcher, @Nonnull EnvVars env, String cliVersionKey) {
+    public Optional<FilePath> getCliPath(@Nonnull Launcher launcher,
+                                         @Nonnull EnvVars env,
+                                         String cliVersionKey) {
         PrintStream logger = launcher.getListener().getLogger();
         try{
             FilePath cliCachedPath = getCliRootCachedDirectoryPath(launcher, env, cliVersionKey);
@@ -145,7 +162,7 @@ public final class UiPathCliConfiguration {
         return cliConfigurationMap;
     }
 
-    public static final class Configuration implements Cloneable , Serializable {
+    public static final class Configuration implements Cloneable, Serializable {
         private String displayName;
         private String name;
         private Version version;
@@ -157,7 +174,13 @@ public final class UiPathCliConfiguration {
         public Configuration() {
         }
 
-        public Configuration(String displayName, String name, Version version, boolean windowsCompatible, boolean linuxCompatible, String description, String feedUrl) {
+        public Configuration(String displayName,
+                             String name,
+                             Version version,
+                             boolean windowsCompatible,
+                             boolean linuxCompatible,
+                             String description,
+                             String feedUrl) {
             this.displayName = displayName;
             this.name = name;
             this.version = version;
@@ -213,7 +236,10 @@ public final class UiPathCliConfiguration {
             private int patch;
             private String complete;
 
-            public Version(int major, int minor, int patch, String complete) {
+            public Version(int major,
+                           int minor,
+                           int patch,
+                           String complete) {
                 this.major = major;
                 this.minor = minor;
                 this.patch = patch;

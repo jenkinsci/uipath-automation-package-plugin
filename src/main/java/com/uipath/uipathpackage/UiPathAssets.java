@@ -2,14 +2,14 @@ package com.uipath.uipathpackage;
 
 import com.google.common.collect.ImmutableList;
 import com.uipath.uipathpackage.entries.SelectEntry;
-import com.uipath.uipathpackage.entries.assetsAction.DeployAssetsEntry;
 import com.uipath.uipathpackage.entries.assetsAction.DeleteAssetsEntry;
+import com.uipath.uipathpackage.entries.assetsAction.DeployAssetsEntry;
 import com.uipath.uipathpackage.entries.authentication.ExternalAppAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
+import com.uipath.uipathpackage.models.AssetsOptions;
 import com.uipath.uipathpackage.util.TraceLevel;
 import com.uipath.uipathpackage.util.Utility;
-import com.uipath.uipathpackage.models.AssetsOptions;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
@@ -30,6 +30,8 @@ import java.net.URISyntaxException;
 import java.security.InvalidParameterException;
 import java.util.*;
 
+import static com.uipath.uipathpackage.Messages.GenericErrors_FailedToDeleteTempAssets;
+import static com.uipath.uipathpackage.util.TraceLevel.Information;
 import static hudson.slaves.WorkspaceList.tempDir;
 
 public class UiPathAssets extends Builder implements SimpleBuildStep {
@@ -86,7 +88,8 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
                         @Nonnull FilePath workspace,
                         @Nonnull EnvVars env,
                         @Nonnull Launcher launcher,
-                        @Nonnull TaskListener listener) throws InterruptedException, IOException {
+                        @Nonnull TaskListener listener) throws InterruptedException,
+                                                               IOException {
         validateParameters();
         PrintStream logger = listener.getLogger();
 
@@ -104,6 +107,7 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
 
         try {
             EnvVars envVars = run.getEnvironment(listener);
+            envVars = util.setWorkspaceEnvVariableInCaseNotPresent(workspace, listener, envVars);
 
             FilePath expandedCsvFilePath = filePath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(filePath)) :
@@ -151,7 +155,7 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
             try {
                 Objects.requireNonNull(tempRemoteDir).deleteRecursive();
             } catch(Exception e) {
-                logger.println(com.uipath.uipathpackage.Messages.GenericErrors_FailedToDeleteTempAssets() + e.getMessage());
+                util.logger(Information, listener, GenericErrors_FailedToDeleteTempAssets() + e.getMessage());
                 e.printStackTrace(logger);
             }
         }

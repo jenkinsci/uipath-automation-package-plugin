@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.Map;
 
+import static com.uipath.uipathpackage.util.TraceLevel.Information;
+
 public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
 
     private final Utility util;
@@ -47,7 +49,8 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundConstructor
-    public UiPathInstallPlatform(String cliNupkgPath, TraceLevel traceLevel) {
+    public UiPathInstallPlatform(String cliNupkgPath,
+                                 TraceLevel traceLevel) {
         this.util = new Utility();
         this.cliVersion = cliConfiguration.getDefaultCliVersionKey();
         this.cliNupkgPath = cliNupkgPath;
@@ -56,7 +59,11 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
     }
 
     @Override
-    public void perform(@NonNull Run<?, ?> run, @NonNull FilePath workspace, @NonNull EnvVars env, @NonNull Launcher launcher, @NonNull TaskListener listener) throws AbortException {
+    public void perform(@NonNull Run<?, ?> run,
+                        @NonNull FilePath workspace,
+                        @NonNull EnvVars env,
+                        @NonNull Launcher launcher,
+                        @NonNull TaskListener listener) throws AbortException {
         PrintStream logger = listener.getLogger();
         try {
             cliConfiguration.updateSelectedCliVersionKey(cliVersion);
@@ -64,16 +71,16 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
 
             logger.println(isSelectedCliAlreadyCached ? "cli is already cached.." : "cli is not found in cache..");
 
-            if(this.forceInstall || !isSelectedCliAlreadyCached) {
+            if (this.forceInstall || !isSelectedCliAlreadyCached) {
 
-                if(forceInstall) {
-                    logger.println("force installing the cli , any previous cache for version "+cliVersion+" will be invalidate..");
+                if (forceInstall) {
+                    util.logger(Information, listener, "force installing the cli , any previous cache for version " + cliVersion + " will be invalidated");
                 }
 
                 FilePath cliRootCacheDirPath = cliConfiguration.getCliRootCachedDirectoryPath(launcher, env, cliVersion);
 
-                if(cliVersion.equals(cliConfiguration.getDefaultCliVersionKey())) {
-                    logger.print("(caching) extracting the pre-packaged cli...");
+                if (cliVersion.equals(cliConfiguration.getDefaultCliVersionKey())) {
+                    util.logger(Information, listener,"(caching) extracting the pre-packaged cli...");
                     util.extractCliApp(cliRootCacheDirPath, listener, env);
 
                 } else if(StringUtils.isNotBlank(cliNupkgPath)) {
@@ -82,11 +89,11 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
                             new FilePath(launcher.getChannel(), env.expand(cliNupkgPath)) :
                             workspace.child(env.expand(cliNupkgPath));
 
-                    if(!actualCliNupkgPath.exists()){
-                        logger.println("CliNupkgPath provided doesn't exists "+actualCliNupkgPath.getRemote());
+                    if (!actualCliNupkgPath.exists()) {
+                        util.logger(Information, listener, "CliNupkgPath provided doesn't exists " + actualCliNupkgPath.getRemote());
                         throw new AbortException(Messages.UiPathInstallPlatform_DescriptorImpl_Error_CliNupkgPath());
                     }
-                    logger.print("(caching) extracting the provided cli-nuget...");
+                    util.logger(Information, listener, "(caching) extracting the provided cli-nuget...");
                     actualCliNupkgPath.unzip(cliRootCacheDirPath);
                 } else {
                     UiPathCliConfiguration.Configuration configuration = cliConfiguration.getConfiguration().get(cliVersion);
@@ -98,10 +105,10 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
                     FilePath downloadCliPath = new FilePath(new File(downloadsRootPath.getRemote()));
                     util.downloadCli(configuration.getFeedUrl(), downloadCliPath, listener);
 
-                    logger.print("(caching) extracting the downloaded cli...");
+                    util.logger(Information, listener, "(caching) extracting the downloaded cli...");
                     downloadCliPath.unzip(cliRootCacheDirPath);
                 }
-                logger.println(" done!!");
+                util.logger(Information, listener, "done!!");
             }
         } catch (Exception e) {
             if(traceLevel.equals(TraceLevel.Verbose) || traceLevel.equals(TraceLevel.Error)) {

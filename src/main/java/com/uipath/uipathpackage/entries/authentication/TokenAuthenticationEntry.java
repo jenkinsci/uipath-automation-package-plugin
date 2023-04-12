@@ -34,7 +34,8 @@ public class TokenAuthenticationEntry extends SelectEntry {
      * @param accountName The account name
      */
     @DataBoundConstructor
-    public TokenAuthenticationEntry(String credentialsId, String accountName) {
+    public TokenAuthenticationEntry(String credentialsId,
+                                    String accountName) {
         this.credentialsId = credentialsId;
         this.accountName = accountName;
     }
@@ -88,7 +89,8 @@ public class TokenAuthenticationEntry extends SelectEntry {
          * @param value Any conditional parameter(here id of the credential selected)
          * @return FormValidation
          */
-        public FormValidation doCheckCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
+        public FormValidation doCheckCredentialsId(@AncestorInPath Item item,
+                                                   @QueryParameter String value) {
             if (CredentialsProvider.listCredentials(StringCredentials.class, item, ACL.SYSTEM, Collections.emptyList(), CredentialsMatchers.withId(value)).isEmpty()) {
                 return FormValidation.error(Messages.GenericErrors_MissingCredentialSecret());
             }

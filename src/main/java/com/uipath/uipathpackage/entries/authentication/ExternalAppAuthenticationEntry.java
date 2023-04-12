@@ -40,7 +40,11 @@ public class ExternalAppAuthenticationEntry extends SelectEntry {
      * @param identityUrl       IdentityUrl in case of paas environment
      */
     @DataBoundConstructor
-    public ExternalAppAuthenticationEntry(String accountForApp, String applicationId, String applicationSecret, String applicationScope, String identityUrl) {
+    public ExternalAppAuthenticationEntry(String accountForApp,
+                                          String applicationId,
+                                          String applicationSecret,
+                                          String applicationScope,
+                                          String identityUrl) {
         this.accountForApp = accountForApp;
         this.applicationId = applicationId;
         this.applicationSecret = applicationSecret;
@@ -127,7 +131,8 @@ public class ExternalAppAuthenticationEntry extends SelectEntry {
          * @param value Any conditional parameter(here id of the credential selected)
          * @return FormValidation
          */
-        public FormValidation doCheckApplicationSecret(@AncestorInPath Item item, @QueryParameter String value) {
+        public FormValidation doCheckApplicationSecret(@AncestorInPath Item item,
+                                                       @QueryParameter String value) {
             if (CredentialsProvider.listCredentials(StringCredentials.class, item, ACL.SYSTEM, Collections.emptyList(), CredentialsMatchers.withId(value)).isEmpty()) {
                 return FormValidation.error(Messages.GenericErrors_MissingCredentialSecret());
             }

@@ -27,6 +27,8 @@ import java.net.URISyntaxException;
 import java.security.InvalidParameterException;
 import java.util.*;
 
+import static com.uipath.uipathpackage.Messages.GenericErrors_FailedToDeleteTempDeploy;
+import static com.uipath.uipathpackage.util.TraceLevel.Information;
 import static hudson.slaves.WorkspaceList.tempDir;
 
 /**
@@ -189,7 +191,8 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
                         @Nonnull FilePath workspace,
                         @Nonnull EnvVars env,
                         @Nonnull Launcher launcher,
-                        @Nonnull TaskListener listener) throws InterruptedException, IOException {
+                        @Nonnull TaskListener listener) throws InterruptedException,
+                                                               IOException {
         validateParameters();
         PrintStream logger = listener.getLogger();
 
@@ -207,6 +210,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
 
         try {
             EnvVars envVars = run.getEnvironment(listener);
+            envVars = util.setWorkspaceEnvVariableInCaseNotPresent(workspace, listener, envVars);
 
             FilePath expandedPackagePath = packagePath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(packagePath)) :
@@ -256,7 +260,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
             try {
                 Objects.requireNonNull(tempRemoteDir).deleteRecursive();
             } catch(Exception e) {
-                logger.println(com.uipath.uipathpackage.Messages.GenericErrors_FailedToDeleteTempDeploy() + e.getMessage());
+                util.logger(Information, listener, GenericErrors_FailedToDeleteTempDeploy() + e.getMessage());
                 e.printStackTrace(logger);
             }
         }
