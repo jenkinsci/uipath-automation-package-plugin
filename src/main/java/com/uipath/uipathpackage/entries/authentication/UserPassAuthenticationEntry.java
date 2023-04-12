@@ -84,7 +84,8 @@ public class UserPassAuthenticationEntry extends SelectEntry {
          * @param value Any conditional parameter(here id of the credential selected)
          * @return FormValidation
          */
-        public FormValidation doCheckCredentialsId(@AncestorInPath Item item, @QueryParameter String value) {
+        public FormValidation doCheckCredentialsId(@AncestorInPath Item item,
+                                                   @QueryParameter String value) {
             if (numberOfItems != 0 && item != null && value != null && value.trim().isEmpty()) {
                 return FormValidation.ok();
             }

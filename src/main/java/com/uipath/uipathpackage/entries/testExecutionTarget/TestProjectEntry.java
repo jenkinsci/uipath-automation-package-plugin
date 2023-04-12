@@ -29,7 +29,8 @@ public class TestProjectEntry extends SelectEntry {
      * @param environments Environments on which to test
      */
     @DataBoundConstructor
-    public TestProjectEntry(String testProjectPath, String environments) {
+    public TestProjectEntry(String testProjectPath,
+                            String environments) {
         this.testProjectPath = testProjectPath;
         this.environments = environments;
     }
@@ -78,7 +79,8 @@ public class TestProjectEntry extends SelectEntry {
          * @param value Test project path
          * @return FormValidation
          */
-        public FormValidation doCheckTestProjectPath(@AncestorInPath Item item, @QueryParameter String value) {
+        public FormValidation doCheckTestProjectPath(@AncestorInPath Item item,
+                                                     @QueryParameter String value) {
             if (value == null || value.isEmpty()) {
                 return FormValidation.error(Messages.GenericErrors_MissingTestProjectPath());
             }

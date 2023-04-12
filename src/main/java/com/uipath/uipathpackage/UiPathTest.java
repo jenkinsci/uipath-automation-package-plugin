@@ -77,7 +77,15 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
      * @param parametersFilePath    Path of the parameter file
      */
     @DataBoundConstructor
-    public UiPathTest(String orchestratorAddress, String orchestratorTenant, String folderName, SelectEntry testTarget, SelectEntry credentials, String testResultsOutputPath, Integer timeout, TraceLevel traceLevel, String parametersFilePath)  {
+    public UiPathTest(String orchestratorAddress,
+                      String orchestratorTenant,
+                      String folderName,
+                      SelectEntry testTarget,
+                      SelectEntry credentials,
+                      String testResultsOutputPath,
+                      Integer timeout,
+                      TraceLevel traceLevel,
+                      String parametersFilePath)  {
         this.testTarget = testTarget;
         this.orchestratorAddress = orchestratorAddress;
         this.orchestratorTenant = orchestratorTenant;
@@ -101,7 +109,12 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
      * @throws IOException          if something goes wrong
      */
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @NonNull EnvVars env, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> run,
+                        @Nonnull FilePath workspace,
+                        @NonNull EnvVars env,
+                        @Nonnull Launcher launcher,
+                        @Nonnull TaskListener listener) throws InterruptedException,
+                                                               IOException {
         validateParameters();
 
         FilePath tempRemoteDir = tempDir(workspace);
@@ -119,6 +132,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         try {
             ResourceBundle rb = ResourceBundle.getBundle("config");
             EnvVars envVars = run.getEnvironment(listener);
+            envVars = util.setWorkspaceEnvVariableInCaseNotPresent(workspace, listener, envVars);
             TestOptions testOptions = new TestOptions();
 
             if (testTarget instanceof TestProjectEntry)
@@ -353,7 +367,11 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         }
     }
 
-    private void publishTestResults(Run<?,?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
+    private void publishTestResults(Run<?,?> run,
+                                    FilePath workspace,
+                                    Launcher launcher,
+                                    TaskListener listener) throws IOException,
+                                                                  InterruptedException {
         try {
             TestResultSummary resultSummary = JUnitResultArchiver.parseAndSummarize(this, null, run, workspace, launcher, listener);
             if (resultSummary != null) {
@@ -541,7 +559,8 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
          * @param value Environments
          * @return FormValidation
          */
-        public FormValidation doCheckTimeout(@AncestorInPath Item item, @QueryParameter String value) {
+        public FormValidation doCheckTimeout(@AncestorInPath Item item,
+                                             @QueryParameter String value) {
             if (value != null && !value.isEmpty()) {
                 try {
                     if (Integer.parseInt(value) < 0) {

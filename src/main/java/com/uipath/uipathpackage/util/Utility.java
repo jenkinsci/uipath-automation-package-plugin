@@ -3,6 +3,7 @@ package com.uipath.uipathpackage.util;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.base.Strings;
 import com.uipath.uipathpackage.configuration.UiPathCliConfiguration;
 import com.uipath.uipathpackage.entries.SelectEntry;
 import com.uipath.uipathpackage.entries.authentication.ExternalAppAuthenticationEntry;
@@ -35,6 +36,9 @@ import java.util.jar.JarException;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
+import static com.uipath.uipathpackage.util.TraceLevel.Information;
+import static com.uipath.uipathpackage.util.TraceLevel.Verbose;
+
 /**
  * Utility Class used by UiPathDeploy and UiPathPack
  */
@@ -45,7 +49,8 @@ public class Utility {
      * @param param Param to validate
      * @param s     Error Message
      */
-    public void validateParams(@Nonnull String param, @Nonnull String s) {
+    public void validateParams(@Nonnull String param,
+                               @Nonnull String s) {
         if (param.trim().isEmpty()) {
             throw new InvalidParameterException(s);
         }
@@ -57,11 +62,66 @@ public class Utility {
      * @param s key of the bundle
      * @return value of the resource bundle corresponding to key
      */
-    public String getConfigValue(@Nonnull ResourceBundle rb, @Nonnull String s) {
+    public String getConfigValue(@Nonnull ResourceBundle rb,
+                                 @Nonnull String s) {
         return rb.getString(s);
     }
 
-    public int execute(@Nonnull String command, @Nonnull SerializableCliOptions options, @Nonnull FilePath remoteTempDir, @Nonnull TaskListener listener, @Nonnull EnvVars envVars, @Nonnull Launcher launcher, boolean throwExceptionOnFailure) throws IOException, InterruptedException, URISyntaxException {
+    /**
+     * A common logger for all the tasks
+     * @param traceLevel
+     * @param listener
+     * @param logMessage
+     */
+    public void logger(TraceLevel traceLevel,
+                       TaskListener listener,
+                       String logMessage) {
+
+        if (Objects.isNull(traceLevel)
+                || Objects.isNull(listener)
+                || Strings.isNullOrEmpty(logMessage)) {
+            return;
+        }
+        switch (traceLevel) {
+            case None:
+            case Verbose:
+            case Information:
+                listener.getLogger().println(logMessage);
+                break;
+            case Error:
+                listener.error(logMessage);
+                break;
+            case Warning:
+            case Critical:
+            default:
+        }
+    }
+
+    public EnvVars setWorkspaceEnvVariableInCaseNotPresent(FilePath workspace,
+                                                           TaskListener listener,
+                                                           EnvVars envVars) {
+        /**
+         * Tweaking the WORKSPACE environment variable for the multibranch pipeline
+         * as it is not present for that type of project, hence we will use workspace
+         * from the arguments and set it as the value of WORKSPACE environment variable
+         */
+        if (!envVars.containsKey("WORKSPACE")) {
+            logger(Verbose, listener, "Setting up the ${WORKSPACE} environment variable with value "
+                    + workspace.getRemote().toString() + " as it is not found in the current context");
+            envVars.put("WORKSPACE", workspace.getRemote().toString());
+        }
+        return envVars;
+    }
+
+    public int execute(@Nonnull String command,
+                       @Nonnull SerializableCliOptions options,
+                       @Nonnull FilePath remoteTempDir,
+                       @Nonnull TaskListener listener,
+                       @Nonnull EnvVars envVars,
+                       @Nonnull Launcher launcher,
+                       boolean throwExceptionOnFailure) throws IOException,
+                                                               InterruptedException,
+                                                               URISyntaxException {
         if (remoteTempDir.getRemote().toUpperCase().contains(":\\WINDOWS\\SYSTEM32")) {
             throw new AbortException("The plugin cannot be executed in a workspace path inside the WINDOWS folder. Please use a custom workspace folder that is outside the WINDOWS folder for this build definition or reinstall Jenkins and use a local user account instead.");
         }
@@ -70,16 +130,26 @@ public class Utility {
         Optional<FilePath> cachedCliPath = cliConfiguration.getCliPath(launcher, envVars, cliConfiguration.getSelectedOrDefaultCliVersionKey());
 
         FilePath cliPath;
-        if(cachedCliPath.isPresent()) {
+        if (cachedCliPath.isPresent()) {
             cliPath = cachedCliPath.get();
-        }else {
+            logger(Verbose, listener, "Using the cached CLI path " + cliPath.getRemote().toString());
+        } else {
             FilePath cliRootCacheDirPath = cliConfiguration.getCliRootCachedDirectoryPath(launcher, envVars, cliConfiguration.getDefaultCliVersionKey());
             cliPath = extractCliApp(cliRootCacheDirPath, listener, envVars);
+            logger(Verbose, listener, "Using the explicitly selected CLI path " + cliPath.getRemote().toString());
         }
 
         FilePath commandOptionsFile = remoteTempDir.createTextTempFile("uipcliargs", "", new JSONObject(new RunOptions(command, options)).toString());
 
-        int result = launcher.launch().cmds(this.buildCommandLine(cliPath, commandOptionsFile)).envs(envVars).stdout(listener).pwd(cliPath.getParent()).start().join();
+        int result = launcher
+                .launch()
+                .cmds(this.buildCommandLine(cliPath, commandOptionsFile, listener))
+                .envs(envVars)
+                .stdout(listener)
+                .pwd(cliPath.getParent())
+                .start()
+                .join();
+
         if (throwExceptionOnFailure && result != 0) {
             throw new AbortException("Failed to run the command, the CLI failed with error code " + result);
         }
@@ -87,7 +157,8 @@ public class Utility {
         return result;
     }
 
-    public void validateRuntime(@Nonnull Launcher launcher) throws AbortException, JsonProcessingException {
+    public void validateRuntime(@Nonnull Launcher launcher) throws AbortException,
+                                                                   JsonProcessingException {
         UiPathCliConfiguration configuration = UiPathCliConfiguration.getInstance();
         String selectedCliVersionKey = configuration.getSelectedOrDefaultCliVersionKey();
         UiPathCliConfiguration.Configuration cliConfig = configuration.getConfiguration().get(selectedCliVersionKey);
@@ -95,24 +166,29 @@ public class Utility {
         if (launcher.isUnix() && cliConfig.getWindowsCompatible()) {
             throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseLinux());
         }
-        if(cliConfig.getLinuxCompatible() && !launcher.isUnix()) {
+        if (cliConfig.getLinuxCompatible() && !launcher.isUnix()) {
             throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
         }
     }
 
     /**
      * This method is only to be used for extracting legacy cli (ver.21.xx.xxx.xxx).
-     * This method needs to be changed once we deprecate the legacy cli and start packing a different version of cli i.e. greater than or equal 22.xx.xxx.xxx
-     * as line 113 of this method tries to locate uipcli.exe after extracting the cli's nuget , if used for other versions will result in runtime failures.
-     *  */
-    public FilePath extractCliApp(@Nonnull FilePath targetRootCacheDir, @Nonnull TaskListener listener, @Nonnull EnvVars env) throws IOException, InterruptedException, URISyntaxException {
+     * This method needs to be changed once we deprecate the legacy cli and start packing
+     * a different version of cli i.e. greater than or equal 22.xx.xxx.xxx as line 129 of
+     * this method tries to locate uipcli.exe after extracting the cli's nuget, if used
+     * for other versions will result in runtime failures.
+     */
+    public FilePath extractCliApp(@Nonnull FilePath targetRootCacheDir,
+                                  @Nonnull TaskListener listener,
+                                  @Nonnull EnvVars env) throws IOException,
+                                                               InterruptedException,
+                                                               URISyntaxException {
         PrintStream logger = listener.getLogger();
         ResourceBundle rb = ResourceBundle.getBundle("config");
         String cliFolderName = UiPathCliConfiguration.LEGACY_CLI_PREFIX + this.getConfigValue(rb, "UiPath.CLI.Version");
         FilePath targetCliPath = targetRootCacheDir.child(cliFolderName).child("lib").child("net461").child("uipcli.exe");
-        if (targetCliPath.exists())
-        {
-            logger.println("Using previously extracted UiPath CLI from " + targetCliPath);
+        if (targetCliPath.exists()) {
+            logger(Information, listener, "Using previously extracted UiPath CLI from " + targetCliPath);
             return targetCliPath;
         }
 
@@ -124,19 +200,21 @@ public class Utility {
             pluginJarPath = env.expand("${JENKINS_HOME}/plugins/uipath-automation-package/WEB-INF/lib/uipath-automation-package.jar");
         }
 
-        logger.println("Expected plugin jar path on Jenkins master: " + pluginJarPath + ", extracting...");
+        logger(Information, listener, "Expected plugin jar path on Jenkins master: " + pluginJarPath + ", extracting...");
 
         // Copy relevant files to temp directory
         copyPluginFilesToTempDir(listener, targetRootCacheDir, pluginJarPath);
         return targetCliPath;
     }
 
-    public void downloadCli(String feedUrl,@Nonnull FilePath downloadPath, @Nonnull TaskListener listener) throws AbortException {
+    public void downloadCli(String feedUrl,
+                            @Nonnull FilePath downloadPath,
+                            @Nonnull TaskListener listener) throws AbortException {
         PrintStream logger = listener.getLogger();
 
         RestTemplate restTemplate = new RestTemplate();
         try {
-            logger.println("Downloading CLI from "+ feedUrl);
+            logger(Information, listener, "Downloading CLI from "+ feedUrl);
 
             RequestCallback requestCallback = request -> request.getHeaders()
                     .setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
@@ -153,23 +231,25 @@ public class Utility {
 
             restTemplate.execute(feedUrl, HttpMethod.GET, requestCallback, responseExtractor);
 
-            logger.println("Downloaded CLI successfully. @"+ downloadPath);
+            logger(Information, listener, "Downloaded CLI successfully. @"+ downloadPath);
         }
         catch (HttpClientErrorException hcre) {
-            if(Arrays.asList(301,302,303).contains(hcre.getRawStatusCode())) {
-                logger.println("Retrying Downloading CLI....");
+            if (Arrays.asList(301,302,303).contains(hcre.getRawStatusCode())) {
+                logger(Information, listener, "Retrying Downloading CLI....");
                 downloadCli(hcre.getResponseHeaders().getLocation().toString(),downloadPath, listener);
             }
-            logger.println("Aborting Task Unable to Download CLI.... HttpStatus " + hcre.getRawStatusCode()+ " Response " + hcre.getResponseBodyAsString() + " Error " + hcre.getMessage());
+            logger(Information, listener,"Aborting Task Unable to Download CLI.... HttpStatus " + hcre.getRawStatusCode()+ " Response " + hcre.getResponseBodyAsString() + " Error " + hcre.getMessage());
             throw new AbortException("unable to download the CLI from the public feed");
         }
         catch (RestClientException rce) {
-            logger.println("Aborting Task Unable to Download CLI.... Error "+ rce.getMessage() + " Download Path "+downloadPath.getRemote());
+            logger(Information, listener, "Aborting Task Unable to Download CLI.... Error "+ rce.getMessage() + " Download Path "+downloadPath.getRemote());
             throw new AbortException("unable to download the CLI from the public feed");
         }
     }
 
-    public void setCredentialsFromCredentialsEntry(SelectEntry credentials, AuthenticatedOptions options, @Nonnull Run<?, ?> run) throws AbortException {
+    public void setCredentialsFromCredentialsEntry(SelectEntry credentials,
+                                                   AuthenticatedOptions options,
+                                                   @Nonnull Run<?, ?> run) throws AbortException {
         if (credentials instanceof UserPassAuthenticationEntry) {
             StandardUsernamePasswordCredentials cred = CredentialsProvider.findCredentialById(((UserPassAuthenticationEntry) credentials).getCredentialsId(), StandardUsernamePasswordCredentials.class, run, Collections.emptyList());
             if (cred == null || cred.getUsername().isEmpty() || cred.getPassword().getPlainText().isEmpty()) {
@@ -199,19 +279,18 @@ public class Utility {
             options.setApplicationScope(cred.getApplicationScope());
             if (StringUtils.isNotBlank(cred.getIdentityUrl())) {
             	options.setAuthorizationUrl(cred.getIdentityUrl());
-            }else {
+            } else {
             	options.setAuthorizationUrl(options.getOrchestratorUrl());
             }
         }
     }
 
-    public void setJobRunFromStrategyEntry(SelectEntry strategy, JobOptions options) {
-        if (strategy == null)
-        {
+    public void setJobRunFromStrategyEntry(SelectEntry strategy,
+                                           JobOptions options) {
+        if (Objects.isNull(strategy)) {
             options.setJobsCount(1);
             options.setUser("");
             options.setMachine("");
-
             return;
         }
 
@@ -220,49 +299,55 @@ public class Utility {
             options.setUser(((DynamicallyEntry) strategy).getUser());
             options.setMachine(((DynamicallyEntry) strategy).getMachine());
             options.setRobots(new String[]{});
-        }else {
+        } else {
             String robotNames = ((RobotEntry) strategy).getRobotsIds();
-            if (robotNames != null)
-            {
+            if (robotNames != null) {
                 options.setRobots(robotNames.split(","));
-            }
-            else
-            {
+            } else {
                 options.setRobots(new String[]{});
             }
         }
     }
 
-    public void setJobRunFromJobTypeEntry(SelectEntry strategy, JobOptions options) {
+    public void setJobRunFromJobTypeEntry(SelectEntry strategy,
+                                          JobOptions options) {
         if (strategy instanceof NonProductionJobTypeEntry) {
             options.setJobType(JobType.NonProduction);
         }
-        else if (strategy instanceof UnattendedJobTypeEntry)
-        {
+        else if (strategy instanceof UnattendedJobTypeEntry) {
             options.setJobType(JobType.Unattended);
-        }else if (strategy instanceof TestAutomationJobTypeEntry){
+        } else if (strategy instanceof TestAutomationJobTypeEntry) {
         	options.setJobType(JobType.TestAutomation);
         }
     }
 
-    private String[] buildCommandLine(FilePath cliPath, FilePath commandOptionsFile) throws JsonProcessingException {
+    private String[] buildCommandLine(FilePath cliPath,
+                                      FilePath commandOptionsFile,
+                                      TaskListener listener) throws JsonProcessingException {
+        PrintStream logger = listener.getLogger();
         UiPathCliConfiguration configuration = UiPathCliConfiguration.getInstance();
         String selectedCliVersionKey = System.getProperty(UiPathCliConfiguration.SELECTED_CLI_VERSION_KEY);
 
-        if(StringUtils.isBlank(selectedCliVersionKey)) {
+
+        if (StringUtils.isBlank(selectedCliVersionKey)) {
             selectedCliVersionKey = configuration.getDefaultCliVersionKey();
+            logger(Verbose, listener, "None of the CLI is explicitly selected (through install platform task), falling back to default CLI version: " + selectedCliVersionKey);
         }
+        logger(Verbose, listener, "Selected CLI version is " + selectedCliVersionKey);
 
         UiPathCliConfiguration.Configuration cliConfig = configuration.getConfiguration().get(selectedCliVersionKey);
 
-        if(cliConfig.getVersion().getMajor() >= 22) {
-            return new String[] {"dotnet", cliPath.getRemote(), "run", commandOptionsFile.getRemote() };
+        String[] finalCommand = new String[] { cliPath.getRemote(), "run", commandOptionsFile.getRemote() };
+        if (cliConfig.getVersion().getMajor() >= 22) {
+            finalCommand = new String[] {"dotnet", cliPath.getRemote(), "run", commandOptionsFile.getRemote()};
         }
-
-        return new String[] { cliPath.getRemote(), "run", commandOptionsFile.getRemote() };
+        return finalCommand;
     }
 
-    private void extractResourcesToTempFolder(FilePath tempDir, File jarfile, TaskListener listener) throws IOException, InterruptedException {
+    private void extractResourcesToTempFolder(FilePath tempDir,
+                                              File jarfile,
+                                              TaskListener listener) throws IOException,
+                                                                            InterruptedException {
         try (JarFile archive = new JarFile(jarfile)) {
             // sort entries by name to always create folders first
             List<? extends JarEntry> entries = archive.stream().sorted(Comparator.comparing(JarEntry::getName)).collect(Collectors.toList());
@@ -285,7 +370,11 @@ public class Utility {
         }
     }
 
-    private void copyPluginFilesToTempDir(@Nonnull TaskListener listener, FilePath tempDir, String pluginJarPath) throws IOException, URISyntaxException, InterruptedException {
+    private void copyPluginFilesToTempDir(@Nonnull TaskListener listener,
+                                          FilePath tempDir,
+                                          String pluginJarPath) throws IOException,
+                                                                       URISyntaxException,
+                                                                       InterruptedException {
         File jar = new File(pluginJarPath);
         if (!jar.exists()) {
             // For snapshot plugin dependencies, an IDE may have replaced ~/.m2/repository/…/${artifactId}.hpi with …/${artifactId}-plugin/target/classes/
@@ -299,18 +388,20 @@ public class Utility {
                     if (classes.getName().equals("classes")) {
                         FilePath wsClasses = new FilePath(classes);
                         wsClasses.copyRecursiveTo(tempDir);
-                        listener.getLogger().println("Plugin files copied to temp");
+                        logger(Information, listener, "Plugin files copied to temp");
                     }
                 }
             }
         } else {
-            listener.getLogger().print("Extracting cli to temp folder " + tempDir.getRemote() + "...");
+            logger(Information, listener, "Extracting cli to temp folder " + tempDir.getRemote() + "...");
             extractResourcesToTempFolder(tempDir, jar, listener);
-            listener.getLogger().println("done!" );
+            logger(Information, listener, "done!" );
         }
     }
 
     public static boolean isServerOSWindows() {
         return System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH).contains("win");
     }
+
+
 }

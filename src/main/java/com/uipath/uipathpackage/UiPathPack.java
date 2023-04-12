@@ -33,6 +33,9 @@ import java.net.URISyntaxException;
 import java.security.InvalidParameterException;
 import java.util.*;
 
+import static com.uipath.uipathpackage.Messages.GenericErrors_FailedToDeleteTempPack;
+import static com.uipath.uipathpackage.util.TraceLevel.Information;
+import static com.uipath.uipathpackage.util.TraceLevel.Verbose;
 import static hudson.slaves.WorkspaceList.tempDir;
 
 /**
@@ -60,7 +63,10 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      * @param traceLevel      The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
      */
     @DataBoundConstructor
-    public UiPathPack(SelectEntry version, String projectJsonPath, String outputPath, TraceLevel traceLevel) {
+    public UiPathPack(SelectEntry version,
+                      String projectJsonPath,
+                      String outputPath,
+                      TraceLevel traceLevel) {
         this.version = version;
         this.projectJsonPath = projectJsonPath;
         this.outputPath = outputPath;
@@ -84,7 +90,12 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      * @throws IOException          if something goes wrong
      */
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull EnvVars env, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> run,
+                        @Nonnull FilePath workspace,
+                        @Nonnull EnvVars env,
+                        @Nonnull Launcher launcher,
+                        @Nonnull TaskListener listener) throws InterruptedException,
+                                                               IOException {
         validateParameters();
 
         util.validateRuntime(launcher);
@@ -101,6 +112,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
         try {
             EnvVars envVars = run.getEnvironment(listener);
+            envVars = util.setWorkspaceEnvVariableInCaseNotPresent(workspace, listener, envVars);
 
             FilePath expandedOutputPath = outputPath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(outputPath)) :
@@ -159,7 +171,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             try {
                 Objects.requireNonNull(tempRemoteDir).deleteRecursive();
             } catch(Exception e) {
-                listener.getLogger().println(com.uipath.uipathpackage.Messages.GenericErrors_FailedToDeleteTempPack() + e.getMessage());
+                util.logger(Information, listener, GenericErrors_FailedToDeleteTempPack() + e.getMessage());
                 e.printStackTrace(listener.getLogger());
             }
         }

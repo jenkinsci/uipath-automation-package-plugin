@@ -38,7 +38,6 @@ import static hudson.slaves.WorkspaceList.tempDir;
  */
 public class UiPathRunJob extends Recorder implements SimpleBuildStep {
     private final Utility util = new Utility();
-
     private String processName;
     private String parametersFilePath;
     private StartProcessDtoJobPriority priority;
@@ -272,7 +271,12 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
      * @throws IOException          if something goes wrong
      */
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull EnvVars env, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> run,
+                        @Nonnull FilePath workspace,
+                        @Nonnull EnvVars env,
+                        @Nonnull Launcher launcher,
+                        @Nonnull TaskListener listener) throws InterruptedException,
+                                                               IOException {
         validateParameters();
         PrintStream logger = listener.getLogger();
 
@@ -290,6 +294,7 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
 
         try {
             EnvVars envVars = run.getEnvironment(listener);
+            envVars = util.setWorkspaceEnvVariableInCaseNotPresent(workspace, listener, envVars);
 
             JobOptions jobOptions = new JobOptions();
             jobOptions.setProcessName(processName);

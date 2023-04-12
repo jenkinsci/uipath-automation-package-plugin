@@ -22,7 +22,9 @@ public class DynamicallyEntry extends SelectEntry {
      * @param machine           The name of the machine
      */
     @DataBoundConstructor
-    public DynamicallyEntry(Integer jobsCount, String user, String machine) {
+    public DynamicallyEntry(Integer jobsCount,
+                            String user,
+                            String machine) {
         this.jobsCount = jobsCount;
         this.user = user;
         this.machine = machine;

@@ -61,7 +61,8 @@ public class TestSetEntry extends SelectEntry {
          * @param value Test set
          * @return FormValidation
          */
-        public FormValidation doCheckTestSet(@AncestorInPath Item item, @QueryParameter String value) {
+        public FormValidation doCheckTestSet(@AncestorInPath Item item,
+                                             @QueryParameter String value) {
             if (value == null || value.isEmpty()) {
                 return FormValidation.error(Messages.GenericErrors_MissingTestSetName());
             }
