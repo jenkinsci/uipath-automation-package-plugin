@@ -7,8 +7,7 @@ import com.uipath.uipathpackage.entries.assetsAction.DeleteAssetsEntry;
 import com.uipath.uipathpackage.entries.authentication.ExternalAppAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
-import com.uipath.uipathpackage.util.TraceLevel;
-import com.uipath.uipathpackage.util.Utility;
+import com.uipath.uipathpackage.util.*;
 import com.uipath.uipathpackage.models.AssetsOptions;
 import hudson.*;
 import hudson.model.*;
@@ -103,13 +102,22 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
         util.validateRuntime(launcher);
 
         try {
-            EnvVars envVars = run.getEnvironment(listener);
+            EnvVars envVars = TaskScopedEnvVarsManager.selectOnlyRequiredEnvironmentVariables(run, env, listener);
+
+            CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
+            String buildTag = envVars.get("BUILD_TAG");
 
             FilePath expandedCsvFilePath = filePath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(filePath)) :
                     workspace.child(envVars.expand(filePath));
 
             AssetsOptions assetsOptions = new AssetsOptions();
+            if (cliDetails.getActualVersion().supportsNewTelemetry()) {
+                assetsOptions.populateAdditionalTelemetryData();
+                assetsOptions.setPipelineCorrelationId(buildTag);
+                assetsOptions.setCliGetFlow(cliDetails.getGetFlow());
+            }
+
             assetsOptions.setOrchestratorUrl(orchestratorAddress);
             String organizationUnit = envVars.expand(folderName.trim());
             assetsOptions.setOrganizationUnit(organizationUnit.length() > 0 ? organizationUnit : "Default");

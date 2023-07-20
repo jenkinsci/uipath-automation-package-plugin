@@ -87,8 +87,8 @@ public class UiPathDeployTests {
     public static Iterable<Object[]> data() throws Throwable
     {
         return Arrays.asList(new Object[][] {
-            { new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("ProcessProject")).getPath()).getAbsolutePath(), "ProcessProjectJenkins", "Main.xaml" },
-            { new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("TestProject")).getPath()).getAbsolutePath(), "TestProject", "PassTestCase.xaml" }
+            { new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("ProcessProject").toURI()).getPath()).getAbsolutePath(), "ProcessProjectJenkins", "Main.xaml" },
+            { new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("TestProject").toURI()).getPath()).getAbsolutePath(), "TestProject", "PassTestCase.xaml" }
         });
     }
 
@@ -294,7 +294,7 @@ public class UiPathDeployTests {
     public void testPublishWithEnvVar() throws Exception {
         String nugetPackagePath = "${WORKSPACE}";
 
-        File projectJson = new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("TestProject/project.json")).getPath());
+        File projectJson = new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("TestProject/project.json").toURI()).getPath());
         String projectJsonPath = projectJson.getAbsolutePath();
         UiPathPack builder = new UiPathPack(new AutoVersionEntry(), projectJsonPath, nugetPackagePath, traceLevel);
 

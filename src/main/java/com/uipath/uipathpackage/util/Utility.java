@@ -17,6 +17,7 @@ import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 
+import hudson.util.StreamTaskListener;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.json.JSONObject;
@@ -33,6 +34,8 @@ import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarException;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -85,6 +88,50 @@ public class Utility {
         }
 
         return result;
+    }
+
+    public  CliDetails getCliDetails(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener, @Nonnull EnvVars envVars, @Nonnull Launcher launcher) throws IOException, InterruptedException, URISyntaxException {
+        UiPathCliConfiguration cliConfiguration = UiPathCliConfiguration.getInstance();
+        Optional<FilePath> cachedCliPath = cliConfiguration.getCliPath(launcher, envVars, cliConfiguration.getSelectedOrDefaultCliVersionKey());
+
+        FilePath cliPath;
+        CliGetFlow cliGetFlow;
+        if(cachedCliPath.isPresent()) {
+            cliPath = cachedCliPath.get();
+            cliGetFlow = CliGetFlow.CachedTool;
+        } else {
+            FilePath cliRootCacheDirPath = cliConfiguration.getCliRootCachedDirectoryPath(launcher, envVars, cliConfiguration.getDefaultCliVersionKey());
+            cliPath = extractCliApp(cliRootCacheDirPath, listener, envVars);
+            cliGetFlow = CliGetFlow.ExtractDefaultCli;
+        }
+
+        ByteArrayOutputStream commandOutput = new ByteArrayOutputStream();
+
+        StreamTaskListener execListener = new StreamTaskListener(commandOutput, run.getCharset());
+
+        launcher.launch().cmds(this.buildVersionArgs(cliPath)).envs(envVars).stdout(execListener).pwd(cliPath.getParent()).start().join();
+
+        String stdoutText = commandOutput.toString(run.getCharset().name());
+
+        CliDetails response = new CliDetails();
+        response.setActualVersion(extractActualVersionFromText(stdoutText));
+        response.setGetFlow(cliGetFlow);
+        return response;
+    }
+
+    private ActualVersion extractActualVersionFromText(String text) {
+        Pattern versionPattern = Pattern.compile("uipcli (\\d+)\\.(\\d+)\\.\\d+-\\w+");
+
+        Matcher matcher = versionPattern.matcher(text);
+
+        if (matcher.find()) {
+            int majorVersion = Integer.parseInt(matcher.group(1));
+            int minorVersion = Integer.parseInt(matcher.group(2));
+
+            return new ActualVersion(majorVersion, minorVersion);
+        } else {
+            return new ActualVersion(-1, -1);
+        }
     }
 
     public void validateRuntime(@Nonnull Launcher launcher) throws AbortException, JsonProcessingException {
@@ -260,6 +307,23 @@ public class Utility {
         }
 
         return new String[] { cliPath.getRemote(), "run", commandOptionsFile.getRemote() };
+    }
+
+    private String[] buildVersionArgs(FilePath cliPath) throws JsonProcessingException {
+        UiPathCliConfiguration configuration = UiPathCliConfiguration.getInstance();
+        String selectedCliVersionKey = System.getProperty(UiPathCliConfiguration.SELECTED_CLI_VERSION_KEY);
+
+        if(StringUtils.isBlank(selectedCliVersionKey)) {
+            selectedCliVersionKey = configuration.getDefaultCliVersionKey();
+        }
+
+        UiPathCliConfiguration.Configuration cliConfig = configuration.getConfiguration().get(selectedCliVersionKey);
+
+        if(cliConfig.getVersion().getMajor() >= 22) {
+            return new String[] {"dotnet", cliPath.getRemote(), "--version" };
+        }
+
+        return new String[] { cliPath.getRemote(), "--version" };
     }
 
     private void extractResourcesToTempFolder(FilePath tempDir, File jarfile, TaskListener listener) throws IOException, InterruptedException {

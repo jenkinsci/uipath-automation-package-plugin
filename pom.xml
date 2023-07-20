@@ -213,6 +213,11 @@
         <!-- This explicit dependency is added because the older version
             which gets added by parent pom has the vulnerability -->
         <dependency>
+            <groupId>org.jenkins-ci.modules</groupId>
+            <artifactId>instance-identity</artifactId>
+            <version>116.vf8f487400980</version>
+        </dependency>
+        <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>${snakeyaml.version}</version>

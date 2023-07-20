@@ -6,8 +6,7 @@ import com.uipath.uipathpackage.entries.authentication.ExternalAppAuthentication
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
 import com.uipath.uipathpackage.models.DeployOptions;
-import com.uipath.uipathpackage.util.TraceLevel;
-import com.uipath.uipathpackage.util.Utility;
+import com.uipath.uipathpackage.util.*;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.*;
@@ -206,13 +205,22 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         util.validateRuntime(launcher);
 
         try {
-            EnvVars envVars = run.getEnvironment(listener);
+            EnvVars envVars = TaskScopedEnvVarsManager.selectOnlyRequiredEnvironmentVariables(run, env, listener);
+
+            CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
+            String buildTag = envVars.get("BUILD_TAG");
 
             FilePath expandedPackagePath = packagePath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(packagePath)) :
                     workspace.child(envVars.expand(packagePath));
 
             DeployOptions deployOptions = new DeployOptions();
+            if (cliDetails.getActualVersion().supportsNewTelemetry()) {
+                deployOptions.populateAdditionalTelemetryData();
+                deployOptions.setPipelineCorrelationId(buildTag);
+                deployOptions.setCliGetFlow(cliDetails.getGetFlow());
+            }
+
             deployOptions.setPackagesPath(expandedPackagePath.getRemote());
             deployOptions.setOrchestratorUrl(orchestratorAddress);
             deployOptions.setOrganizationUnit(envVars.expand(folderName.trim()));

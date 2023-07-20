@@ -117,7 +117,7 @@ public class UiPathAssetsTests {
 
     @Test
     public void testDeployUpdateAssets() throws Exception {
-        String assetsResourcesFolder = new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("Assets")).getPath()).getAbsolutePath();
+        String assetsResourcesFolder = new File(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("Assets").toURI()).getPath()).getAbsolutePath();
         UiPathAssets builder = new UiPathAssets(new DeleteAssetsEntry(), orchestratorAddress, orchestratorTenant, folderName, userPassCredentials, assetsResourcesFolder + "/deploy_test_sample_file.csv", traceLevel);
         project.getBuildersList().add(builder);
         project = jenkins.configRoundtrip(project);

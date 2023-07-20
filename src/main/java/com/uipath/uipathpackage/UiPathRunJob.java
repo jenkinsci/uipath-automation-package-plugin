@@ -7,9 +7,7 @@ import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
 import com.uipath.uipathpackage.entries.job.*;
 import com.uipath.uipathpackage.models.JobOptions;
-import com.uipath.uipathpackage.util.StartProcessDtoJobPriority;
-import com.uipath.uipathpackage.util.TraceLevel;
-import com.uipath.uipathpackage.util.Utility;
+import com.uipath.uipathpackage.util.*;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.*;
@@ -289,9 +287,18 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
         util.validateRuntime(launcher);
 
         try {
-            EnvVars envVars = run.getEnvironment(listener);
+            EnvVars envVars = TaskScopedEnvVarsManager.selectOnlyRequiredEnvironmentVariables(run, env, listener);
+
+            CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
+            String buildTag = envVars.get("BUILD_TAG");
 
             JobOptions jobOptions = new JobOptions();
+            if (cliDetails.getActualVersion().supportsNewTelemetry()) {
+                jobOptions.populateAdditionalTelemetryData();
+                jobOptions.setPipelineCorrelationId(buildTag);
+                jobOptions.setCliGetFlow(cliDetails.getGetFlow());
+            }
+
             jobOptions.setProcessName(processName);
 
             if (parametersFilePath != null && !parametersFilePath.isEmpty())
