@@ -98,10 +98,10 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         tempRemoteDir.mkdirs();
 
         try {
-            EnvVars envVars = TaskScopedEnvVarsManager.selectOnlyRequiredEnvironmentVariables(run, env, listener);
+            EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
 
             CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
-            String buildTag = envVars.get("BUILD_TAG");
+            String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);
 
             FilePath expandedOutputPath = outputPath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(outputPath)) :

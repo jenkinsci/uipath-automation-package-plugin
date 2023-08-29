@@ -57,10 +57,15 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
     }
 
     @Override
-    public void perform(@NonNull Run<?, ?> run, @NonNull FilePath workspace, @NonNull EnvVars env, @NonNull Launcher launcher, @NonNull TaskListener listener) throws AbortException {
+    public void perform(
+            @NonNull Run<?, ?> run,
+            @NonNull FilePath workspace,
+            @NonNull EnvVars env,
+            @NonNull Launcher launcher,
+            @NonNull TaskListener listener) throws AbortException {
         PrintStream logger = listener.getLogger();
         try {
-            EnvVars envVars = TaskScopedEnvVarsManager.selectOnlyRequiredEnvironmentVariables(run, env, listener);
+            EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
 
             cliConfiguration.updateSelectedCliVersionKey(cliVersion);
             boolean isSelectedCliAlreadyCached = cliConfiguration.getCliPath(launcher, envVars, cliVersion).isPresent();

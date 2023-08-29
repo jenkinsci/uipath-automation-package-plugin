@@ -90,7 +90,11 @@ public class Utility {
         return result;
     }
 
-    public  CliDetails getCliDetails(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener, @Nonnull EnvVars envVars, @Nonnull Launcher launcher) throws IOException, InterruptedException, URISyntaxException {
+    public  CliDetails getCliDetails(
+            @Nonnull Run<?, ?> run,
+            @Nonnull TaskListener listener,
+            @Nonnull EnvVars envVars,
+            @Nonnull Launcher launcher) throws IOException, InterruptedException, URISyntaxException {
         UiPathCliConfiguration cliConfiguration = UiPathCliConfiguration.getInstance();
         Optional<FilePath> cachedCliPath = cliConfiguration.getCliPath(launcher, envVars, cliConfiguration.getSelectedOrDefaultCliVersionKey());
 

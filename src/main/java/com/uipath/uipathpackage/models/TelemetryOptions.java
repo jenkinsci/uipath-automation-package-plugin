@@ -1,66 +1,18 @@
 package com.uipath.uipathpackage.models;
-
 import com.uipath.uipathpackage.util.CliGetFlow;
-import hudson.PluginWrapper;
-import jenkins.model.Jenkins;
-import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 
-public abstract class TelemetryOptions {
-    private final String telemetryOrigin;
+public interface TelemetryOptions {
+    public void populateAdditionalTelemetryData();
+    public String getTelemetryOriginVersion();
+    public String getPipelineCorrelationId();
 
-    private String pipelineCorrelationId;
-    private String extensionClientOrganizationId;
-    private String telemetryOriginVersion;
-    private String cliGetFlow;
+    public void setPipelineCorrelationId(String buildTag);
 
-    public TelemetryOptions() {
-        this.telemetryOrigin = "Jenkins";
-    }
+    public String getExtensionClientOrganizationId();
 
-    public void populateAdditionalTelemetryData() {
-        this.telemetryOriginVersion = getPluginVersion();
-        this.extensionClientOrganizationId = getInstanceIdentity();
-    }
+    public String getTelemetryOrigin();
 
-    private String getInstanceIdentity() {
-        return  InstanceIdentity.get().getEncodedPublicKey();
-    }
+    public String getCliGetFlow();
 
-    public String getTelemetryOriginVersion() {
-        return telemetryOriginVersion;
-    }
-
-    private String getPluginVersion() {
-        Jenkins jenkinsInstance = Jenkins.get();
-        PluginWrapper pluginWrapper = jenkinsInstance.getPluginManager().getPlugin("uipath-automation-package");
-
-        if (pluginWrapper != null)
-            return pluginWrapper.getVersion();
-
-        return "";
-    }
-
-    public String getPipelineCorrelationId() {
-        return pipelineCorrelationId;
-    }
-
-    public void setPipelineCorrelationId(String buildTag) {
-        this.pipelineCorrelationId = getInstanceIdentity() + buildTag;
-    }
-
-    public String getExtensionClientOrganizationId() {
-        return extensionClientOrganizationId;
-    }
-
-    public String getTelemetryOrigin() {
-        return telemetryOrigin;
-    }
-
-    public String getCliGetFlow() {
-        return cliGetFlow;
-    }
-
-    public void setCliGetFlow(CliGetFlow cliGetFlow) {
-        this.cliGetFlow = cliGetFlow.toString();
-    }
+    public void setCliGetFlow(CliGetFlow cliGetFlow);
 }

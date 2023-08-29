@@ -1,6 +1,6 @@
 package com.uipath.uipathpackage.models;
 
-public class TestOptions extends AuthenticatedOptions {
+public class TestOptions extends CommonOptions {
     private String projectPath;
     private String testSet;
     private String environment;

@@ -3,7 +3,7 @@ package com.uipath.uipathpackage.models;
 import com.uipath.uipathpackage.util.JobType;
 import com.uipath.uipathpackage.util.StartProcessDtoJobPriority;
 
-public class JobOptions extends AuthenticatedOptions {
+public class JobOptions extends CommonOptions {
     private String processName;
     private String parametersFilePath;
     private StartProcessDtoJobPriority priority = StartProcessDtoJobPriority.Normal;

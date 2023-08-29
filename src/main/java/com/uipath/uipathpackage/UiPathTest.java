@@ -117,10 +117,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
         try {
             ResourceBundle rb = ResourceBundle.getBundle("config");
-            EnvVars envVars = TaskScopedEnvVarsManager.selectOnlyRequiredEnvironmentVariables(run, env, listener);
+            EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
 
             CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
-            String buildTag = envVars.get("BUILD_TAG");
+            String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);
 
             TestOptions testOptions = new TestOptions();
             if (cliDetails.getActualVersion().supportsNewTelemetry()) {
