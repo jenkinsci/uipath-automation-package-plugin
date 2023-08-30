@@ -202,10 +202,9 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         }
         tempRemoteDir.mkdirs();
 
-        util.validateRuntime(launcher);
-
         try {
             EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
+            util.validateRuntime(launcher, envVars);
 
             CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
             String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);

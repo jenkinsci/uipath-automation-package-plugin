@@ -115,7 +115,7 @@ public class UiPathDeployTests {
 
         description = "TestDesc";
         environments = System.getenv("TestOrchestratorEnvironments");
-        folderName = System.getenv("TestOrchestratorFolderName");
+        folderName = System.getenv("TestOrchestratorCloudModernFolderName");
         folderId = 21;
         workspaceOutputPath = "${WORKSPACE}";
         traceLevel = TraceLevel.None;

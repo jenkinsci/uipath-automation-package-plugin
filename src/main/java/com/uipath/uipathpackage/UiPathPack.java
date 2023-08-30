@@ -85,8 +85,6 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull EnvVars env, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         validateParameters();
 
-        util.validateRuntime(launcher);
-
         FilePath tempRemoteDir = tempDir(workspace);
         /**
          * Adding the null check here as above method "tempDir" is annotated with @CheckForNull
@@ -99,6 +97,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
         try {
             EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
+            util.validateRuntime(launcher, envVars);
 
             CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
             String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);

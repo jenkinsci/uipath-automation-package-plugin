@@ -21,7 +21,6 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.PrintStream;
 import java.util.Map;
 
@@ -67,7 +66,7 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
         try {
             EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
 
-            cliConfiguration.updateSelectedCliVersionKey(cliVersion);
+            cliConfiguration.updateSelectedCliVersionKey(run, cliVersion);
             boolean isSelectedCliAlreadyCached = cliConfiguration.getCliPath(launcher, envVars, cliVersion).isPresent();
 
             logger.println(isSelectedCliAlreadyCached ? "cli is already cached.." : "cli is not found in cache..");
@@ -101,9 +100,8 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
                     FilePath downloadsRootPath = cliConfiguration.getCliRootDownloadsDirectoryPath(launcher, envVars, cliVersion);
 
                     String fileName = configuration.getName().concat(".").concat(configuration.getVersion().getComplete()).concat(".nupkg");
-                    downloadsRootPath.child(fileName);
 
-                    FilePath downloadCliPath = new FilePath(new File(downloadsRootPath.getRemote()));
+                    FilePath downloadCliPath = downloadsRootPath.child(fileName);
                     util.downloadCli(configuration.getFeedUrl(), downloadCliPath, listener);
 
                     logger.print("(caching) extracting the downloaded cli...");

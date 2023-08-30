@@ -7,12 +7,13 @@ import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -44,6 +45,9 @@ public class UiPathCliConfigurationTests {
     EnvVars envVars;
     @Mock
     Launcher launcher;
+    @Rule
+    public final JenkinsRule jenkins = new JenkinsRule();
+    private FreeStyleProject project;
 
     @Before
     public void beforeTest() throws IOException {
@@ -53,6 +57,8 @@ public class UiPathCliConfigurationTests {
         }
         FileUtils.cleanDirectory(testDir);
         this.tmpDir = new FilePath(testDir);
+
+        project = jenkins.createFreeStyleProject("freeStyleProject1");
     }
 
     @Test
@@ -78,25 +84,27 @@ public class UiPathCliConfigurationTests {
         UiPathCliConfiguration cliConfiguration = UiPathCliConfiguration.getInstance();
         util.extractCliApp(cliConfiguration.getCliRootCachedDirectoryPath(launcher, envVars, cliConfiguration.getDefaultCliVersionKey()), listener,  envVars);
         FilePath cliPath = cliConfiguration.getCliPath(launcher,envVars, cliConfiguration.getDefaultCliVersionKey()).get();
-        assertThat(cliPath.getRemote(), CoreMatchers.containsString("cli.exe"));
+        assertThat(cliPath.getRemote(), CoreMatchers.containsString("cli.dll"));
         assertEquals(true, cliPath.exists());
     }
 
     @Test
-    public void testCliConfigurationGetCliPathFailsForUnknownCliVersion() throws IOException, InterruptedException {
+    public void testCliConfigurationGetCliPathFailsForUnknownCliVersion() throws Exception {
         when(launcher.getListener()).thenReturn(listener);
         when(listener.getLogger()).thenReturn(logger);
         when(envVars.expand("${WORKSPACE}")).thenReturn(tmpDir.getRemote());
         UiPathCliConfiguration cliConfiguration = UiPathCliConfiguration.getInstance();
         try {
-            cliConfiguration.updateSelectedCliVersionKey("WIN_22.10.1234.1223");
-        }catch (AbortException e) {
+            project = jenkins.configRoundtrip(project);
+            FreeStyleBuild build = project.scheduleBuild2(0).get();
+            cliConfiguration.updateSelectedCliVersionKey(build, "WIN_22.10.1234.1223");
+        } catch (AbortException e) {
             assertTrue(true);
         }
         try {
             FilePath cliPath = cliConfiguration.getCliPath(launcher, envVars, cliConfiguration.getDefaultCliVersionKey()).get();
             assertEquals(true, !cliPath.exists());
-        }catch (NoSuchElementException e) {
+        } catch (NoSuchElementException e) {
             assertTrue(true);
         }
     }

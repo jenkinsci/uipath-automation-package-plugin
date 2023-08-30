@@ -55,7 +55,7 @@ public class UtilityTest {
         when(envVars.expand(isA(String.class))).thenReturn(jarFile.getAbsolutePath());
         Utility util = new Utility();
         FilePath cliPath = util.extractCliApp(tmpDir, listener,  envVars);
-        assertThat(cliPath.getRemote(), CoreMatchers.containsString("cli.exe"));
+        assertThat(cliPath.getRemote(), CoreMatchers.containsString("cli.dll"));
         assertEquals(true, cliPath.exists());
     }
 

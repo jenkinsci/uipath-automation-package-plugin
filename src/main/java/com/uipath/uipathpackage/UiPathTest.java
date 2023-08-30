@@ -111,13 +111,13 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         if (Objects.isNull(tempRemoteDir)) {
             throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempFolderTest());
         }
-        tempRemoteDir.mkdirs();
 
-        util.validateRuntime(launcher);
+        tempRemoteDir.mkdirs();
 
         try {
             ResourceBundle rb = ResourceBundle.getBundle("config");
             EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
+            util.validateRuntime(launcher, envVars);
 
             CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
             String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);
