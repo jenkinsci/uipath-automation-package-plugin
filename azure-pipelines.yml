@@ -73,7 +73,7 @@ stages:
     variables:
       MavenPOMFile: '$(Build.SourcesDirectory)/pom.xml'
     pool:
-      name: Plugins-Jenkins
+      vmImage: windows-latest
     strategy:
       runOnce:
         deploy:
