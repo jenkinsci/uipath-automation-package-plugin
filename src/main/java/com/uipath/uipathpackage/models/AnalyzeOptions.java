@@ -1,6 +1,6 @@
 package com.uipath.uipathpackage.models;
 
-public class AnalyzeOptions extends AuthenticatedOptions {
+public class AnalyzeOptions extends CommonOptions {
     private String projectPath;
     private String analyzerTraceLevel = "Verbose";
     private boolean stopOnRuleViolation = true;

@@ -50,12 +50,12 @@ public class UtilityTest {
     public void testCliIsCorrectlyExtracted() throws IOException, InterruptedException, URISyntaxException {
         when(listener.getLogger()).thenReturn(logger);
         doNothing().when(logger).println(isA(String.class));
-        File resource = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("")).getPath());
+        File resource = new File(Objects.requireNonNull(getClass().getClassLoader().getResource("").toURI()).getPath());
         File jarFile = new File(resource, "../uipath-automation-package.jar");
         when(envVars.expand(isA(String.class))).thenReturn(jarFile.getAbsolutePath());
         Utility util = new Utility();
         FilePath cliPath = util.extractCliApp(tmpDir, listener,  envVars);
-        assertThat(cliPath.getRemote(), CoreMatchers.containsString("cli.exe"));
+        assertThat(cliPath.getRemote(), CoreMatchers.containsString("cli.dll"));
         assertEquals(true, cliPath.exists());
     }
 

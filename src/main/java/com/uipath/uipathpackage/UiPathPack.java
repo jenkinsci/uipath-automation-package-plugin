@@ -10,9 +10,7 @@ import com.uipath.uipathpackage.entries.versioning.CurrentVersionEntry;
 import com.uipath.uipathpackage.entries.versioning.ManualVersionEntry;
 import com.uipath.uipathpackage.models.AnalyzeOptions;
 import com.uipath.uipathpackage.models.PackOptions;
-import com.uipath.uipathpackage.util.OutputType;
-import com.uipath.uipathpackage.util.TraceLevel;
-import com.uipath.uipathpackage.util.Utility;
+import com.uipath.uipathpackage.util.*;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
@@ -87,8 +85,6 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull EnvVars env, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         validateParameters();
 
-        util.validateRuntime(launcher);
-
         FilePath tempRemoteDir = tempDir(workspace);
         /**
          * Adding the null check here as above method "tempDir" is annotated with @CheckForNull
@@ -100,7 +96,11 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         tempRemoteDir.mkdirs();
 
         try {
-            EnvVars envVars = run.getEnvironment(listener);
+            EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
+            util.validateRuntime(launcher, envVars);
+
+            CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
+            String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);
 
             FilePath expandedOutputPath = outputPath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(outputPath)) :
@@ -113,6 +113,11 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
             if (runWorkflowAnalysis) {
                 AnalyzeOptions analyzeOptions = new AnalyzeOptions();
+                if (cliDetails.getActualVersion().supportsNewTelemetry()) {
+                    analyzeOptions.populateAdditionalTelemetryData();
+                    analyzeOptions.setPipelineCorrelationId(buildTag);
+                    analyzeOptions.setCliGetFlow(cliDetails.getGetFlow());
+                }
                 analyzeOptions.setProjectPath(expandedProjectJsonPath.getRemote());
 
                 if (useOrchestrator) {
@@ -126,6 +131,11 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             }
 
             PackOptions packOptions = new PackOptions();
+            if (cliDetails.getActualVersion().supportsNewTelemetry()) {
+                packOptions.populateAdditionalTelemetryData();
+                packOptions.setPipelineCorrelationId(buildTag);
+                packOptions.setCliGetFlow(cliDetails.getGetFlow());
+            }
 
             packOptions.setDestinationFolder(expandedOutputPath.getRemote());
             packOptions.setProjectPath(expandedProjectJsonPath.getRemote());

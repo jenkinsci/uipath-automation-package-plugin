@@ -1,6 +1,6 @@
 package com.uipath.uipathpackage.models;
 
-public class AssetsOptions extends AuthenticatedOptions {
+public class AssetsOptions extends CommonOptions {
     private String assetsFile;
 
     public String getAssetsFile() {

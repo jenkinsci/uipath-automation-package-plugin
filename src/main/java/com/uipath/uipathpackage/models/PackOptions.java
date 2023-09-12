@@ -1,6 +1,6 @@
 package com.uipath.uipathpackage.models;
 
-public class PackOptions extends AuthenticatedOptions {
+public class PackOptions extends CommonOptions {
     private String projectPath;
     private String destinationFolder;
     private String outputType;

@@ -3,29 +3,29 @@ package com.uipath.uipathpackage.configuration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.uipath.uipathpackage.actions.AddEnvironmentVariablesAction;
+import com.uipath.uipathpackage.util.EnvironmentVariablesConsts;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
+import hudson.model.Run;
 import org.apache.commons.lang.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public final class UiPathCliConfiguration {
 
     private static UiPathCliConfiguration INSTANCE = null;
     public static final String WIN_PLATFORM = "WIN";
     public static final String X_PLATFORM = "X";
-    public static final String LEGACY_CLI_PREFIX = "cli-";
     public static final String SELECTED_CLI_VERSION_KEY = "SELECTED_CLI_VERSION_KEY";
-    private final String DEFAULT_CLI_VERSION_KEY = "UiPath.CLI.Version";
+    public static final String DEFAULT_CLI_VERSION_KEY = "UiPath.CLI.Version";
     private final String INSTALL_PLATFORM_CONFIGURATION_KEY = "UiPath.CLI.InstallPlatform.Configuration";
     private final String INSTALL_PLATFORM_CONFIGURATION_COUNT_KEY = "UiPath.CLI.InstallPlatform.Configuration.Count";
     private final Map<String,Configuration> cliConfigurationMap;
@@ -63,16 +63,18 @@ public final class UiPathCliConfiguration {
         return WIN_PLATFORM + "_" + ResourceBundle.getBundle("config").getString(DEFAULT_CLI_VERSION_KEY);
     }
 
-    public String getSelectedOrDefaultCliVersionKey() {
-        String selectedCliVersionKey = System.getProperty(SELECTED_CLI_VERSION_KEY);
+    public String getSelectedOrDefaultCliVersionKey(@Nonnull EnvVars envVars) {
+        String selectedCliVersionKey = envVars.get(SELECTED_CLI_VERSION_KEY);
         return  StringUtils.isNotBlank(selectedCliVersionKey) ? selectedCliVersionKey : getDefaultCliVersionKey();
     }
 
-    public void updateSelectedCliVersionKey(@Nonnull String cliVersionKey) throws AbortException {
+    public void updateSelectedCliVersionKey(@NonNull Run<?, ?> run, @Nonnull String cliVersionKey) throws AbortException {
         if(!cliConfigurationMap.containsKey(cliVersionKey)) {
             throw new AbortException("(cacheRootPath) invalid cli configuration might have caused this issue.");
         }
-        System.setProperty(SELECTED_CLI_VERSION_KEY, cliVersionKey);
+        Map<String, String> addedEnvVars = Collections.singletonMap(SELECTED_CLI_VERSION_KEY, cliVersionKey);
+        AddEnvironmentVariablesAction envAction = new AddEnvironmentVariablesAction(addedEnvVars);
+        run.addAction(envAction);
     }
 
     public FilePath getCliHomeDirectory(@Nonnull Launcher launcher, @Nonnull EnvVars env) throws IOException, InterruptedException {
@@ -111,20 +113,19 @@ public final class UiPathCliConfiguration {
 
     public Optional<FilePath> getCliPath(@Nonnull Launcher launcher, @Nonnull EnvVars env, String cliVersionKey) {
         PrintStream logger = launcher.getListener().getLogger();
-        try{
+        try {
             FilePath cliCachedPath = getCliRootCachedDirectoryPath(launcher, env, cliVersionKey);
             Configuration configuration = cliConfigurationMap.get(cliVersionKey);
             if (configuration.getVersion().getMajor() >= 22) {
                 cliCachedPath = cliCachedPath.child("tools").child("uipcli.dll");
             } else {
                 /** To Support Backward compatibility cli-21.10.xxx.xxx conventions needs to be followed.*/
-                String cliFolderName = LEGACY_CLI_PREFIX + configuration.getVersion().getComplete();
-                cliCachedPath = cliCachedPath.child(cliFolderName).child("lib").child("net461").child("uipcli.exe");
+                cliCachedPath = cliCachedPath.child("lib").child("net461").child("uipcli.exe");
             }
             if (cliCachedPath.exists()) {
                 return Optional.of(cliCachedPath);
             }
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace(logger);
             logger.println("error while location cached cli path "+e.getMessage());
         }
