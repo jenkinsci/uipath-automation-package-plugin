@@ -8,8 +8,7 @@ import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEnt
 import com.uipath.uipathpackage.entries.testExecutionTarget.TestProjectEntry;
 import com.uipath.uipathpackage.entries.testExecutionTarget.TestSetEntry;
 import com.uipath.uipathpackage.models.TestOptions;
-import com.uipath.uipathpackage.util.TraceLevel;
-import com.uipath.uipathpackage.util.Utility;
+import com.uipath.uipathpackage.util.*;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.*;
 import hudson.model.*;
@@ -112,14 +111,23 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         if (Objects.isNull(tempRemoteDir)) {
             throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempFolderTest());
         }
-        tempRemoteDir.mkdirs();
 
-        util.validateRuntime(launcher);
+        tempRemoteDir.mkdirs();
 
         try {
             ResourceBundle rb = ResourceBundle.getBundle("config");
-            EnvVars envVars = run.getEnvironment(listener);
+            EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
+            util.validateRuntime(launcher, envVars);
+
+            CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
+            String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);
+
             TestOptions testOptions = new TestOptions();
+            if (cliDetails.getActualVersion().supportsNewTelemetry()) {
+                testOptions.populateAdditionalTelemetryData();
+                testOptions.setPipelineCorrelationId(buildTag);
+                testOptions.setCliGetFlow(cliDetails.getGetFlow());
+            }
 
             if (testTarget instanceof TestProjectEntry)
             {

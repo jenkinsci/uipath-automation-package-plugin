@@ -2,6 +2,7 @@ package com.uipath.uipathpackage;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.uipath.uipathpackage.configuration.UiPathCliConfiguration;
+import com.uipath.uipathpackage.util.TaskScopedEnvVarsManager;
 import com.uipath.uipathpackage.util.TraceLevel;
 import com.uipath.uipathpackage.util.Utility;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -20,7 +21,6 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.PrintStream;
 import java.util.Map;
 
@@ -56,11 +56,18 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
     }
 
     @Override
-    public void perform(@NonNull Run<?, ?> run, @NonNull FilePath workspace, @NonNull EnvVars env, @NonNull Launcher launcher, @NonNull TaskListener listener) throws AbortException {
+    public void perform(
+            @NonNull Run<?, ?> run,
+            @NonNull FilePath workspace,
+            @NonNull EnvVars env,
+            @NonNull Launcher launcher,
+            @NonNull TaskListener listener) throws AbortException {
         PrintStream logger = listener.getLogger();
         try {
-            cliConfiguration.updateSelectedCliVersionKey(cliVersion);
-            boolean isSelectedCliAlreadyCached = cliConfiguration.getCliPath(launcher, env, cliVersion).isPresent();
+            EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
+
+            cliConfiguration.updateSelectedCliVersionKey(run, cliVersion);
+            boolean isSelectedCliAlreadyCached = cliConfiguration.getCliPath(launcher, envVars, cliVersion).isPresent();
 
             logger.println(isSelectedCliAlreadyCached ? "cli is already cached.." : "cli is not found in cache..");
 
@@ -70,17 +77,17 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
                     logger.println("force installing the cli , any previous cache for version "+cliVersion+" will be invalidate..");
                 }
 
-                FilePath cliRootCacheDirPath = cliConfiguration.getCliRootCachedDirectoryPath(launcher, env, cliVersion);
+                FilePath cliRootCacheDirPath = cliConfiguration.getCliRootCachedDirectoryPath(launcher, envVars, cliVersion);
 
                 if(cliVersion.equals(cliConfiguration.getDefaultCliVersionKey())) {
                     logger.print("(caching) extracting the pre-packaged cli...");
-                    util.extractCliApp(cliRootCacheDirPath, listener, env);
+                    util.extractCliApp(cliRootCacheDirPath, listener, envVars);
 
                 } else if(StringUtils.isNotBlank(cliNupkgPath)) {
 
                     FilePath actualCliNupkgPath = cliNupkgPath.contains("${WORKSPACE}") ?
-                            new FilePath(launcher.getChannel(), env.expand(cliNupkgPath)) :
-                            workspace.child(env.expand(cliNupkgPath));
+                            new FilePath(launcher.getChannel(), envVars.expand(cliNupkgPath)) :
+                            workspace.child(envVars.expand(cliNupkgPath));
 
                     if(!actualCliNupkgPath.exists()){
                         logger.println("CliNupkgPath provided doesn't exists "+actualCliNupkgPath.getRemote());
@@ -90,12 +97,11 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
                     actualCliNupkgPath.unzip(cliRootCacheDirPath);
                 } else {
                     UiPathCliConfiguration.Configuration configuration = cliConfiguration.getConfiguration().get(cliVersion);
-                    FilePath downloadsRootPath = cliConfiguration.getCliRootDownloadsDirectoryPath(launcher, env, cliVersion);
+                    FilePath downloadsRootPath = cliConfiguration.getCliRootDownloadsDirectoryPath(launcher, envVars, cliVersion);
 
                     String fileName = configuration.getName().concat(".").concat(configuration.getVersion().getComplete()).concat(".nupkg");
-                    downloadsRootPath.child(fileName);
 
-                    FilePath downloadCliPath = new FilePath(new File(downloadsRootPath.getRemote()));
+                    FilePath downloadCliPath = downloadsRootPath.child(fileName);
                     util.downloadCli(configuration.getFeedUrl(), downloadCliPath, listener);
 
                     logger.print("(caching) extracting the downloaded cli...");
