@@ -67,25 +67,27 @@ stages:
       ${{ if eq('Staging', configuration.stageName) }}:
         parameters:
           configurations:
-          - jobName: 'Classic_Library_Pack_Deploy'
-            configurationName: 'Staging Orchestrator/Classic_Library_Pack_Deploy'
-          - jobName: 'Classic_Process_Pack_Deploy_Token'
-            configurationName: 'Staging Orchestrator/Classic_Process_Pack_Deploy_Token'
-          - jobName: 'Classic_Process_Pack_Deploy_ExternalApp'
-            configurationName: 'Staging Orchestrator/Classic_Process_Pack_Deploy_ExternalApp'
-
-          - jobName: 'Modern_Process_RunJob'
-            configurationName: 'Staging Orchestrator/Modern_Process_RunJob'
-          - jobName: 'Modern_TestingProcess_RunTests'
-            configurationName: 'Staging Orchestrator/Modern_TestingProcess_RunTests'
-          - jobName: 'Modern_Process_Pack_Deploy_RunJob'
-            configurationName: 'Staging Orchestrator/Modern_Process_Pack_Deploy_RunJob'
-          - jobName: 'Modern_Process_Pack_Deploy_EntryPoint_RunJob'
-            configurationName: 'Staging Orchestrator/Modern_Process_Pack_Deploy_EntryPoint_RunJob'
-          - jobName: 'Modern_TestingProcess_Pack_Deploy_RunTests_RunJob'
-            configurationName: 'Staging Orchestrator/Modern_TestingProcess_Pack_Deploy_RunTests_RunJob'
-          - jobName: 'Modern_TestingProcess_Pack_Deploy_RunTests_RunJobWithType'
-            configurationName: 'Staging Orchestrator/Modern_TestingProcess_Pack_Deploy_RunTests_RunJobWithType'
+          - jobName: 'Basic_Pipeline'
+            configurationName: 'Staging Orchestrator/Basic_Pipeline'
+#          - jobName: 'Classic_Library_Pack_Deploy'
+#            configurationName: 'Staging Orchestrator/Classic_Library_Pack_Deploy'
+#          - jobName: 'Classic_Process_Pack_Deploy_Token'
+#            configurationName: 'Staging Orchestrator/Classic_Process_Pack_Deploy_Token'
+#          - jobName: 'Classic_Process_Pack_Deploy_ExternalApp'
+#            configurationName: 'Staging Orchestrator/Classic_Process_Pack_Deploy_ExternalApp'
+#
+#          - jobName: 'Modern_Process_RunJob'
+#            configurationName: 'Staging Orchestrator/Modern_Process_RunJob'
+#          - jobName: 'Modern_TestingProcess_RunTests'
+#            configurationName: 'Staging Orchestrator/Modern_TestingProcess_RunTests'
+#          - jobName: 'Modern_Process_Pack_Deploy_RunJob'
+#            configurationName: 'Staging Orchestrator/Modern_Process_Pack_Deploy_RunJob'
+#          - jobName: 'Modern_Process_Pack_Deploy_EntryPoint_RunJob'
+#            configurationName: 'Staging Orchestrator/Modern_Process_Pack_Deploy_EntryPoint_RunJob'
+#          - jobName: 'Modern_TestingProcess_Pack_Deploy_RunTests_RunJob'
+#            configurationName: 'Staging Orchestrator/Modern_TestingProcess_Pack_Deploy_RunTests_RunJob'
+#          - jobName: 'Modern_TestingProcess_Pack_Deploy_RunTests_RunJobWithType'
+#            configurationName: 'Staging Orchestrator/Modern_TestingProcess_Pack_Deploy_RunTests_RunJobWithType'
 
 ### Long Running ###
       ${{ if eq('Long_Running', configuration.stageName) }}:
