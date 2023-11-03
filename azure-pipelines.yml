@@ -21,12 +21,6 @@ resources:
       ref: master
       endpoint: "GitHub connection"
 
-parameters:
-- name: runLongRunningTests
-  displayName: Run all tests
-  type: boolean
-  default: false
-
 variables:
   JENKINS_HOME: 'C:\Windows\System32\config\systemprofile\.jenkins'
   MavenPOMFile: '$(Build.SourcesDirectory)\pom.xml'
@@ -99,35 +93,5 @@ stages:
 - template: stage.test.template.yml
   parameters:
     configurations:
-## TODO add 20.4 tests
-    # - stageName: 'Orchestrator_20_4'
-    #   stageDisplayName: 'Orchestrator 20.4'
-
-#    - stageName: 'Orchestrator_20_10'
-#      stageDisplayName: 'Orchestrator 20.10 (User/Password Auth)'
-
-    #- stageName: 'Orchestrator_21_4'
-    #  stageDisplayName: 'Orchestrator 21.4 (User/Password Auth)'
-
-    #- stageName: 'Orchestrator_21_10'
-    #  stageDisplayName: 'Orchestrator 21.10 (User/Password Auth)'
-
-    #- stageName: 'Orchestrator_22_4'
-    #  stageDisplayName: 'Orchestrator 22.4 (User/Password Auth)'
-
-    #- stageName: 'Alpha'
-    #  stageDisplayName: 'Orchestrator Alpha (Token Auth & External App)'
-
-    # - stageName: 'Cloud'
-    #   stageDisplayName: 'Orchestrator Cloud (Token Auth)'
-
-    - stageName: 'Staging'
-      stageDisplayName: 'Orchestrator Staging (Token Auth & External App)'
-
-    - ${{ if eq(parameters.runLongRunningTests, 'true') }}:
-      - stageName: 'Long_Running'
-        stageDisplayName: 'Long Running Tests'
-
-## TODO add errors validation tests
-    # - stageName: 'Errors_Validation'
-    #   stageDisplayName: 'Errors Validation Tests'
+    - stageName: 'E2E Tests'
+      stageDisplayName: 'E2E Tests'
