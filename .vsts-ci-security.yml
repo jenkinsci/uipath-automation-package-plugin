@@ -28,10 +28,7 @@ stages:
           javaHomeOption: 'JDKVersion'
           jdkVersionOption: '1.11'
           sqMavenPluginVersionChoice: 'latest'
-          ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-            options: '-Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
-          ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-            options: '-DskipTests -Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
+          options: '-DskipTests -Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
       - template: Security/security.yml@common
         parameters:
           removeSpecificPath: true
