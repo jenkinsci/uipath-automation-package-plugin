@@ -5,6 +5,7 @@ jobs:
 - ${{ each configuration in parameters.configurations }}:
   - job: "${{ configuration.jobName }}"
     displayName: "${{ configuration.jobName }}"
+    dependsOn: "${{ configuration.dependsOnJob }}"
     timeoutInMinutes: 90
     pool:
       vmImage: windows-latest
@@ -13,15 +14,15 @@ jobs:
       displayName: 'Queue project Jenkins job and wait for completion'
       inputs:
         serverEndpoint: 'JenkinsCITest'
-        jobName: "Jenkins Plugin Test Cases/${{ configuration.configurationName }}"
+        jobName: "${{ configuration.configurationName }}"
         captureConsole: true
         capturePipeline: true
-        isParameterizedJob: true
+        isParameterizedJob: false
 
     - task: JenkinsDownloadArtifacts@1
       displayName: 'Mirror Jenkins job output'
       inputs:
         jenkinsServerConnection: 'JenkinsCITest'
-        jobName: "Jenkins Plugin Test Cases/${{ configuration.configurationName }}"
+        jobName: "${{ configuration.configurationName }}"
         saveTo: 'jenkinsArtifacts'
         jenkinsBuild: 'LastSuccessfulBuild'
