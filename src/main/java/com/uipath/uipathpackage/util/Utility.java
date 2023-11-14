@@ -150,9 +150,6 @@ public class Utility {
         if (launcher.isUnix() && cliConfig.getWindowsCompatible()) {
             throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseLinux());
         }
-        if(cliConfig.getLinuxCompatible() && !launcher.isUnix()) {
-            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
-        }
     }
 
     public FilePath extractCliApp(@Nonnull FilePath targetRootCacheDir, @Nonnull TaskListener listener, @Nonnull EnvVars env) throws IOException, InterruptedException, URISyntaxException {
