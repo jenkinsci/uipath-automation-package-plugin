@@ -4,6 +4,12 @@ public class PackOptions extends CommonOptions {
     private String projectPath;
     private String destinationFolder;
     private String outputType;
+    private Boolean splitOutput;
+    private String repositoryUrl;
+    private String repositoryCommit;
+    private String repositoryBranch;
+    private String repositoryType;
+    private String projectUrl;
     private String version;
     private boolean autoVersion;
 
@@ -39,11 +45,59 @@ public class PackOptions extends CommonOptions {
         this.outputType = outputType;
     }
 
+    public boolean isSplitOutput() {
+        return splitOutput;
+    }
+
+    public void setSplitOutput(Boolean splitOutput) {
+        this.splitOutput = splitOutput;
+    }
+
     public String getVersion() {
         return version;
     }
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public String getRepositoryUrl() {
+        return repositoryUrl;
+    }
+
+    public void setRepositoryUrl(String repositoryUrl) {
+        this.repositoryUrl = repositoryUrl;
+    }
+
+    public String getRepositoryCommit() {
+        return repositoryCommit;
+    }
+
+    public void setRepositoryCommit(String repositoryCommit) {
+        this.repositoryCommit = repositoryCommit;
+    }
+
+    public String getRepositoryBranch() {
+        return repositoryBranch;
+    }
+
+    public void setRepositoryBranch(String repositoryBranch) {
+        this.repositoryBranch = repositoryBranch;
+    }
+
+    public String getRepositoryType() {
+        return repositoryType;
+    }
+
+    public void setRepositoryType(String repositoryType) {
+        this.repositoryType = repositoryType;
+    }
+
+    public String getProjectUrl() {
+        return projectUrl;
+    }
+
+    public void setProjectUrl(String projectUrl) {
+        this.projectUrl = projectUrl;
     }
 }

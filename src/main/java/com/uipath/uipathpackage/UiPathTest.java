@@ -49,6 +49,11 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private final String testResultsOutputPath;
     private final String parametersFilePath;
     private String testResultIncludes;
+    private String repositoryUrl;
+    private String repositoryCommit;
+    private String repositoryBranch;
+    private String repositoryType;
+    private String projectUrl;
     private final TraceLevel traceLevel;
     private boolean attachRobotLogs;
     
@@ -85,6 +90,11 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         this.timeout = timeout;
         this.testResultsOutputPath = testResultsOutputPath;
 		this.parametersFilePath = parametersFilePath;
+        this.repositoryUrl = null;
+        this.repositoryCommit = null;
+        this.repositoryBranch = null;
+        this.repositoryType = null;
+        this.projectUrl = null;
         this.traceLevel = traceLevel;
         this.attachRobotLogs = false;
     }
@@ -192,7 +202,13 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             }
             
             testOptions.setAttachRobotLogs(attachRobotLogs);
-            
+
+            testOptions.setRepositoryUrl(repositoryUrl);
+            testOptions.setRepositoryCommit(repositoryCommit);
+            testOptions.setRepositoryBranch(repositoryBranch);
+            testOptions.setRepositoryType(repositoryType);
+            testOptions.setProjectUrl(projectUrl);
+
             int result = util.execute("RunTestsOptions", testOptions, tempRemoteDir, listener, envVars, launcher, false);
 
             if (result != 0 && !expandedTestResultsOutputPath.exists()) {
@@ -330,6 +346,51 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 	}
 
     /**
+     * Provides the repository url
+     *
+     * @return String repositoryUrl
+     */
+    public String getRepositoryUrl() {
+        return repositoryUrl;
+    }
+
+    /**
+     * Provides the repository commit
+     *
+     * @return String repositoryCommit
+     */
+    public String getRepositoryCommit() {
+        return repositoryCommit;
+    }
+
+    /**
+     * Provides the repository branch
+     *
+     * @return String repositoryBranch
+     */
+    public String getRepositoryBranch() {
+        return repositoryBranch;
+    }
+
+    /**
+     * Provides the repository type
+     *
+     * @return String repositoryType
+     */
+    public String getRepositoryType() {
+        return repositoryType;
+    }
+
+    /**
+     * Provides the project url
+     *
+     * @return String projectUrl
+     */
+    public String getProjectUrl() {
+        return projectUrl;
+    }
+
+    /**
      * attachRobotLogs
      *
      * @param attachRobotLogs   Boolean field whether to attach the robot logs
@@ -338,7 +399,32 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     public void setAttachRobotLogs(boolean attachRobotLogs) {
     	this.attachRobotLogs = attachRobotLogs;
     }
-    
+
+    @DataBoundSetter
+    public void setRepositoryUrl(String repositoryUrl) {
+        this.repositoryUrl = repositoryUrl;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryCommit(String repositoryCommit) {
+        this.repositoryCommit = repositoryCommit;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryBranch(String repositoryBranch) {
+        this.repositoryBranch = repositoryBranch;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryType(String repositoryType) {
+        this.repositoryType = repositoryType;
+    }
+
+    @DataBoundSetter
+    public void setProjectUrl(String projectUrl) {
+        this.projectUrl = projectUrl;
+    }
+
 	private void validateParameters() throws AbortException {
         if (testTarget == null) {
             throw new InvalidParameterException(com.uipath.uipathpackage.Messages.GenericErrors_MissingTestSetOrProjectPath());
