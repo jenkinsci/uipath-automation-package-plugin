@@ -42,7 +42,13 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     private final String projectJsonPath;
     private final String outputPath;
     private String outputType;
+    private Boolean splitOutput;
     private boolean runWorkflowAnalysis;
+    private String repositoryUrl;
+    private String repositoryCommit;
+    private String repositoryBranch;
+    private String repositoryType;
+    private String projectUrl;
     private boolean useOrchestrator;
     private String orchestratorAddress;
     private String orchestratorTenant;
@@ -64,6 +70,12 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         this.outputPath = outputPath;
         this.traceLevel = traceLevel;
         this.outputType = "None";
+        this.splitOutput = null;
+        this.repositoryUrl = null;
+        this.repositoryCommit = null;
+        this.repositoryBranch = null;
+        this.repositoryType = null;
+        this.projectUrl = null;
 
         this.orchestratorAddress = "";
         this.orchestratorTenant = "";
@@ -140,6 +152,15 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             packOptions.setDestinationFolder(expandedOutputPath.getRemote());
             packOptions.setProjectPath(expandedProjectJsonPath.getRemote());
             packOptions.setOutputType(outputType);
+            if (splitOutput != null && splitOutput) {
+                packOptions.setSplitOutput(true);
+            }
+
+            packOptions.setRepositoryUrl(repositoryUrl);
+            packOptions.setRepositoryCommit(repositoryCommit);
+            packOptions.setRepositoryBranch(repositoryBranch);
+            packOptions.setRepositoryType(repositoryType);
+            packOptions.setProjectUrl(projectUrl);
 
             if (version instanceof ManualVersionEntry) {
                 packOptions.setVersion(envVars.expand(((ManualVersionEntry) version).getVersion().trim()));
@@ -192,8 +213,38 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundSetter
+    public void setSplitOutput(Boolean splitOutput) {
+        this.splitOutput = splitOutput;
+    }
+
+    @DataBoundSetter
     public void setRunWorkflowAnalysis(boolean runWorkflowAnalysis) {
         this.runWorkflowAnalysis = runWorkflowAnalysis;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryUrl(String repositoryUrl) {
+        this.repositoryUrl = repositoryUrl;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryCommit(String repositoryCommit) {
+        this.repositoryCommit = repositoryCommit;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryBranch(String repositoryBranch) {
+        this.repositoryBranch = repositoryBranch;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryType(String repositoryType) {
+        this.repositoryType = repositoryType;
+    }
+
+    @DataBoundSetter
+    public void setProjectUrl(String projectUrl) {
+        this.projectUrl = projectUrl;
     }
 
     @DataBoundSetter
@@ -284,12 +335,66 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     }
 
     /**
+     * Provides the split output flag
+     *
+     * @return Boolean splitOutput
+     */
+    public Boolean getSplitOutput() {
+        return splitOutput;
+    }
+
+    /**
      * Provides the run workflow analysis flag
      *
      * @return boolean runWorkflowAnalysis
      */
     public boolean getRunWorkflowAnalysis() {
         return runWorkflowAnalysis;
+    }
+
+    /**
+     * Provides the repository url
+     *
+     * @return String repositoryUrl
+     */
+    public String getRepositoryUrl() {
+        return repositoryUrl;
+    }
+
+    /**
+     * Provides the repository commit
+     *
+     * @return String repositoryCommit
+     */
+    public String getRepositoryCommit() {
+        return repositoryCommit;
+    }
+
+    /**
+     * Provides the repository branch
+     *
+     * @return String repositoryBranch
+     */
+    public String getRepositoryBranch() {
+        return repositoryBranch;
+    }
+
+    /**
+     * Provides the repository type
+     *
+     * @return String repositoryType
+     */
+    public String getRepositoryType() {
+        return repositoryType;
+    }
+
+    /**
+     * Provides the project url
+     *
+     * @return String projectUrl
+     */
+    public String getProjectUrl() {
+        return projectUrl;
     }
 
     /**
