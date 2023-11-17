@@ -60,6 +60,23 @@
     <f:entry field="timeout" title="${%Timeout}">
         <f:textbox/>
     </f:entry>
+    <f:optionalBlock title="${%PackageMetadata}" field="showMetadata" checked="${instance.showMetadata}" inline="true">
+        <f:entry field="repositoryUrl" title="${%RepositoryUrl}">
+            <f:textbox/>
+        </f:entry>
+        <f:entry field="repositoryCommit" title="${%RepositoryCommit}">
+            <f:textbox/>
+        </f:entry>
+        <f:entry field="repositoryBranch" title="${%RepositoryBranch}">
+            <f:textbox/>
+        </f:entry>
+        <f:entry field="repositoryType" title="${%RepositoryType}">
+            <f:textbox/>
+        </f:entry>
+        <f:entry field="projectUrl" title="${%ProjectUrl}">
+            <f:textbox/>
+        </f:entry>
+    </f:optionalBlock>
     <f:entry title="${%TraceLevel}" field="traceLevel">
         <f:select/>
     </f:entry>
