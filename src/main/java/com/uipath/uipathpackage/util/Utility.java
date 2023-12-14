@@ -245,8 +245,6 @@ public class Utility {
             options.setApplicationScope(cred.getApplicationScope());
             if (StringUtils.isNotBlank(cred.getIdentityUrl())) {
             	options.setAuthorizationUrl(cred.getIdentityUrl());
-            }else {
-            	options.setAuthorizationUrl(options.getOrchestratorUrl());
             }
         }
     }
