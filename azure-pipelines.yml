@@ -21,12 +21,6 @@ resources:
       ref: master
       endpoint: "GitHub connection"
 
-parameters:
-- name: runLongRunningTests
-  displayName: Run all tests
-  type: boolean
-  default: false
-
 variables:
   JENKINS_HOME: 'C:\Windows\System32\config\systemprofile\.jenkins'
   MavenPOMFile: '$(Build.SourcesDirectory)\pom.xml'
@@ -39,7 +33,7 @@ stages:
   displayName: "Build CLI package"
   jobs:
   - job: BuildAndPublishArtifacts
-    displayName: 'Build and run unit tests'
+    displayName: 'Build'
     timeoutInMinutes: 90
     workspace:
       clean: outputs
@@ -61,7 +55,6 @@ stages:
 
 - stage: Deploy
   displayName: "Deploy on Jenkins server"
-  
   dependsOn: Build
   jobs:
   - deployment: DeployJenkinsPlugin
@@ -73,7 +66,7 @@ stages:
     variables:
       MavenPOMFile: '$(Build.SourcesDirectory)/pom.xml'
     pool:
-      name: Plugins-Jenkins
+      vmImage: ubuntu-latest
     strategy:
       runOnce:
         deploy:
@@ -83,51 +76,18 @@ stages:
           - download: current
             displayName: 'Download Packages'
             artifact: Packages
-        
+
           - powershell: |
-              az storage blob upload -f $(Agent.BuildDirectory)/Packages/uipath-automation-package.hpi -c $(ContainerName) -n $(Build.BuildNumber)/uipath-automation-package.hpi --account-name $(AzureAccountName) --auth-mode key --account-key $(StorageAccountKey)
+              az storage blob upload -f $(Agent.BuildDirectory)/Packages/uipath-automation-package.hpi -c $(ContainerName) -n $(Build.BuildNumber)/uipath-automation-package.hpi --account-name $(AzureAccountName) --auth-mode key --account-key $(StorageAccountKey) --overwrite
             displayName: "Upload plugin package to blob storage"
 
           - bash: |
-              rm jenkins-cli.jar*
+              set -e
               wget $(JenkinsUrl)/jnlpJars/jenkins-cli.jar
-              java -jar jenkins-cli.jar -s $(JenkinsUrlHttp) -auth $(JenkinsUsername):$(JenkinsAuthToken) install-plugin https://$(AzureAccountName).blob.core.windows.net/$(ContainerName)/$(Build.BuildNumber)/uipath-automation-package.hpi -restart
+              java -jar jenkins-cli.jar -s $(JenkinsUrl) -auth $(JenkinsUsername):$(JenkinsAuthToken) install-plugin https://$(AzureAccountName).blob.core.windows.net/$(ContainerName)/$(Build.BuildNumber)/uipath-automation-package.hpi -restart
               end=$((SECONDS+300)); while [[ "$(curl -k -s -o /dev/null -w ''%{http_code}'' $(JenkinsUrl)/login)" != "200" ]]; do if [[ $SECONDS -gt $end ]]; then echo "Operation timed out of checking p
               lugin installation status"; break; fi; echo "waiting for plugin to install" && sleep 5; done
             displayName: "Install package on Jenkins server"
 
-- template: stage.test.template.yml
-  parameters:
-    configurations:
-## TODO add 20.4 tests
-    # - stageName: 'Orchestrator_20_4'
-    #   stageDisplayName: 'Orchestrator 20.4'
+- template: stage.test.yml
 
-    - stageName: 'Orchestrator_20_10'
-      stageDisplayName: 'Orchestrator 20.10 (User/Password Auth)'
-
-    #- stageName: 'Orchestrator_21_4'
-    #  stageDisplayName: 'Orchestrator 21.4 (User/Password Auth)'
-
-    #- stageName: 'Orchestrator_21_10'
-    #  stageDisplayName: 'Orchestrator 21.10 (User/Password Auth)'
-
-    #- stageName: 'Orchestrator_22_4'
-    #  stageDisplayName: 'Orchestrator 22.4 (User/Password Auth)'
-
-    #- stageName: 'Alpha'
-    #  stageDisplayName: 'Orchestrator Alpha (Token Auth & External App)'
-
-    # - stageName: 'Cloud'
-    #   stageDisplayName: 'Orchestrator Cloud (Token Auth)'
-
-    - stageName: 'Staging'
-      stageDisplayName: 'Orchestrator Staging (Token Auth & External App)'
-
-    - ${{ if eq(parameters.runLongRunningTests, 'true') }}:
-      - stageName: 'Long_Running'
-        stageDisplayName: 'Long Running Tests'
-
-## TODO add errors validation tests
-    # - stageName: 'Errors_Validation'
-    #   stageDisplayName: 'Errors Validation Tests'

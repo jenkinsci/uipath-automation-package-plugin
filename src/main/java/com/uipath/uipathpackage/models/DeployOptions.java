@@ -2,7 +2,7 @@ package com.uipath.uipathpackage.models;
 
 import java.util.List;
 
-public class DeployOptions extends AuthenticatedOptions {
+public class DeployOptions extends CommonOptions {
     private String packagesPath;
     private List<String> environments;
     private List<String> entryPointPaths;

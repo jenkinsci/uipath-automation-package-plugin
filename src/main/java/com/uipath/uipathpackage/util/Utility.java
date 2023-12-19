@@ -17,6 +17,7 @@ import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 
+import hudson.util.StreamTaskListener;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.json.JSONObject;
@@ -28,12 +29,18 @@ import javax.annotation.Nonnull;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidParameterException;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarException;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.uipath.uipathpackage.configuration.UiPathCliConfiguration.DEFAULT_CLI_VERSION_KEY;
 
 /**
  * Utility Class used by UiPathDeploy and UiPathPack
@@ -67,19 +74,19 @@ public class Utility {
         }
 
         UiPathCliConfiguration cliConfiguration = UiPathCliConfiguration.getInstance();
-        Optional<FilePath> cachedCliPath = cliConfiguration.getCliPath(launcher, envVars, cliConfiguration.getSelectedOrDefaultCliVersionKey());
+        Optional<FilePath> cachedCliPath = cliConfiguration.getCliPath(launcher, envVars, cliConfiguration.getSelectedOrDefaultCliVersionKey(envVars));
 
         FilePath cliPath;
-        if(cachedCliPath.isPresent()) {
+        if (cachedCliPath.isPresent()) {
             cliPath = cachedCliPath.get();
-        }else {
+        } else {
             FilePath cliRootCacheDirPath = cliConfiguration.getCliRootCachedDirectoryPath(launcher, envVars, cliConfiguration.getDefaultCliVersionKey());
             cliPath = extractCliApp(cliRootCacheDirPath, listener, envVars);
         }
 
         FilePath commandOptionsFile = remoteTempDir.createTextTempFile("uipcliargs", "", new JSONObject(new RunOptions(command, options)).toString());
 
-        int result = launcher.launch().cmds(this.buildCommandLine(cliPath, commandOptionsFile)).envs(envVars).stdout(listener).pwd(cliPath.getParent()).start().join();
+        int result = launcher.launch().cmds(this.buildCommandLine(cliPath, commandOptionsFile, envVars)).envs(envVars).stdout(listener).pwd(cliPath.getParent()).start().join();
         if (throwExceptionOnFailure && result != 0) {
             throw new AbortException("Failed to run the command, the CLI failed with error code " + result);
         }
@@ -87,29 +94,68 @@ public class Utility {
         return result;
     }
 
-    public void validateRuntime(@Nonnull Launcher launcher) throws AbortException, JsonProcessingException {
+    public  CliDetails getCliDetails(
+            @Nonnull Run<?, ?> run,
+            @Nonnull TaskListener listener,
+            @Nonnull EnvVars envVars,
+            @Nonnull Launcher launcher) throws IOException, InterruptedException, URISyntaxException {
+        UiPathCliConfiguration cliConfiguration = UiPathCliConfiguration.getInstance();
+        Optional<FilePath> cachedCliPath = cliConfiguration.getCliPath(launcher, envVars, cliConfiguration.getSelectedOrDefaultCliVersionKey(envVars));
+
+        FilePath cliPath;
+        CliGetFlow cliGetFlow;
+        if(cachedCliPath.isPresent()) {
+            cliPath = cachedCliPath.get();
+            cliGetFlow = CliGetFlow.CachedTool;
+        } else {
+            FilePath cliRootCacheDirPath = cliConfiguration.getCliRootCachedDirectoryPath(launcher, envVars, cliConfiguration.getDefaultCliVersionKey());
+            cliPath = extractCliApp(cliRootCacheDirPath, listener, envVars);
+            cliGetFlow = CliGetFlow.ExtractDefaultCli;
+        }
+
+        ByteArrayOutputStream commandOutput = new ByteArrayOutputStream();
+
+        StreamTaskListener execListener = new StreamTaskListener(commandOutput, run.getCharset());
+
+        launcher.launch().cmds(this.buildVersionArgs(cliPath, envVars)).envs(envVars).stdout(execListener).pwd(cliPath.getParent()).start().join();
+
+        String stdoutText = commandOutput.toString(run.getCharset().name());
+
+        CliDetails response = new CliDetails();
+        response.setActualVersion(extractActualVersionFromText(stdoutText));
+        response.setGetFlow(cliGetFlow);
+        return response;
+    }
+
+    private ActualVersion extractActualVersionFromText(String text) {
+        Pattern versionPattern = Pattern.compile("uipcli (\\d+)\\.(\\d+)\\.\\d+");
+
+        Matcher matcher = versionPattern.matcher(text);
+
+        if (matcher.find()) {
+            int majorVersion = Integer.parseInt(matcher.group(1));
+            int minorVersion = Integer.parseInt(matcher.group(2));
+
+            return new ActualVersion(majorVersion, minorVersion);
+        } else {
+            return new ActualVersion(-1, -1);
+        }
+    }
+
+    public void validateRuntime(@Nonnull Launcher launcher, @Nonnull EnvVars envVars) throws AbortException, JsonProcessingException {
         UiPathCliConfiguration configuration = UiPathCliConfiguration.getInstance();
-        String selectedCliVersionKey = configuration.getSelectedOrDefaultCliVersionKey();
+        String selectedCliVersionKey = configuration.getSelectedOrDefaultCliVersionKey(envVars);
         UiPathCliConfiguration.Configuration cliConfig = configuration.getConfiguration().get(selectedCliVersionKey);
 
         if (launcher.isUnix() && cliConfig.getWindowsCompatible()) {
             throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseLinux());
         }
-        if(cliConfig.getLinuxCompatible() && !launcher.isUnix()) {
-            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
-        }
     }
 
-    /**
-     * This method is only to be used for extracting legacy cli (ver.21.xx.xxx.xxx).
-     * This method needs to be changed once we deprecate the legacy cli and start packing a different version of cli i.e. greater than or equal 22.xx.xxx.xxx
-     * as line 113 of this method tries to locate uipcli.exe after extracting the cli's nuget , if used for other versions will result in runtime failures.
-     *  */
     public FilePath extractCliApp(@Nonnull FilePath targetRootCacheDir, @Nonnull TaskListener listener, @Nonnull EnvVars env) throws IOException, InterruptedException, URISyntaxException {
         PrintStream logger = listener.getLogger();
         ResourceBundle rb = ResourceBundle.getBundle("config");
-        String cliFolderName = UiPathCliConfiguration.LEGACY_CLI_PREFIX + this.getConfigValue(rb, "UiPath.CLI.Version");
-        FilePath targetCliPath = targetRootCacheDir.child(cliFolderName).child("lib").child("net461").child("uipcli.exe");
+        FilePath targetCliPath = targetRootCacheDir.child("tools").child("uipcli.dll");
         if (targetCliPath.exists())
         {
             logger.println("Using previously extracted UiPath CLI from " + targetCliPath);
@@ -199,8 +245,6 @@ public class Utility {
             options.setApplicationScope(cred.getApplicationScope());
             if (StringUtils.isNotBlank(cred.getIdentityUrl())) {
             	options.setAuthorizationUrl(cred.getIdentityUrl());
-            }else {
-            	options.setAuthorizationUrl(options.getOrchestratorUrl());
             }
         }
     }
@@ -245,9 +289,9 @@ public class Utility {
         }
     }
 
-    private String[] buildCommandLine(FilePath cliPath, FilePath commandOptionsFile) throws JsonProcessingException {
+    private String[] buildCommandLine(FilePath cliPath, FilePath commandOptionsFile, @Nonnull EnvVars envVars) throws JsonProcessingException {
         UiPathCliConfiguration configuration = UiPathCliConfiguration.getInstance();
-        String selectedCliVersionKey = System.getProperty(UiPathCliConfiguration.SELECTED_CLI_VERSION_KEY);
+        String selectedCliVersionKey = envVars.get(UiPathCliConfiguration.SELECTED_CLI_VERSION_KEY);
 
         if(StringUtils.isBlank(selectedCliVersionKey)) {
             selectedCliVersionKey = configuration.getDefaultCliVersionKey();
@@ -262,6 +306,23 @@ public class Utility {
         return new String[] { cliPath.getRemote(), "run", commandOptionsFile.getRemote() };
     }
 
+    private String[] buildVersionArgs(FilePath cliPath, @Nonnull EnvVars envVars) throws JsonProcessingException {
+        UiPathCliConfiguration configuration = UiPathCliConfiguration.getInstance();
+        String selectedCliVersionKey = envVars.get(UiPathCliConfiguration.SELECTED_CLI_VERSION_KEY);
+
+        if(StringUtils.isBlank(selectedCliVersionKey)) {
+            selectedCliVersionKey = configuration.getDefaultCliVersionKey();
+        }
+
+        UiPathCliConfiguration.Configuration cliConfig = configuration.getConfiguration().get(selectedCliVersionKey);
+
+        if(cliConfig.getVersion().getMajor() >= 22) {
+            return new String[] {"dotnet", cliPath.getRemote(), "--version" };
+        }
+
+        return new String[] { cliPath.getRemote(), "--version" };
+    }
+
     private void extractResourcesToTempFolder(FilePath tempDir, File jarfile, TaskListener listener) throws IOException, InterruptedException {
         try (JarFile archive = new JarFile(jarfile)) {
             // sort entries by name to always create folders first
@@ -271,7 +332,13 @@ public class Utility {
                     continue;
                 }
 
-                FilePath destination = tempDir.child(entry.getName());
+                Path entryPath = Paths.get(entry.getName());
+                if (entryPath.getNameCount() <= 1) {
+                    continue;
+                }
+
+                String entryWithoutRootFolder = entryPath.subpath(1, entryPath.getNameCount()).toString();
+                FilePath destination = tempDir.child(entryWithoutRootFolder);
 
                 if (entry.isDirectory()) {
                     destination.mkdirs();
@@ -291,13 +358,14 @@ public class Utility {
             // For snapshot plugin dependencies, an IDE may have replaced ~/.m2/repository/…/${artifactId}.hpi with …/${artifactId}-plugin/target/classes/
             // which unfortunately lacks META-INF/MANIFEST.MF so try to find index.jelly (which every plugin should include) and thus the ${artifactId}.hpi:
             Enumeration<URL> jellies = getClass().getClassLoader().getResources("index.jelly");
+            String defaultVersion = ResourceBundle.getBundle("config").getString(DEFAULT_CLI_VERSION_KEY);
             while (jellies.hasMoreElements()) {
                 URL jellyU = jellies.nextElement();
                 if (jellyU.getProtocol().equals("file")) {
                     File jellyF = new File(jellyU.toURI());
                     File classes = jellyF.getParentFile();
                     if (classes.getName().equals("classes")) {
-                        FilePath wsClasses = new FilePath(classes);
+                        FilePath wsClasses = new FilePath(classes).child("cli-" + defaultVersion);
                         wsClasses.copyRecursiveTo(tempDir);
                         listener.getLogger().println("Plugin files copied to temp");
                     }

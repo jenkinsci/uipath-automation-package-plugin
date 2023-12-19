@@ -1,5 +1,0 @@
-name,type,value
-asset_1_name,text,asset_value   # we can have comments
-asset_2_name,integer,123
-asset_3_name,boolean,false
-asset_4_name,credential,"username::password"
