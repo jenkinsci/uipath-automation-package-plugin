@@ -128,7 +128,7 @@ public class Utility {
     }
 
     private ActualVersion extractActualVersionFromText(String text) {
-        Pattern versionPattern = Pattern.compile("uipcli (\\d+)\\.(\\d+)\\.\\d+-\\w+");
+        Pattern versionPattern = Pattern.compile("uipcli (\\d+)\\.(\\d+)\\.\\d+");
 
         Matcher matcher = versionPattern.matcher(text);
 
