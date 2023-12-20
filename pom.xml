@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>uipath-automation-package</artifactId>
-    <version>3.1-SNAPSHOT</version>
+    <version>3.1</version>
     <packaging>hpi</packaging>
 
     <properties>
@@ -207,7 +207,7 @@
         <connection>scm:git:ssh://git@github.com/jenkinsci/uipath-automation-package-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/uipath-automation-package-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/uipath-automation-package-plugin</url>
-        <tag>HEAD</tag>
+        <tag>uipath-automation-package-3.1</tag>
     </scm>
     <!-- List of dependencies of the project. -->
     <dependencies>
