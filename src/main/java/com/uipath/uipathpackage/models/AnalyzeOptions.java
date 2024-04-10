@@ -6,6 +6,15 @@ public class AnalyzeOptions extends CommonOptions {
     private boolean stopOnRuleViolation = true;
     private boolean treatWarningsAsErrors = false;
     private String ignoredRules = "";
+    private Boolean disableBuiltInNugetFeeds;
+
+    public boolean isDisableBuiltInNugetFeeds() {
+        return disableBuiltInNugetFeeds;
+    }
+
+    public void setDisableBuiltInNugetFeeds(Boolean disableBuiltInNugetFeeds) {
+        this.disableBuiltInNugetFeeds = disableBuiltInNugetFeeds;
+    }
 
     public String getProjectPath() {
         return projectPath;

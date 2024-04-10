@@ -83,4 +83,7 @@
     <f:entry title="${%AttachRobotLogs}" field="attachRobotLogs">
         <f:checkbox default="false"/>
     </f:entry>
+    <f:entry field="disableBuiltInNugetFeeds" title="${%DisableBuiltInNugetFeeds}">
+        <f:checkbox default="false"/>
+    </f:entry>
 </j:jelly>

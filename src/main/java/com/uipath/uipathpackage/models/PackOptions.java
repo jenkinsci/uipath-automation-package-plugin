@@ -5,6 +5,7 @@ public class PackOptions extends CommonOptions {
     private String destinationFolder;
     private String outputType;
     private Boolean splitOutput;
+    private Boolean disableBuiltInNugetFeeds;
     private String repositoryUrl;
     private String repositoryCommit;
     private String repositoryBranch;
@@ -47,6 +48,14 @@ public class PackOptions extends CommonOptions {
 
     public boolean isSplitOutput() {
         return splitOutput;
+    }
+
+    public boolean isDisableBuiltInNugetFeeds() {
+        return disableBuiltInNugetFeeds;
+    }
+
+    public void setDisableBuiltInNugetFeeds(Boolean disableBuiltInNugetFeeds) {
+        this.disableBuiltInNugetFeeds = disableBuiltInNugetFeeds;
     }
 
     public void setSplitOutput(Boolean splitOutput) {
