@@ -43,6 +43,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     private final String outputPath;
     private String outputType;
     private Boolean splitOutput;
+    private Boolean disableBuiltInNugetFeeds;
     private boolean runWorkflowAnalysis;
     private String repositoryUrl;
     private String repositoryCommit;
@@ -71,6 +72,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         this.traceLevel = traceLevel;
         this.outputType = "None";
         this.splitOutput = null;
+        this.disableBuiltInNugetFeeds = null;
         this.repositoryUrl = null;
         this.repositoryCommit = null;
         this.repositoryBranch = null;
@@ -125,6 +127,10 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
             if (runWorkflowAnalysis) {
                 AnalyzeOptions analyzeOptions = new AnalyzeOptions();
+                if (disableBuiltInNugetFeeds != null && disableBuiltInNugetFeeds) {
+                    analyzeOptions.setDisableBuiltInNugetFeeds(true);
+                }
+
                 if (cliDetails.getActualVersion().supportsNewTelemetry()) {
                     analyzeOptions.populateAdditionalTelemetryData();
                     analyzeOptions.setPipelineCorrelationId(buildTag);
@@ -154,6 +160,10 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             packOptions.setOutputType(outputType);
             if (splitOutput != null && splitOutput) {
                 packOptions.setSplitOutput(true);
+            }
+
+            if (disableBuiltInNugetFeeds != null && disableBuiltInNugetFeeds) {
+                packOptions.setDisableBuiltInNugetFeeds(true);
             }
 
             packOptions.setRepositoryUrl(repositoryUrl);
@@ -215,6 +225,11 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     @DataBoundSetter
     public void setSplitOutput(Boolean splitOutput) {
         this.splitOutput = splitOutput;
+    }
+
+    @DataBoundSetter
+    public void setDisableBuiltInNugetFeeds(Boolean disableBuiltInNugetFeeds) {
+        this.disableBuiltInNugetFeeds = disableBuiltInNugetFeeds;
     }
 
     @DataBoundSetter
@@ -341,6 +356,10 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      */
     public Boolean getSplitOutput() {
         return splitOutput;
+    }
+
+    public Boolean getDisableBuiltInNugetFeeds() {
+        return disableBuiltInNugetFeeds;
     }
 
     /**

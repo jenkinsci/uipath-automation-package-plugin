@@ -56,6 +56,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private String projectUrl;
     private final TraceLevel traceLevel;
     private boolean attachRobotLogs;
+    private Boolean disableBuiltInNugetFeeds;
     
     private static int TimeoutDefault = 7200;
 
@@ -90,6 +91,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         this.timeout = timeout;
         this.testResultsOutputPath = testResultsOutputPath;
 		this.parametersFilePath = parametersFilePath;
+        this.disableBuiltInNugetFeeds = null;
         this.repositoryUrl = null;
         this.repositoryCommit = null;
         this.repositoryBranch = null;
@@ -133,6 +135,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);
 
             TestOptions testOptions = new TestOptions();
+            if (disableBuiltInNugetFeeds != null && disableBuiltInNugetFeeds) {
+                testOptions.setDisableBuiltInNugetFeeds(true);
+            }
+
             if (cliDetails.getActualVersion().supportsNewTelemetry()) {
                 testOptions.populateAdditionalTelemetryData();
                 testOptions.setPipelineCorrelationId(buildTag);
@@ -390,6 +396,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         return projectUrl;
     }
 
+    public Boolean getDisableBuiltInNugetFeeds() {
+        return disableBuiltInNugetFeeds;
+    }
+
     /**
      * attachRobotLogs
      *
@@ -398,6 +408,11 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     @DataBoundSetter
     public void setAttachRobotLogs(boolean attachRobotLogs) {
     	this.attachRobotLogs = attachRobotLogs;
+    }
+
+    @DataBoundSetter
+    public void setDisableBuiltInNugetFeeds(Boolean disableBuiltInNugetFeeds) {
+        this.disableBuiltInNugetFeeds = disableBuiltInNugetFeeds;
     }
 
     @DataBoundSetter
