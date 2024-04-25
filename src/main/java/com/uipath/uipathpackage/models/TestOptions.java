@@ -14,6 +14,7 @@ public class TestOptions extends CommonOptions {
     private String repositoryBranch;
     private String repositoryType;
     private String projectUrl;
+    private String releaseNotes;
     private Boolean disableBuiltInNugetFeeds;
 
     public String getEnvironment() {
@@ -128,4 +129,11 @@ public class TestOptions extends CommonOptions {
         this.projectUrl = projectUrl;
     }
 
+    public String getReleaseNotes() {
+        return releaseNotes;
+    }
+
+    public void setReleaseNotes(String releaseNotes) {
+        this.releaseNotes = releaseNotes;
+    }
 }

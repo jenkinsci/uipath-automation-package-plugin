@@ -11,6 +11,7 @@ public class PackOptions extends CommonOptions {
     private String repositoryBranch;
     private String repositoryType;
     private String projectUrl;
+    private String releaseNotes;
     private String version;
     private boolean autoVersion;
 
@@ -108,5 +109,13 @@ public class PackOptions extends CommonOptions {
 
     public void setProjectUrl(String projectUrl) {
         this.projectUrl = projectUrl;
+    }
+
+    public String getReleaseNotes() {
+        return releaseNotes;
+    }
+
+    public void setReleaseNotes(String releaseNotes) {
+        this.releaseNotes = releaseNotes;
     }
 }

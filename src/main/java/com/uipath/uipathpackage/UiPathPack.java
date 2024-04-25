@@ -50,6 +50,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     private String repositoryBranch;
     private String repositoryType;
     private String projectUrl;
+    private String releaseNotes;
     private boolean useOrchestrator;
     private String orchestratorAddress;
     private String orchestratorTenant;
@@ -78,6 +79,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         this.repositoryBranch = null;
         this.repositoryType = null;
         this.projectUrl = null;
+        this.releaseNotes = null;
 
         this.orchestratorAddress = "";
         this.orchestratorTenant = "";
@@ -171,6 +173,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             packOptions.setRepositoryBranch(repositoryBranch);
             packOptions.setRepositoryType(repositoryType);
             packOptions.setProjectUrl(projectUrl);
+            packOptions.setReleaseNotes(releaseNotes);
 
             if (version instanceof ManualVersionEntry) {
                 packOptions.setVersion(envVars.expand(((ManualVersionEntry) version).getVersion().trim()));
@@ -260,6 +263,10 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     @DataBoundSetter
     public void setProjectUrl(String projectUrl) {
         this.projectUrl = projectUrl;
+    }
+
+    public void setReleaseNotes(String releaseNotes) {
+        this.releaseNotes = releaseNotes;
     }
 
     @DataBoundSetter
@@ -414,6 +421,10 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      */
     public String getProjectUrl() {
         return projectUrl;
+    }
+
+    public String getReleaseNotes() {
+        return releaseNotes;
     }
 
     /**
