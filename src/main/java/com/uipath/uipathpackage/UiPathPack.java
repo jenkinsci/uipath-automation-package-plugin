@@ -265,6 +265,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         this.projectUrl = projectUrl;
     }
 
+    @DataBoundSetter
     public void setReleaseNotes(String releaseNotes) {
         this.releaseNotes = releaseNotes;
     }

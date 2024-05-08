@@ -73,6 +73,9 @@
         <f:entry field="projectUrl" title="${%ProjectUrl}">
             <f:textbox/>
         </f:entry>
+        <f:entry field="releaseNotes" title="${%ReleaseNotes}">
+            <f:textbox/>
+        </f:entry>
     </f:optionalBlock>
     <f:block>
         <table>
