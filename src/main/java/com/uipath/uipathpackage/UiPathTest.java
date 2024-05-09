@@ -509,8 +509,23 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     }
 
     @Override
+    public String getStdioRetention() {
+        return null;
+    }
+
+    @Override
+    public StdioRetention getParsedStdioRetention() {
+        return JUnitTask.super.getParsedStdioRetention();
+    }
+
+    @Override
     public boolean isKeepLongStdio() {
         return true;
+    }
+
+    @Override
+    public boolean isKeepProperties() {
+        return false;
     }
 
     @Override

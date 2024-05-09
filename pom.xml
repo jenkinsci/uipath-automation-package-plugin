@@ -13,13 +13,13 @@
     <packaging>hpi</packaging>
 
     <properties>
-        <jenkins.version>2.361.2</jenkins.version>
+        <jenkins.version>2.387.3</jenkins.version>
         <powershell.version>1.7</powershell.version>
         <envinject.version>2.4.0</envinject.version>
         <mockito-core.version>4.8.0</mockito-core.version>
         <plain-credentials.version>179.vc5cb_98f6db_38</plain-credentials.version>
         <json.version>20220924</json.version>
-        <credentials.version>1337.v60b_d7b_c7b_c9f</credentials.version>
+        <credentials.version>1319.v7eb_51b_3a_c97b_</credentials.version>
         <org.jenkins-ci.plugins.junit.version>1265.v65b_14fa_f12f0</org.jenkins-ci.plugins.junit.version>
         <JUnitParams.version>1.1.1</JUnitParams.version>
         <matrix-project.version>1.20</matrix-project.version>
@@ -32,7 +32,7 @@
         <junit.junit.version>4.13.2</junit.junit.version>
         <localization-support.version>1.2</localization-support.version>
         <snakeyaml.version>1.33</snakeyaml.version>
-        <structs.version>337.v1b_04ea_4df7c8</structs.version>
+        <structs.version>325.vcb_307d2a_2782</structs.version>
         <caffeine-api.version>3.1.8-133.v17b_1ff2e0599</caffeine-api.version>
         <instance-identity.version>185.v303dc7c645f9</instance-identity.version>
     </properties>
