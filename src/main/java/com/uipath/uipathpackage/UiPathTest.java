@@ -54,8 +54,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private String repositoryBranch;
     private String repositoryType;
     private String projectUrl;
+    private String releaseNotes;
     private final TraceLevel traceLevel;
     private boolean attachRobotLogs;
+    private Boolean disableBuiltInNugetFeeds;
     
     private static int TimeoutDefault = 7200;
 
@@ -90,11 +92,13 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         this.timeout = timeout;
         this.testResultsOutputPath = testResultsOutputPath;
 		this.parametersFilePath = parametersFilePath;
+        this.disableBuiltInNugetFeeds = null;
         this.repositoryUrl = null;
         this.repositoryCommit = null;
         this.repositoryBranch = null;
         this.repositoryType = null;
         this.projectUrl = null;
+        this.releaseNotes = null;
         this.traceLevel = traceLevel;
         this.attachRobotLogs = false;
     }
@@ -133,6 +137,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);
 
             TestOptions testOptions = new TestOptions();
+            if (disableBuiltInNugetFeeds != null && disableBuiltInNugetFeeds) {
+                testOptions.setDisableBuiltInNugetFeeds(true);
+            }
+
             if (cliDetails.getActualVersion().supportsNewTelemetry()) {
                 testOptions.populateAdditionalTelemetryData();
                 testOptions.setPipelineCorrelationId(buildTag);
@@ -208,6 +216,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             testOptions.setRepositoryBranch(repositoryBranch);
             testOptions.setRepositoryType(repositoryType);
             testOptions.setProjectUrl(projectUrl);
+            testOptions.setReleaseNotes(releaseNotes);
 
             int result = util.execute("RunTestsOptions", testOptions, tempRemoteDir, listener, envVars, launcher, false);
 
@@ -390,6 +399,14 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         return projectUrl;
     }
 
+    public String getReleaseNotes() {
+        return releaseNotes;
+    }
+
+    public Boolean getDisableBuiltInNugetFeeds() {
+        return disableBuiltInNugetFeeds;
+    }
+
     /**
      * attachRobotLogs
      *
@@ -398,6 +415,11 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     @DataBoundSetter
     public void setAttachRobotLogs(boolean attachRobotLogs) {
     	this.attachRobotLogs = attachRobotLogs;
+    }
+
+    @DataBoundSetter
+    public void setDisableBuiltInNugetFeeds(Boolean disableBuiltInNugetFeeds) {
+        this.disableBuiltInNugetFeeds = disableBuiltInNugetFeeds;
     }
 
     @DataBoundSetter
@@ -423,6 +445,11 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     @DataBoundSetter
     public void setProjectUrl(String projectUrl) {
         this.projectUrl = projectUrl;
+    }
+
+    @DataBoundSetter
+    public void setReleaseNotes(String releaseNotes) {
+        this.releaseNotes = releaseNotes;
     }
 
 	private void validateParameters() throws AbortException {
@@ -482,8 +509,23 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     }
 
     @Override
+    public String getStdioRetention() {
+        return null;
+    }
+
+    @Override
+    public StdioRetention getParsedStdioRetention() {
+        return JUnitTask.super.getParsedStdioRetention();
+    }
+
+    @Override
     public boolean isKeepLongStdio() {
         return true;
+    }
+
+    @Override
+    public boolean isKeepProperties() {
+        return false;
     }
 
     @Override

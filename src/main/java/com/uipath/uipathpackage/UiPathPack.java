@@ -43,12 +43,14 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     private final String outputPath;
     private String outputType;
     private Boolean splitOutput;
+    private Boolean disableBuiltInNugetFeeds;
     private boolean runWorkflowAnalysis;
     private String repositoryUrl;
     private String repositoryCommit;
     private String repositoryBranch;
     private String repositoryType;
     private String projectUrl;
+    private String releaseNotes;
     private boolean useOrchestrator;
     private String orchestratorAddress;
     private String orchestratorTenant;
@@ -71,11 +73,13 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         this.traceLevel = traceLevel;
         this.outputType = "None";
         this.splitOutput = null;
+        this.disableBuiltInNugetFeeds = null;
         this.repositoryUrl = null;
         this.repositoryCommit = null;
         this.repositoryBranch = null;
         this.repositoryType = null;
         this.projectUrl = null;
+        this.releaseNotes = null;
 
         this.orchestratorAddress = "";
         this.orchestratorTenant = "";
@@ -125,6 +129,10 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
             if (runWorkflowAnalysis) {
                 AnalyzeOptions analyzeOptions = new AnalyzeOptions();
+                if (disableBuiltInNugetFeeds != null && disableBuiltInNugetFeeds) {
+                    analyzeOptions.setDisableBuiltInNugetFeeds(true);
+                }
+
                 if (cliDetails.getActualVersion().supportsNewTelemetry()) {
                     analyzeOptions.populateAdditionalTelemetryData();
                     analyzeOptions.setPipelineCorrelationId(buildTag);
@@ -156,11 +164,16 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
                 packOptions.setSplitOutput(true);
             }
 
+            if (disableBuiltInNugetFeeds != null && disableBuiltInNugetFeeds) {
+                packOptions.setDisableBuiltInNugetFeeds(true);
+            }
+
             packOptions.setRepositoryUrl(repositoryUrl);
             packOptions.setRepositoryCommit(repositoryCommit);
             packOptions.setRepositoryBranch(repositoryBranch);
             packOptions.setRepositoryType(repositoryType);
             packOptions.setProjectUrl(projectUrl);
+            packOptions.setReleaseNotes(releaseNotes);
 
             if (version instanceof ManualVersionEntry) {
                 packOptions.setVersion(envVars.expand(((ManualVersionEntry) version).getVersion().trim()));
@@ -218,6 +231,11 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundSetter
+    public void setDisableBuiltInNugetFeeds(Boolean disableBuiltInNugetFeeds) {
+        this.disableBuiltInNugetFeeds = disableBuiltInNugetFeeds;
+    }
+
+    @DataBoundSetter
     public void setRunWorkflowAnalysis(boolean runWorkflowAnalysis) {
         this.runWorkflowAnalysis = runWorkflowAnalysis;
     }
@@ -245,6 +263,11 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     @DataBoundSetter
     public void setProjectUrl(String projectUrl) {
         this.projectUrl = projectUrl;
+    }
+
+    @DataBoundSetter
+    public void setReleaseNotes(String releaseNotes) {
+        this.releaseNotes = releaseNotes;
     }
 
     @DataBoundSetter
@@ -343,6 +366,10 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         return splitOutput;
     }
 
+    public Boolean getDisableBuiltInNugetFeeds() {
+        return disableBuiltInNugetFeeds;
+    }
+
     /**
      * Provides the run workflow analysis flag
      *
@@ -395,6 +422,10 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      */
     public String getProjectUrl() {
         return projectUrl;
+    }
+
+    public String getReleaseNotes() {
+        return releaseNotes;
     }
 
     /**

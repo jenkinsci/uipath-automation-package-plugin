@@ -5,11 +5,13 @@ public class PackOptions extends CommonOptions {
     private String destinationFolder;
     private String outputType;
     private Boolean splitOutput;
+    private Boolean disableBuiltInNugetFeeds;
     private String repositoryUrl;
     private String repositoryCommit;
     private String repositoryBranch;
     private String repositoryType;
     private String projectUrl;
+    private String releaseNotes;
     private String version;
     private boolean autoVersion;
 
@@ -47,6 +49,14 @@ public class PackOptions extends CommonOptions {
 
     public boolean isSplitOutput() {
         return splitOutput;
+    }
+
+    public boolean isDisableBuiltInNugetFeeds() {
+        return disableBuiltInNugetFeeds;
+    }
+
+    public void setDisableBuiltInNugetFeeds(Boolean disableBuiltInNugetFeeds) {
+        this.disableBuiltInNugetFeeds = disableBuiltInNugetFeeds;
     }
 
     public void setSplitOutput(Boolean splitOutput) {
@@ -99,5 +109,13 @@ public class PackOptions extends CommonOptions {
 
     public void setProjectUrl(String projectUrl) {
         this.projectUrl = projectUrl;
+    }
+
+    public String getReleaseNotes() {
+        return releaseNotes;
+    }
+
+    public void setReleaseNotes(String releaseNotes) {
+        this.releaseNotes = releaseNotes;
     }
 }

@@ -14,6 +14,8 @@ public class TestOptions extends CommonOptions {
     private String repositoryBranch;
     private String repositoryType;
     private String projectUrl;
+    private String releaseNotes;
+    private Boolean disableBuiltInNugetFeeds;
 
     public String getEnvironment() {
         return environment;
@@ -61,6 +63,14 @@ public class TestOptions extends CommonOptions {
 
     public void setTestReportDestination(String testReportDestination) {
         this.testReportDestination = testReportDestination;
+    }
+
+    public boolean isDisableBuiltInNugetFeeds() {
+        return disableBuiltInNugetFeeds;
+    }
+
+    public void setDisableBuiltInNugetFeeds(Boolean disableBuiltInNugetFeeds) {
+        this.disableBuiltInNugetFeeds = disableBuiltInNugetFeeds;
     }
 
     public String getParametersFilePath() {
@@ -119,4 +129,11 @@ public class TestOptions extends CommonOptions {
         this.projectUrl = projectUrl;
     }
 
+    public String getReleaseNotes() {
+        return releaseNotes;
+    }
+
+    public void setReleaseNotes(String releaseNotes) {
+        this.releaseNotes = releaseNotes;
+    }
 }
