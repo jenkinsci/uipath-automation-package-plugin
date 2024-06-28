@@ -7,6 +7,7 @@ public class DeployOptions extends CommonOptions {
     private List<String> environments;
     private List<String> entryPointPaths;
     private boolean createProcess;
+    private boolean ignoreLibraryDeployConflict;
 
     public String getPackagesPath() {
         return packagesPath;
@@ -38,5 +39,13 @@ public class DeployOptions extends CommonOptions {
 
     public void setCreateProcess(boolean createProcess) {
         this.createProcess = createProcess;
+    }
+
+    public boolean getIgnoreLibraryDeployConflict() {
+        return ignoreLibraryDeployConflict;
+    }
+
+    public void setIgnoreLibraryDeployConflict(boolean ignoreLibraryDeployConflict) {
+        this.ignoreLibraryDeployConflict = ignoreLibraryDeployConflict;
     }
 }

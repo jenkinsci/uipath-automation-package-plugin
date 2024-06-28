@@ -35,6 +35,9 @@ stages:
         - jobName: 'DeployEntryPointPaths'
           configurationName: 'JenkinsE2ETests/UiPathDeploy/DeployEntryPointPaths'
           dependsOnJob: 'DeployCreateProcess'
+        - jobName: 'IgnoreLibraryDeployConflict'
+          configurationName: 'JenkinsE2ETests/UiPathDeploy/IgnoreLibraryDeployConflict'
+          dependsOnJob: 'DeployEntryPointPaths'
         #### UiPathInstallPlatform E2E tests ###
         - jobName: 'InstallPrePackagedCLI'
           configurationName: 'JenkinsE2ETests/UiPathInstallPlatform/InstallPrePackagedCLI'
