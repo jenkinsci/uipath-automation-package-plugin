@@ -41,7 +41,7 @@ stages:
         #### UiPathInstallPlatform E2E tests ###
         - jobName: 'InstallPrePackagedCLI'
           configurationName: 'JenkinsE2ETests/UiPathInstallPlatform/InstallPrePackagedCLI'
-          dependsOnJob: 'DeployEntryPointPaths'
+          dependsOnJob: 'IgnoreLibraryDeployConflict'
         - jobName: 'InstallDownloadedCLI'
           configurationName: 'JenkinsE2ETests/UiPathInstallPlatform/InstallDownloadedCLI'
           dependsOnJob: 'InstallPrePackagedCLI'
@@ -73,10 +73,13 @@ stages:
         - jobName: 'PackShouldNotLookUpInBuiltInFeeds'
           configurationName: 'JenkinsE2ETests/UiPathPack/PackShouldNotLookUpInBuiltInFeeds'
           dependsOnJob: 'PackWithRepositoryMetadata'
+        - jobName: 'AnalyzeShouldUseGovernanceFile'
+          configurationName: 'JenkinsE2ETests/UiPathPack/AnalyzeShouldUseGovernanceFile'
+          dependsOnJob: 'PackShouldNotLookUpInBuiltInFeeds'
         #### UiPathRunJob E2E tests ###
         - jobName: 'RunJobFailsWhenORJobFails'
           configurationName: 'JenkinsE2ETests/UiPathRunJob/RunJobFailsWhenORJobFails'
-          dependsOnJob: 'PackShouldNotLookUpInBuiltInFeeds'
+          dependsOnJob: 'AnalyzeShouldUseGovernanceFile'
         - jobName: 'RunJobOnMultipleLicenseTypes'
           configurationName: 'JenkinsE2ETests/UiPathRunJob/RunJobOnMultipleLicenseTypes'
           dependsOnJob: 'RunJobFailsWhenORJobFails'

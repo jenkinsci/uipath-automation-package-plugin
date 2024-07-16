@@ -7,7 +7,7 @@ public class DeployOptions extends CommonOptions {
     private List<String> environments;
     private List<String> entryPointPaths;
     private boolean createProcess;
-    private boolean ignoreLibraryDeployConflict;
+    private Boolean ignoreLibraryDeployConflict = null;
 
     public String getPackagesPath() {
         return packagesPath;

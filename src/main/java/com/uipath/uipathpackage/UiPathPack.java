@@ -56,6 +56,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     private String orchestratorTenant;
     private SelectEntry credentials;
     private final TraceLevel traceLevel;
+    private String governanceFilePath;
 
     /**
      * Data bound constructor responsible for setting the values param values to state
@@ -85,6 +86,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         this.orchestratorTenant = "";
         this.credentials = null;
         this.runWorkflowAnalysis = false;
+        this.governanceFilePath = null;
     }
 
     /**
@@ -129,6 +131,12 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
             if (runWorkflowAnalysis) {
                 AnalyzeOptions analyzeOptions = new AnalyzeOptions();
+                if (governanceFilePath != null && !governanceFilePath.isEmpty()) {
+                    FilePath expandedGovernanceFilePath = governanceFilePath.contains("${WORKSPACE}") ?
+                            new FilePath(launcher.getChannel(), envVars.expand(governanceFilePath)) :
+                            workspace.child(envVars.expand(governanceFilePath));
+                    analyzeOptions.setGovernanceFilePath(expandedGovernanceFilePath.getRemote());
+                }
                 if (disableBuiltInNugetFeeds != null && disableBuiltInNugetFeeds) {
                     analyzeOptions.setDisableBuiltInNugetFeeds(true);
                 }
@@ -218,6 +226,11 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             this.orchestratorTenant = null;
             this.credentials = null;
         }
+    }
+
+    @DataBoundSetter
+    public void setGovernanceFilePath(String governanceFilePath) {
+        this.governanceFilePath = governanceFilePath;
     }
 
     @DataBoundSetter
@@ -377,6 +390,10 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      */
     public boolean getRunWorkflowAnalysis() {
         return runWorkflowAnalysis;
+    }
+
+    public String getGovernanceFilePath() {
+        return governanceFilePath;
     }
 
     /**
