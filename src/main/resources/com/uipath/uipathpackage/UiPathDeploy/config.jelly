@@ -57,6 +57,12 @@
     <f:entry title="${%EntryPoints}" field="entryPointPaths">
         <f:textbox default="Main.xaml"/>
     </f:entry>
+    <f:entry title="${%ProcessName}" field="processName">
+            <f:textbox/>
+    </f:entry>
+    <f:entry title="${%ProcessNames}" field="processNames">
+            <f:textbox/>
+    </f:entry>
     <f:entry title="${%ChooseAuthenticationMethod}" field="credentialsEntry">
         <f:hetero-radio field="credentials" descriptors="${descriptor.authenticationDescriptors}"/>
     </f:entry>

@@ -45,6 +45,8 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
     private final String entryPointPaths;
     private final boolean createProcess;
     private Boolean ignoreLibraryDeployConflict;
+    private String processName;
+    private String processNames;
 
     /**
      * Data bound constructor which is responsible for setting/saving of the values
@@ -227,6 +229,17 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
                 deployOptions.setIgnoreLibraryDeployConflict(ignoreLibraryDeployConflict);
             }
 
+            if (processName != null && !processName.isEmpty()) {
+                deployOptions.setProcessName(processName);
+            }
+
+            if (processNames != null && !processNames.isEmpty()) {
+                FilePath expandedprocessNamesPath = processNames.contains("${WORKSPACE}") ?
+                        new FilePath(launcher.getChannel(), envVars.expand(processNames)) :
+                        workspace.child(envVars.expand(processNames));
+                deployOptions.setProcessNames(expandedprocessNamesPath.getRemote());
+            }
+
             deployOptions.setPackagesPath(expandedPackagePath.getRemote());
             deployOptions.setOrchestratorUrl(orchestratorAddress);
             deployOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
@@ -300,6 +313,24 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
 
     public Boolean getIgnoreLibraryDeployConflict() {
         return ignoreLibraryDeployConflict;
+    }
+
+    @DataBoundSetter
+    public void setProcessName(String processName) {
+        this.processName = processName;
+    }
+
+    public String getProcessName() {
+        return processName;
+    }
+
+    @DataBoundSetter
+    public void setProcessNames(String processNames) {
+        this.processNames = processNames;
+    }
+
+    public String getProcessNames() {
+        return processNames;
     }
 
     /**
