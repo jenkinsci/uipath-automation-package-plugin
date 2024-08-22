@@ -1,0 +1,44 @@
+parameters:
+  name: ''
+  securityScan: ''
+
+jobs:
+  - job: ${{ parameters.name }}
+    displayName: ${{ parameters.name }}
+    timeoutInMinutes: 90
+    workspace:
+      clean: outputs
+    variables:
+      MavenPOMFile: '$(Build.SourcesDirectory)/pom.xml'
+    pool:
+      vmImage: windows-2022
+      demands:
+        - maven
+    steps:
+      - ${{ if eq(parameters.securityScan, 'CODEQL') }}:
+          - template: Security/codeql.pre-build.steps.yml@codeql
+            parameters:
+              os: 'win64'
+              language: 'java'
+
+      - template: job.ci.build.yml
+        parameters:
+          ${{ if eq(parameters.securityScan, '') }}:
+            publishArtifacts: true
+
+      - ${{ if eq(parameters.securityScan, 'CODEQL') }}:
+          - template: Security/codeql.post-build.steps.yml@codeql
+            parameters:
+              os: 'win64'
+              language: 'java'
+              azureSubscription: 'Internal-Production-EA'
+              skipDatabasePublish: true
+
+      - ${{ if eq(parameters.securityScan, 'FOSSA') }}:
+          - template: Security/fossa.steps.yml@fossa
+            parameters:
+              removeSpecificPath: true
+              OS: 'windows'
+              azureSubscription: 'Internal-Production-EA'
+              FOSSAFlags: '--project "UiPath.Extensions.CommandLine" --branch "$(Build.SourceBranchName)" --revision "$(Build.SourceVersion)-$(Build.BuildId)"'
+              FOSSATestFlags: '--project "UiPath.Extensions.CommandLine" --revision "$(Build.SourceVersion)-$(Build.BuildId)"'

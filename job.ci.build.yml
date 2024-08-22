@@ -1,3 +1,6 @@
+parameters:
+  publishArtifacts: false
+
 steps:
 - ${{ if and(ne(variables['Build.SourceBranch'], 'refs/heads/master'), not(startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'))) }}:
   - powershell: |
@@ -39,8 +42,9 @@ steps:
     sqMavenPluginVersionChoice: 'latest'
     options: '-DskipTests -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish package'
-  inputs:
-    PathtoPublish: '$(system.defaultworkingdirectory)/target/uipath-automation-package.hpi'
-    ArtifactName: Packages
+- ${{ if eq(parameters.publishArtifacts, 'true') }}:
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish package'
+    inputs:
+      PathtoPublish: '$(system.defaultworkingdirectory)/target/uipath-automation-package.hpi'
+      ArtifactName: Packages
