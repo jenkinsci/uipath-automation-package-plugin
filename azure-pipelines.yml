@@ -30,7 +30,7 @@ resources:
       endpoint: "GitHub connection"
     - repository: codeql
       name: UiPath/AzurePipelinesTemplates
-      ref: refs/tags/uipath.security.codeql.1.8.2
+      ref: refs/tags/uipath.security.codeql.1.8.13
       type: github
       endpoint: "GitHub connection"
     - repository: fossa
