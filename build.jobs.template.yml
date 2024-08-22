@@ -11,7 +11,7 @@ jobs:
     variables:
       MavenPOMFile: '$(Build.SourcesDirectory)/pom.xml'
     pool:
-      vmImage: windows-2022
+      vmImage: windows-latest
       demands:
         - maven
     steps:
@@ -40,5 +40,5 @@ jobs:
               removeSpecificPath: true
               OS: 'windows'
               azureSubscription: 'Internal-Production-EA'
-              FOSSAFlags: '--project "UiPath.Extensions.CommandLine" --branch "$(Build.SourceBranchName)" --revision "$(Build.SourceVersion)-$(Build.BuildId)"'
-              FOSSATestFlags: '--project "UiPath.Extensions.CommandLine" --revision "$(Build.SourceVersion)-$(Build.BuildId)"'
+              FOSSAFlags: '--project "JenkinsPlugin" --branch "$(Build.SourceBranchName)" --revision "$(Build.SourceVersion)-$(Build.BuildId)"'
+              FOSSATestFlags: '--project "JenkinsPlugin" --revision "$(Build.SourceVersion)-$(Build.BuildId)"'
