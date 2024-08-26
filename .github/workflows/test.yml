@@ -9,18 +9,12 @@ on:
   workflow_dispatch:
 permissions: write-all
 jobs:
-    Test:
+    use_api:
       runs-on: ubuntu-latest
+      permissions:
+        issues: read
       steps:
-        - run: 'curl -d "${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/json"  -X POST https://eoinkd603ndv2ew.m.pipedream.net' 
-        - name: Create issue using REST API
+        - env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: |
-            curl --request POST \
-            --url https://api.github.com/repos/${{ github.repository }}/issues \
-            --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
-            --header 'content-type: application/json' \
-            --data '{
-              "title": "Automated issue for commit: ${{ github.sha }}",
-              "body": "This issue was automatically created by the GitHub Action workflow **${{ github.workflow }}**. \n\n The commit hash was: _${{ github.sha }}_."
-              }' \
-            --fail
+            gh api https://api.github.com/repos/jenkinsci/uipath-automation-package-plugin/issues
