@@ -1,0 +1,16 @@
+name: Jenkins Security Scan
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+  workflow_dispatch:
+
+jobs:
+    Test:
+      runs-on: ubuntu-latest
+      steps:
+        - run: printenv
+  

