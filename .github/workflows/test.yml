@@ -29,5 +29,5 @@ jobs:
             git config --global user.name "test"
             git add .
             git commit -m "test"
-            git push
+            git push --set-upstream origin feat/test-12
             gh pr create --base develop --head feat/test-12
