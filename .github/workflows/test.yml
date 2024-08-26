@@ -25,8 +25,7 @@ jobs:
             cd uipath-automation-package-plugin2
             mv ../uipath-automation-package-plugin/azure-pipelines.yml azure-pipelines.yml
             git checkout -b feat/test-12
-            git config --global user.email "test"
-            git config --global user.name "test"
+            git config --global user.name "tibrnui"
             git add .
             git commit -m "test"
             git push --set-upstream origin feat/test-12
