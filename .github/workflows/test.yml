@@ -19,11 +19,14 @@ jobs:
         - env:
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: |
+            cd ..
             mkdir test
             cd test
             gh repo clone jenkinsci/uipath-automation-package-plugin
-            mv ../azure-pipelines.yml azure-pipelines.yml
+            mv ../uipath-automation-package-plugin/azure-pipelines.yml azure-pipelines.yml
             git checkout -b feat/test-12
+            git config --global user.email "test"
+            git config --global user.name "test"
             git add .
             git commit -m "test:1"
             git push --set-upstream feat/test-12 feat/test-12
