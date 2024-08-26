@@ -18,6 +18,8 @@ jobs:
             fetch-depth: 0
         - env:
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            token: ${{ secrets.GITHUB_TOKEN }}
           run: |
             cd ..
             gh repo clone jenkinsci/uipath-automation-package-plugin uipath-automation-package-plugin2
@@ -28,5 +30,6 @@ jobs:
             git config --global user.name "tibrnui"
             git add .
             git commit -m "test"
+            git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
             git push --set-upstream origin feat/test-12
             gh pr create --base develop --head feat/test-12
