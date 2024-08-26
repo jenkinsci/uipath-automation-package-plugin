@@ -18,8 +18,6 @@ jobs:
             fetch-depth: 0
         - env:
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            token: ${{ secrets.GITHUB_TOKEN }}
           run: |
             cd ..
             gh repo clone jenkinsci/uipath-automation-package-plugin uipath-automation-package-plugin2
