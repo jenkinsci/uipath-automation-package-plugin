@@ -28,6 +28,6 @@ jobs:
             git config --global user.email "test"
             git config --global user.name "test"
             git add .
-            git commit -m "test:1"
-            git push --set-upstream feat/test-12 feat/test-12
+            git commit -m "test"
+            git push
             gh pr create --base develop --head feat/test-12
