@@ -6,8 +6,7 @@ import com.uipath.uipathpackage.entries.authentication.ExternalAppAuthentication
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
 import com.uipath.uipathpackage.models.DeployOptions;
-import com.uipath.uipathpackage.util.TraceLevel;
-import com.uipath.uipathpackage.util.Utility;
+import com.uipath.uipathpackage.util.*;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.*;
@@ -18,6 +17,7 @@ import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
@@ -44,6 +44,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
     private TraceLevel traceLevel;
     private final String entryPointPaths;
     private final boolean createProcess;
+    private Boolean ignoreLibraryDeployConflict;
 
     /**
      * Data bound constructor which is responsible for setting/saving of the values
@@ -78,6 +79,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         this.traceLevel = traceLevel;
         this.entryPointPaths = entryPointPaths;
         this.createProcess = createProcess;
+        this.ignoreLibraryDeployConflict = null;
     }
 
     /**
@@ -185,25 +187,46 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
      * @throws IOException          if something goes wrong
      */
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> run,
+                        @Nonnull FilePath workspace,
+                        @Nonnull EnvVars env,
+                        @Nonnull Launcher launcher,
+                        @Nonnull TaskListener listener) throws InterruptedException, IOException {
         validateParameters();
         PrintStream logger = listener.getLogger();
 
         FilePath tempRemoteDir = tempDir(workspace);
+        /**
+         * Adding the null check here as above method "tempDir" is annotated with @CheckForNull
+         * and findbugs plugin will report an error of NPE while building the plugin.
+         */
+        if (Objects.isNull(tempRemoteDir)) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempFolderDeploy());
+        }
         tempRemoteDir.mkdirs();
 
-        if (launcher.isUnix()) {
-            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
-        }
-
         try {
-            EnvVars envVars = run.getEnvironment(listener);
+            EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
+            util.validateRuntime(launcher, envVars);
+
+            CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
+            String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);
 
             FilePath expandedPackagePath = packagePath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(packagePath)) :
                     workspace.child(envVars.expand(packagePath));
 
             DeployOptions deployOptions = new DeployOptions();
+            if (cliDetails.getActualVersion().supportsNewTelemetry()) {
+                deployOptions.populateAdditionalTelemetryData();
+                deployOptions.setPipelineCorrelationId(buildTag);
+                deployOptions.setCliGetFlow(cliDetails.getGetFlow());
+            }
+
+            if (ignoreLibraryDeployConflict != null && ignoreLibraryDeployConflict) {
+                deployOptions.setIgnoreLibraryDeployConflict(ignoreLibraryDeployConflict);
+            }
+
             deployOptions.setPackagesPath(expandedPackagePath.getRemote());
             deployOptions.setOrchestratorUrl(orchestratorAddress);
             deployOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
@@ -268,6 +291,15 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         if (packagePath.toUpperCase().contains("${JENKINS_HOME}")) {
             throw new AbortException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidPath());
         }
+    }
+
+    @DataBoundSetter
+    public void setIgnoreLibraryDeployConflict(Boolean ignoreLibraryDeployConflict) {
+        this.ignoreLibraryDeployConflict = ignoreLibraryDeployConflict;
+    }
+
+    public Boolean getIgnoreLibraryDeployConflict() {
+        return ignoreLibraryDeployConflict;
     }
 
     /**

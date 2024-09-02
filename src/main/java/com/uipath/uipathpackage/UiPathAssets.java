@@ -7,8 +7,7 @@ import com.uipath.uipathpackage.entries.assetsAction.DeleteAssetsEntry;
 import com.uipath.uipathpackage.entries.authentication.ExternalAppAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
-import com.uipath.uipathpackage.util.TraceLevel;
-import com.uipath.uipathpackage.util.Utility;
+import com.uipath.uipathpackage.util.*;
 import com.uipath.uipathpackage.models.AssetsOptions;
 import hudson.*;
 import hudson.model.*;
@@ -82,37 +81,59 @@ public class UiPathAssets extends Builder implements SimpleBuildStep {
      * @throws IOException          if something goes wrong
      */
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> run,
+                        @Nonnull FilePath workspace,
+                        @Nonnull EnvVars env,
+                        @Nonnull Launcher launcher,
+                        @Nonnull TaskListener listener) throws InterruptedException, IOException {
         validateParameters();
         PrintStream logger = listener.getLogger();
 
         FilePath tempRemoteDir = tempDir(workspace);
+        /**
+         * Adding the null check here as above method "tempDir" is annotated with @CheckForNull
+         * and findbugs plugin will report an error of NPE while building the plugin.
+         */
+        if (Objects.isNull(tempRemoteDir)) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempFolderAssets());
+        }
         tempRemoteDir.mkdirs();
 
-        if (launcher.isUnix()) {
-            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
-        }
-
         try {
-            EnvVars envVars = run.getEnvironment(listener);
+            EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
+            util.validateRuntime(launcher, envVars);
+
+            CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
+            String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);
 
             FilePath expandedCsvFilePath = filePath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(filePath)) :
                     workspace.child(envVars.expand(filePath));
 
             AssetsOptions assetsOptions = new AssetsOptions();
+            if (cliDetails.getActualVersion().supportsNewTelemetry()) {
+                assetsOptions.populateAdditionalTelemetryData();
+                assetsOptions.setPipelineCorrelationId(buildTag);
+                assetsOptions.setCliGetFlow(cliDetails.getGetFlow());
+            }
+
             assetsOptions.setOrchestratorUrl(orchestratorAddress);
             String organizationUnit = envVars.expand(folderName.trim());
             assetsOptions.setOrganizationUnit(organizationUnit.length() > 0 ? organizationUnit : "Default");
             assetsOptions.setAssetsFile(expandedCsvFilePath.getRemote());
 
             ResourceBundle rb = ResourceBundle.getBundle("config");
-            String orchestratorTenantFormatted = envVars.expand(orchestratorTenant.trim()).isEmpty() ? util.getConfigValue(rb, "UiPath.DefaultTenant") : envVars.expand(orchestratorTenant.trim());
+            String orchestratorTenantFormatted = envVars.expand(orchestratorTenant.trim()).isEmpty()
+                                                ? util.getConfigValue(rb, "UiPath.DefaultTenant")
+                                                : envVars.expand(orchestratorTenant.trim());
 
             assetsOptions.setOrchestratorTenant(orchestratorTenantFormatted);
             util.setCredentialsFromCredentialsEntry(credentials, assetsOptions, run);
-            String assetAction = assetsAction instanceof DeployAssetsEntry ? "DeployAssetsOptions"
-                               : assetsAction instanceof DeleteAssetsEntry ? "DeleteAssetsOptions" : "None";
+            String assetAction = assetsAction instanceof DeployAssetsEntry
+                                ? "DeployAssetsOptions"
+                                : assetsAction instanceof DeleteAssetsEntry
+                                    ? "DeleteAssetsOptions"
+                                    : "None";
 
             String language = Locale.getDefault().getLanguage();
             String country = Locale.getDefault().getCountry();

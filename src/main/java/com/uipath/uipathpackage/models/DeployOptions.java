@@ -2,12 +2,12 @@ package com.uipath.uipathpackage.models;
 
 import java.util.List;
 
-public class DeployOptions extends AuthenticatedOptions {
+public class DeployOptions extends CommonOptions {
     private String packagesPath;
     private List<String> environments;
     private List<String> entryPointPaths;
     private boolean createProcess;
-    private final String telemetryOrigin = "Jenkins";
+    private Boolean ignoreLibraryDeployConflict = null;
 
     public String getPackagesPath() {
         return packagesPath;
@@ -32,10 +32,6 @@ public class DeployOptions extends AuthenticatedOptions {
     public void setEntryPointPaths(List<String> entryPointPaths) {
         this.entryPointPaths = entryPointPaths;
     }
-    
-    public String getTelemetryOrigin() {
-        return telemetryOrigin;
-    }
 
     public boolean getCreateProcess() {
         return createProcess;
@@ -43,5 +39,13 @@ public class DeployOptions extends AuthenticatedOptions {
 
     public void setCreateProcess(boolean createProcess) {
         this.createProcess = createProcess;
+    }
+
+    public boolean getIgnoreLibraryDeployConflict() {
+        return ignoreLibraryDeployConflict;
+    }
+
+    public void setIgnoreLibraryDeployConflict(boolean ignoreLibraryDeployConflict) {
+        this.ignoreLibraryDeployConflict = ignoreLibraryDeployConflict;
     }
 }

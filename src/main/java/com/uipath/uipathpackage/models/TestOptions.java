@@ -1,6 +1,6 @@
 package com.uipath.uipathpackage.models;
 
-public class TestOptions extends AuthenticatedOptions {
+public class TestOptions extends CommonOptions {
     private String projectPath;
     private String testSet;
     private String environment;
@@ -9,7 +9,13 @@ public class TestOptions extends AuthenticatedOptions {
     private String parametersFilePath;
     private boolean attachRobotLogs;
     private Integer timeout;
-    private final String telemetryOrigin = "Jenkins";
+    private String repositoryUrl;
+    private String repositoryCommit;
+    private String repositoryBranch;
+    private String repositoryType;
+    private String projectUrl;
+    private String releaseNotes;
+    private Boolean disableBuiltInNugetFeeds;
 
     public String getEnvironment() {
         return environment;
@@ -59,6 +65,14 @@ public class TestOptions extends AuthenticatedOptions {
         this.testReportDestination = testReportDestination;
     }
 
+    public boolean isDisableBuiltInNugetFeeds() {
+        return disableBuiltInNugetFeeds;
+    }
+
+    public void setDisableBuiltInNugetFeeds(Boolean disableBuiltInNugetFeeds) {
+        this.disableBuiltInNugetFeeds = disableBuiltInNugetFeeds;
+    }
+
     public String getParametersFilePath() {
         return parametersFilePath;
     }
@@ -75,7 +89,51 @@ public class TestOptions extends AuthenticatedOptions {
 		this.attachRobotLogs = attachRobotLogs;
 	}
 
-    public String getTelemetryOrigin() {
-        return telemetryOrigin;
+    public String getRepositoryUrl() {
+        return repositoryUrl;
+    }
+
+    public void setRepositoryUrl(String repositoryUrl) {
+        this.repositoryUrl = repositoryUrl;
+    }
+
+    public String getRepositoryCommit() {
+        return repositoryCommit;
+    }
+
+    public void setRepositoryCommit(String repositoryCommit) {
+        this.repositoryCommit = repositoryCommit;
+    }
+
+    public String getRepositoryBranch() {
+        return repositoryBranch;
+    }
+
+    public void setRepositoryBranch(String repositoryBranch) {
+        this.repositoryBranch = repositoryBranch;
+    }
+
+    public String getRepositoryType() {
+        return repositoryType;
+    }
+
+    public void setRepositoryType(String repositoryType) {
+        this.repositoryType = repositoryType;
+    }
+
+    public String getProjectUrl() {
+        return projectUrl;
+    }
+
+    public void setProjectUrl(String projectUrl) {
+        this.projectUrl = projectUrl;
+    }
+
+    public String getReleaseNotes() {
+        return releaseNotes;
+    }
+
+    public void setReleaseNotes(String releaseNotes) {
+        this.releaseNotes = releaseNotes;
     }
 }

@@ -4,27 +4,57 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>3.4</version>
+        <version>4.44</version>
         <relativePath />
     </parent>
+
     <artifactId>uipath-automation-package</artifactId>
-    <version>2.10-SNAPSHOT</version>
+    <version>3.2-SNAPSHOT</version>
     <packaging>hpi</packaging>
+
     <properties>
-        <jenkins.version>2.173</jenkins.version>
-        <java.level>8</java.level>
+        <jenkins.version>2.387.3</jenkins.version>
+        <powershell.version>1.7</powershell.version>
+        <envinject.version>2.4.0</envinject.version>
+        <mockito-core.version>4.8.0</mockito-core.version>
+        <plain-credentials.version>179.vc5cb_98f6db_38</plain-credentials.version>
+        <json.version>20220924</json.version>
+        <credentials.version>1319.v7eb_51b_3a_c97b_</credentials.version>
+        <org.jenkins-ci.plugins.junit.version>1265.v65b_14fa_f12f0</org.jenkins-ci.plugins.junit.version>
+        <JUnitParams.version>1.1.1</JUnitParams.version>
+        <matrix-project.version>1.20</matrix-project.version>
+        <native2ascii-maven-plugin.version>2.0.1</native2ascii-maven-plugin.version>
+        <properties-maven-plugin.version>1.1.0</properties-maven-plugin.version>
+        <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
+        <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
+        <maven-checkstyle-plugin.version>3.2.0</maven-checkstyle-plugin.version>
+        <symbol-annotation.version>1.23</symbol-annotation.version>
+        <junit.junit.version>4.13.2</junit.junit.version>
+        <localization-support.version>1.2</localization-support.version>
+        <snakeyaml.version>1.33</snakeyaml.version>
+        <structs.version>325.vcb_307d2a_2782</structs.version>
+        <caffeine-api.version>3.1.8-133.v17b_1ff2e0599</caffeine-api.version>
+        <instance-identity.version>185.v303dc7c645f9</instance-identity.version>
     </properties>
+
     <name>UiPath Plugin</name>
     <description>
         This plugin allows you to build and deploy UiPath automation processes.
     </description>
     <url>https://github.com/jenkinsci/uipath-automation-package-plugin</url>
+
     <build>
         <plugins>
             <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>native2ascii-maven-plugin</artifactId>
-                <version>2.0.1</version>
+                <version>${native2ascii-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>utf8-to-latin1</id>
@@ -46,14 +76,14 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
-                  <source>8</source>
-                  <detectJavaApiLink>false</detectJavaApiLink>
+                    <source>8</source>
+                    <detectJavaApiLink>false</detectJavaApiLink>
                 </configuration>
-              </plugin>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>
-                <version>1.0.0</version>
+                <version>${properties-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <phase>generate-resources</phase>
@@ -71,7 +101,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.8</version>
+                <version>${maven-antrun-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>Generate help files</id>
@@ -95,9 +125,10 @@
                         </goals>
                         <configuration>
                             <target>
+                                <echo message="Downloading the CLI" />
                                 <mkdir dir="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}" />
-                                <get dest="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}" src="https://uipath.pkgs.visualstudio.com/Public.Feeds/_packaging/UiPath-Official/nuget/v3/flat2/UiPath.CLI/${UiPath.CLI.Version}/UiPath.CLI.${UiPath.CLI.Version}.nupkg" />
-                                <unzip src="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}/UiPath.CLI.${UiPath.CLI.Version}.nupkg" dest="${project.build.directory}/classes/cli-${UiPath.CLI.Version}" />
+                                <get dest="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}" src="https://uipath.pkgs.visualstudio.com/Public.Feeds/_packaging/UiPath-Official/nuget/v3/flat2/${UiPath.CLI.Name}/${UiPath.CLI.Version}/${UiPath.CLI.Name}.${UiPath.CLI.Version}.nupkg" skipexisting="true" />
+                                <unzip src="${java.io.tmpdir}/${UiPath.CLI.Name}/${UiPath.CLI.Version}/${UiPath.CLI.Name}.${UiPath.CLI.Version}.nupkg" dest="${project.build.directory}/classes/cli-${UiPath.CLI.Version}" />
                             </target>
                             <failOnError>true</failOnError>
                         </configuration>
@@ -107,7 +138,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.2</version>
+                <version>${jacoco-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -132,9 +163,35 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.1</version>
+                <version>${maven-checkstyle-plugin.version}</version>
                 <configuration>
                     <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>4.7.2.1</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs</artifactId>
+                        <version>4.7.2</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <effort>Max</effort>
+                    <threshold>low</threshold>
+                    <failOnError>false</failOnError>
+                    <includeFilterFile>spotbugs-security-include.xml</includeFilterFile>
+                    <excludeFilterFile>spotbugs-security-exclude.xml</excludeFilterFile>
+                    <plugins>
+                        <plugin>
+                            <groupId>com.h3xstream.findsecbugs</groupId>
+                            <artifactId>findsecbugs-plugin</artifactId>
+                            <version>1.12.0</version>
+                        </plugin>
+                    </plugins>
                 </configuration>
             </plugin>
         </plugins>
@@ -150,61 +207,109 @@
         <connection>scm:git:ssh://git@github.com/jenkinsci/uipath-automation-package-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/uipath-automation-package-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/uipath-automation-package-plugin</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
     <!-- List of dependencies of the project. -->
     <dependencies>
+        <!-- This explicit dependency is added because the older version
+            which gets added by parent pom has the vulnerability -->
+        <dependency>
+            <groupId>org.jenkins-ci.modules</groupId>
+            <artifactId>instance-identity</artifactId>
+            <version>${instance-identity.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>${snakeyaml.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jenkins.plugins</groupId>
+            <artifactId>localization-support</artifactId>
+            <version>${localization-support.version}</version>
+        </dependency>
         <dependency>
             <groupId>pl.pragmatists</groupId>
             <artifactId>JUnitParams</artifactId>
-            <version>1.0.4</version>
+            <version>${JUnitParams.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>junit</artifactId>
-            <version>1.28</version>
+            <version>${org.jenkins-ci.plugins.junit.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jenkins-ci.plugins</groupId>
+                    <artifactId>structs</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>credentials</artifactId>
-            <version>2.1.16</version>
+            <version>${credentials.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jenkins-ci.plugins</groupId>
+                    <artifactId>structs</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20180813</version>
+            <version>${json.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>plain-credentials</artifactId>
-            <version>1.5</version>
+            <version>${plain-credentials.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>structs</artifactId>
+            <version>${structs.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>2.24.5</version>
+            <version>${mockito-core.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>powershell</artifactId>
-            <version>1.4</version>
+            <version>${powershell.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>envinject</artifactId>
-            <version>2.3.0</version>
+            <version>${envinject.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.jenkins.plugins</groupId>
-            <artifactId>localization-support</artifactId>
-            <version>1.1</version>
+            <artifactId>caffeine-api</artifactId>
+            <version>${caffeine-api.version}</version>
         </dependency>
     </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.jenkins-ci</groupId>
+                <artifactId>symbol-annotation</artifactId>
+                <version>${symbol-annotation.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>
@@ -224,19 +329,19 @@
     -->
     <developers>
         <developer>
-            <id>alvinstanescu</id>
-            <name>Alvin Stanescu</name>
-            <url>https://github.com/alvinstanescu</url>
-            <email>alvin.stanescu@uipath.com</email>
+            <id>al3xanndru</id>
+            <name>Alexandru Groza</name>
+            <url>https://github.com/ganeshborle</url>
+            <email>alexandru.groza@uipath.com</email>
             <roles>
                 <role>maintainer</role>
             </roles>
         </developer>
         <developer>
-            <id>rajeevuipath</id>
-            <name>Rajeev Ranjan</name>
-            <url>https://github.com/rajeevuipath</url>
-            <email>rajeev.ranjan@uipath.com</email>
+            <id>cotovanu-cristian</id>
+            <name>Cristian Cotovanu</name>
+            <url>https://github.com/ganeshborle</url>
+            <email>cristian.cotovanu@uipath.com</email>
             <roles>
                 <role>maintainer</role>
             </roles>

@@ -7,9 +7,7 @@ import com.uipath.uipathpackage.entries.authentication.TokenAuthenticationEntry;
 import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEntry;
 import com.uipath.uipathpackage.entries.job.*;
 import com.uipath.uipathpackage.models.JobOptions;
-import com.uipath.uipathpackage.util.StartProcessDtoJobPriority;
-import com.uipath.uipathpackage.util.TraceLevel;
-import com.uipath.uipathpackage.util.Utility;
+import com.uipath.uipathpackage.util.*;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.*;
@@ -43,16 +41,12 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
     private String parametersFilePath;
     private StartProcessDtoJobPriority priority;
     private final SelectEntry jobType;
-
     private SelectEntry strategy;
-
     private String resultFilePath;
     private Integer timeout;
     private Boolean failWhenJobFails;
     private Boolean waitForJobCompletion;
-
     private TraceLevel traceLevel;
-
     private final String orchestratorAddress;
     private final String orchestratorTenant;
     private final SelectEntry credentials;
@@ -276,21 +270,34 @@ public class UiPathRunJob extends Recorder implements SimpleBuildStep {
      * @throws IOException          if something goes wrong
      */
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull EnvVars env, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         validateParameters();
         PrintStream logger = listener.getLogger();
 
         FilePath tempRemoteDir = tempDir(workspace);
+        /**
+         * Adding the null check here as above method "tempDir" is annotated with @CheckForNull
+         * and findbugs plugin will report an error of NPE while building the plugin.
+         */
+        if (Objects.isNull(tempRemoteDir)) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempFolderRunJob());
+        }
         tempRemoteDir.mkdirs();
 
-        if (launcher.isUnix()) {
-            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
-        }
-
         try {
-            EnvVars envVars = run.getEnvironment(listener);
+            EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
+            util.validateRuntime(launcher, envVars);
+
+            CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
+            String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);
 
             JobOptions jobOptions = new JobOptions();
+            if (cliDetails.getActualVersion().supportsNewTelemetry()) {
+                jobOptions.populateAdditionalTelemetryData();
+                jobOptions.setPipelineCorrelationId(buildTag);
+                jobOptions.setCliGetFlow(cliDetails.getGetFlow());
+            }
+
             jobOptions.setProcessName(processName);
 
             if (parametersFilePath != null && !parametersFilePath.isEmpty())

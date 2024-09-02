@@ -8,15 +8,12 @@ import com.uipath.uipathpackage.entries.authentication.UserPassAuthenticationEnt
 import com.uipath.uipathpackage.entries.testExecutionTarget.TestProjectEntry;
 import com.uipath.uipathpackage.entries.testExecutionTarget.TestSetEntry;
 import com.uipath.uipathpackage.models.TestOptions;
-import com.uipath.uipathpackage.util.TraceLevel;
-import com.uipath.uipathpackage.util.Utility;
+import com.uipath.uipathpackage.util.*;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.*;
-import hudson.tasks.junit.JUnitResultArchiver;
-import hudson.tasks.junit.JUnitTask;
-import hudson.tasks.junit.TestDataPublisher;
-import hudson.tasks.junit.TestResultAction;
+import hudson.tasks.junit.*;
 import hudson.tasks.test.TestResultProjectAction;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
@@ -52,8 +49,15 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private final String testResultsOutputPath;
     private final String parametersFilePath;
     private String testResultIncludes;
+    private String repositoryUrl;
+    private String repositoryCommit;
+    private String repositoryBranch;
+    private String repositoryType;
+    private String projectUrl;
+    private String releaseNotes;
     private final TraceLevel traceLevel;
     private boolean attachRobotLogs;
+    private Boolean disableBuiltInNugetFeeds;
     
     private static int TimeoutDefault = 7200;
 
@@ -88,6 +92,13 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         this.timeout = timeout;
         this.testResultsOutputPath = testResultsOutputPath;
 		this.parametersFilePath = parametersFilePath;
+        this.disableBuiltInNugetFeeds = null;
+        this.repositoryUrl = null;
+        this.repositoryCommit = null;
+        this.repositoryBranch = null;
+        this.repositoryType = null;
+        this.projectUrl = null;
+        this.releaseNotes = null;
         this.traceLevel = traceLevel;
         this.attachRobotLogs = false;
     }
@@ -103,20 +114,38 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
      * @throws IOException          if something goes wrong
      */
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @NonNull EnvVars env, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         validateParameters();
 
         FilePath tempRemoteDir = tempDir(workspace);
-        tempRemoteDir.mkdirs();
-
-        if (launcher.isUnix()) {
-            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
+        /**
+         * Adding the null check here as above method "tempDir" is annotated with @CheckForNull
+         * and findbugs plugin will report an error of NPE while building the plugin.
+         */
+        if (Objects.isNull(tempRemoteDir)) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempFolderTest());
         }
+
+        tempRemoteDir.mkdirs();
 
         try {
             ResourceBundle rb = ResourceBundle.getBundle("config");
-            EnvVars envVars = run.getEnvironment(listener);
+            EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
+            util.validateRuntime(launcher, envVars);
+
+            CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
+            String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);
+
             TestOptions testOptions = new TestOptions();
+            if (disableBuiltInNugetFeeds != null && disableBuiltInNugetFeeds) {
+                testOptions.setDisableBuiltInNugetFeeds(true);
+            }
+
+            if (cliDetails.getActualVersion().supportsNewTelemetry()) {
+                testOptions.populateAdditionalTelemetryData();
+                testOptions.setPipelineCorrelationId(buildTag);
+                testOptions.setCliGetFlow(cliDetails.getGetFlow());
+            }
 
             if (testTarget instanceof TestProjectEntry)
             {
@@ -181,7 +210,14 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             }
             
             testOptions.setAttachRobotLogs(attachRobotLogs);
-            
+
+            testOptions.setRepositoryUrl(repositoryUrl);
+            testOptions.setRepositoryCommit(repositoryCommit);
+            testOptions.setRepositoryBranch(repositoryBranch);
+            testOptions.setRepositoryType(repositoryType);
+            testOptions.setProjectUrl(projectUrl);
+            testOptions.setReleaseNotes(releaseNotes);
+
             int result = util.execute("RunTestsOptions", testOptions, tempRemoteDir, listener, envVars, launcher, false);
 
             if (result != 0 && !expandedTestResultsOutputPath.exists()) {
@@ -319,6 +355,59 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 	}
 
     /**
+     * Provides the repository url
+     *
+     * @return String repositoryUrl
+     */
+    public String getRepositoryUrl() {
+        return repositoryUrl;
+    }
+
+    /**
+     * Provides the repository commit
+     *
+     * @return String repositoryCommit
+     */
+    public String getRepositoryCommit() {
+        return repositoryCommit;
+    }
+
+    /**
+     * Provides the repository branch
+     *
+     * @return String repositoryBranch
+     */
+    public String getRepositoryBranch() {
+        return repositoryBranch;
+    }
+
+    /**
+     * Provides the repository type
+     *
+     * @return String repositoryType
+     */
+    public String getRepositoryType() {
+        return repositoryType;
+    }
+
+    /**
+     * Provides the project url
+     *
+     * @return String projectUrl
+     */
+    public String getProjectUrl() {
+        return projectUrl;
+    }
+
+    public String getReleaseNotes() {
+        return releaseNotes;
+    }
+
+    public Boolean getDisableBuiltInNugetFeeds() {
+        return disableBuiltInNugetFeeds;
+    }
+
+    /**
      * attachRobotLogs
      *
      * @param attachRobotLogs   Boolean field whether to attach the robot logs
@@ -327,7 +416,42 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     public void setAttachRobotLogs(boolean attachRobotLogs) {
     	this.attachRobotLogs = attachRobotLogs;
     }
-    
+
+    @DataBoundSetter
+    public void setDisableBuiltInNugetFeeds(Boolean disableBuiltInNugetFeeds) {
+        this.disableBuiltInNugetFeeds = disableBuiltInNugetFeeds;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryUrl(String repositoryUrl) {
+        this.repositoryUrl = repositoryUrl;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryCommit(String repositoryCommit) {
+        this.repositoryCommit = repositoryCommit;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryBranch(String repositoryBranch) {
+        this.repositoryBranch = repositoryBranch;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryType(String repositoryType) {
+        this.repositoryType = repositoryType;
+    }
+
+    @DataBoundSetter
+    public void setProjectUrl(String projectUrl) {
+        this.projectUrl = projectUrl;
+    }
+
+    @DataBoundSetter
+    public void setReleaseNotes(String releaseNotes) {
+        this.releaseNotes = releaseNotes;
+    }
+
 	private void validateParameters() throws AbortException {
         if (testTarget == null) {
             throw new InvalidParameterException(com.uipath.uipathpackage.Messages.GenericErrors_MissingTestSetOrProjectPath());
@@ -352,13 +476,16 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
     private void publishTestResults(Run<?,?> run, FilePath workspace, Launcher launcher, TaskListener listener) throws IOException, InterruptedException {
         try {
-            TestResultAction action = JUnitResultArchiver.parseAndAttach(this, null, run, workspace, launcher, listener);
-            if (action != null && StringUtils.isNotEmpty(action.getResult().getStdout())) {
-                String stdOut = action.getResult().getStdout();
-                listener.getLogger().println(Messages.UiPathTest_DescriptorImpl_TestRunUrl()+stdOut.substring(stdOut.indexOf("ms.")+3,stdOut.length()));        
-            }
-            if (action != null && action.getResult().getFailCount() > 0) {
-                run.setResult(Result.UNSTABLE);
+            TestResultSummary resultSummary = JUnitResultArchiver.parseAndSummarize(this, null, run, workspace, launcher, listener);
+            if (resultSummary != null) {
+                TestResultAction action = run.getAction(TestResultAction.class);
+                if(action != null && StringUtils.isNotEmpty(action.getResult().getStdout())) {
+                    String stdOut = action.getResult().getStdout();
+                    listener.getLogger().println(Messages.UiPathTest_DescriptorImpl_TestRunUrl()+stdOut.substring(stdOut.indexOf("ms.")+3,stdOut.length()));
+                }
+                if (resultSummary.getFailCount() > 0) {
+                    run.setResult(Result.UNSTABLE);
+                }
             }
         } catch (Exception e) {
             listener.getLogger().println(e.getMessage());
@@ -382,8 +509,23 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     }
 
     @Override
+    public String getStdioRetention() {
+        return null;
+    }
+
+    @Override
+    public StdioRetention getParsedStdioRetention() {
+        return JUnitTask.super.getParsedStdioRetention();
+    }
+
+    @Override
     public boolean isKeepLongStdio() {
         return true;
+    }
+
+    @Override
+    public boolean isKeepProperties() {
+        return false;
     }
 
     @Override
@@ -399,6 +541,11 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     // Add @Override once we switch to minimum JUnit plugin version 1.4x
     public String getChecksName() {
         return "UiPath Tests";
+    }
+
+    @Override
+    public boolean isSkipOldReports() {
+        return false;
     }
 
     /**

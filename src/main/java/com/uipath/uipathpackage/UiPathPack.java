@@ -10,9 +10,7 @@ import com.uipath.uipathpackage.entries.versioning.CurrentVersionEntry;
 import com.uipath.uipathpackage.entries.versioning.ManualVersionEntry;
 import com.uipath.uipathpackage.models.AnalyzeOptions;
 import com.uipath.uipathpackage.models.PackOptions;
-import com.uipath.uipathpackage.util.OutputType;
-import com.uipath.uipathpackage.util.TraceLevel;
-import com.uipath.uipathpackage.util.Utility;
+import com.uipath.uipathpackage.util.*;
 import hudson.*;
 import hudson.model.*;
 import hudson.tasks.BuildStepDescriptor;
@@ -44,13 +42,21 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     private final String projectJsonPath;
     private final String outputPath;
     private String outputType;
+    private Boolean splitOutput;
+    private Boolean disableBuiltInNugetFeeds;
     private boolean runWorkflowAnalysis;
-
+    private String repositoryUrl;
+    private String repositoryCommit;
+    private String repositoryBranch;
+    private String repositoryType;
+    private String projectUrl;
+    private String releaseNotes;
     private boolean useOrchestrator;
     private String orchestratorAddress;
     private String orchestratorTenant;
     private SelectEntry credentials;
     private final TraceLevel traceLevel;
+    private String governanceFilePath;
 
     /**
      * Data bound constructor responsible for setting the values param values to state
@@ -67,11 +73,20 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         this.outputPath = outputPath;
         this.traceLevel = traceLevel;
         this.outputType = "None";
+        this.splitOutput = null;
+        this.disableBuiltInNugetFeeds = null;
+        this.repositoryUrl = null;
+        this.repositoryCommit = null;
+        this.repositoryBranch = null;
+        this.repositoryType = null;
+        this.projectUrl = null;
+        this.releaseNotes = null;
 
         this.orchestratorAddress = "";
         this.orchestratorTenant = "";
         this.credentials = null;
         this.runWorkflowAnalysis = false;
+        this.governanceFilePath = null;
     }
 
     /**
@@ -85,18 +100,25 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      * @throws IOException          if something goes wrong
      */
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
+    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull EnvVars env, @Nonnull Launcher launcher, @Nonnull TaskListener listener) throws InterruptedException, IOException {
         validateParameters();
 
-        if (launcher.isUnix()) {
-            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_MustUseWindows());
-        }
-
         FilePath tempRemoteDir = tempDir(workspace);
+        /**
+         * Adding the null check here as above method "tempDir" is annotated with @CheckForNull
+         * and findbugs plugin will report an error of NPE while building the plugin.
+         */
+        if (Objects.isNull(tempRemoteDir)) {
+            throw new AbortException(com.uipath.uipathpackage.Messages.GenericErrors_FailedToCreateTempFolderPack());
+        }
         tempRemoteDir.mkdirs();
 
         try {
-            EnvVars envVars = run.getEnvironment(listener);
+            EnvVars envVars = TaskScopedEnvVarsManager.addRequiredEnvironmentVariables(run, env, listener);
+            util.validateRuntime(launcher, envVars);
+
+            CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
+            String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);
 
             FilePath expandedOutputPath = outputPath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(outputPath)) :
@@ -109,6 +131,21 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
             if (runWorkflowAnalysis) {
                 AnalyzeOptions analyzeOptions = new AnalyzeOptions();
+                if (governanceFilePath != null && !governanceFilePath.isEmpty()) {
+                    FilePath expandedGovernanceFilePath = governanceFilePath.contains("${WORKSPACE}") ?
+                            new FilePath(launcher.getChannel(), envVars.expand(governanceFilePath)) :
+                            workspace.child(envVars.expand(governanceFilePath));
+                    analyzeOptions.setGovernanceFilePath(expandedGovernanceFilePath.getRemote());
+                }
+                if (disableBuiltInNugetFeeds != null && disableBuiltInNugetFeeds) {
+                    analyzeOptions.setDisableBuiltInNugetFeeds(true);
+                }
+
+                if (cliDetails.getActualVersion().supportsNewTelemetry()) {
+                    analyzeOptions.populateAdditionalTelemetryData();
+                    analyzeOptions.setPipelineCorrelationId(buildTag);
+                    analyzeOptions.setCliGetFlow(cliDetails.getGetFlow());
+                }
                 analyzeOptions.setProjectPath(expandedProjectJsonPath.getRemote());
 
                 if (useOrchestrator) {
@@ -122,10 +159,29 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             }
 
             PackOptions packOptions = new PackOptions();
+            if (cliDetails.getActualVersion().supportsNewTelemetry()) {
+                packOptions.populateAdditionalTelemetryData();
+                packOptions.setPipelineCorrelationId(buildTag);
+                packOptions.setCliGetFlow(cliDetails.getGetFlow());
+            }
 
             packOptions.setDestinationFolder(expandedOutputPath.getRemote());
             packOptions.setProjectPath(expandedProjectJsonPath.getRemote());
             packOptions.setOutputType(outputType);
+            if (splitOutput != null && splitOutput) {
+                packOptions.setSplitOutput(true);
+            }
+
+            if (disableBuiltInNugetFeeds != null && disableBuiltInNugetFeeds) {
+                packOptions.setDisableBuiltInNugetFeeds(true);
+            }
+
+            packOptions.setRepositoryUrl(repositoryUrl);
+            packOptions.setRepositoryCommit(repositoryCommit);
+            packOptions.setRepositoryBranch(repositoryBranch);
+            packOptions.setRepositoryType(repositoryType);
+            packOptions.setProjectUrl(projectUrl);
+            packOptions.setReleaseNotes(releaseNotes);
 
             if (version instanceof ManualVersionEntry) {
                 packOptions.setVersion(envVars.expand(((ManualVersionEntry) version).getVersion().trim()));
@@ -173,13 +229,58 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     }
 
     @DataBoundSetter
+    public void setGovernanceFilePath(String governanceFilePath) {
+        this.governanceFilePath = governanceFilePath;
+    }
+
+    @DataBoundSetter
     public void setOutputType(String outputType) {
         this.outputType = outputType;
     }
 
     @DataBoundSetter
+    public void setSplitOutput(Boolean splitOutput) {
+        this.splitOutput = splitOutput;
+    }
+
+    @DataBoundSetter
+    public void setDisableBuiltInNugetFeeds(Boolean disableBuiltInNugetFeeds) {
+        this.disableBuiltInNugetFeeds = disableBuiltInNugetFeeds;
+    }
+
+    @DataBoundSetter
     public void setRunWorkflowAnalysis(boolean runWorkflowAnalysis) {
         this.runWorkflowAnalysis = runWorkflowAnalysis;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryUrl(String repositoryUrl) {
+        this.repositoryUrl = repositoryUrl;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryCommit(String repositoryCommit) {
+        this.repositoryCommit = repositoryCommit;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryBranch(String repositoryBranch) {
+        this.repositoryBranch = repositoryBranch;
+    }
+
+    @DataBoundSetter
+    public void setRepositoryType(String repositoryType) {
+        this.repositoryType = repositoryType;
+    }
+
+    @DataBoundSetter
+    public void setProjectUrl(String projectUrl) {
+        this.projectUrl = projectUrl;
+    }
+
+    @DataBoundSetter
+    public void setReleaseNotes(String releaseNotes) {
+        this.releaseNotes = releaseNotes;
     }
 
     @DataBoundSetter
@@ -270,12 +371,78 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     }
 
     /**
+     * Provides the split output flag
+     *
+     * @return Boolean splitOutput
+     */
+    public Boolean getSplitOutput() {
+        return splitOutput;
+    }
+
+    public Boolean getDisableBuiltInNugetFeeds() {
+        return disableBuiltInNugetFeeds;
+    }
+
+    /**
      * Provides the run workflow analysis flag
      *
      * @return boolean runWorkflowAnalysis
      */
     public boolean getRunWorkflowAnalysis() {
         return runWorkflowAnalysis;
+    }
+
+    public String getGovernanceFilePath() {
+        return governanceFilePath;
+    }
+
+    /**
+     * Provides the repository url
+     *
+     * @return String repositoryUrl
+     */
+    public String getRepositoryUrl() {
+        return repositoryUrl;
+    }
+
+    /**
+     * Provides the repository commit
+     *
+     * @return String repositoryCommit
+     */
+    public String getRepositoryCommit() {
+        return repositoryCommit;
+    }
+
+    /**
+     * Provides the repository branch
+     *
+     * @return String repositoryBranch
+     */
+    public String getRepositoryBranch() {
+        return repositoryBranch;
+    }
+
+    /**
+     * Provides the repository type
+     *
+     * @return String repositoryType
+     */
+    public String getRepositoryType() {
+        return repositoryType;
+    }
+
+    /**
+     * Provides the project url
+     *
+     * @return String projectUrl
+     */
+    public String getProjectUrl() {
+        return projectUrl;
+    }
+
+    public String getReleaseNotes() {
+        return releaseNotes;
     }
 
     /**
