@@ -35,7 +35,7 @@ resources:
       endpoint: "GitHub connection"
     - repository: fossa
       name: UiPath/AzurePipelinesTemplates
-      ref: refs/tags/uipath.security.fossa.2.0.0
+      ref: refs/tags/uipath.security.fossa.3.0.9
       type: github
       endpoint: "GitHub connection"
 
