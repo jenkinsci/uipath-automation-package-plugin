@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>uipath-automation-package</artifactId>
-    <version>3.2-SNAPSHOT</version>
+    <version>4.0-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <properties>
@@ -331,7 +331,7 @@
         <developer>
             <id>al3xanndru</id>
             <name>Alexandru Groza</name>
-            <url>https://github.com/ganeshborle</url>
+            <url>https://github.com/al3xanndru</url>
             <email>alexandru.groza@uipath.com</email>
             <roles>
                 <role>maintainer</role>
@@ -340,7 +340,7 @@
         <developer>
             <id>cotovanu-cristian</id>
             <name>Cristian Cotovanu</name>
-            <url>https://github.com/ganeshborle</url>
+            <url>https://github.com/cotovanu-cristian</url>
             <email>cristian.cotovanu@uipath.com</email>
             <roles>
                 <role>maintainer</role>
