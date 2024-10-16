@@ -1,3 +1,11 @@
+parameters:
+  - name: buildStages
+    type: object
+    default:
+      - Build
+      - Security_FOSSA
+      - Security_CODEQL
+
 trigger:
   batch: true
   branches:
@@ -20,6 +28,16 @@ resources:
       name: UiPath/AzurePipelinesTemplates
       ref: master
       endpoint: "GitHub connection"
+    - repository: codeql
+      name: UiPath/AzurePipelinesTemplates
+      ref: refs/tags/uipath.security.codeql.1.8.13
+      type: github
+      endpoint: "GitHub connection"
+    - repository: fossa
+      name: UiPath/AzurePipelinesTemplates
+      ref: refs/tags/uipath.security.fossa.3.0.9
+      type: github
+      endpoint: "GitHub connection"
 
 variables:
   JENKINS_HOME: 'C:\Windows\System32\config\systemprofile\.jenkins'
@@ -29,29 +47,16 @@ variables:
   TestConfigurationData: "{\"Publishers\":[{\"Type\":\"JUnit\",\"Arguments\":\"outputFile=junitResults.xml;reportSkippedTestSuite=False\"}], \"VideoRecorderType\": \"ffmpeg\", \"VideoRecorderPath\": \"C:\\\\\\\\ffmpeg\\\\\\\\ffmpeg.exe\"}"
 
 stages:
-- stage: Build
-  displayName: "Build CLI package"
-  jobs:
-  - job: BuildAndPublishArtifacts
-    displayName: 'Build'
-    timeoutInMinutes: 90
-    workspace:
-      clean: outputs
-    variables:
-      MavenPOMFile: '$(Build.SourcesDirectory)/pom.xml'
-    pool:
-      vmImage: windows-2022
-      demands:
-        - maven
-    steps:
-    - template: job.ci.build.yml
-
-- ${{ if or(startsWith(variables['Build.SourceBranch'], 'refs/heads/release/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/develop'), startsWith(variables['Build.SourceBranch'], 'refs/heads/masters/'), startsWith(variables['Build.SourceBranch'], 'refs/heads/support/')) }}:
-  - stage: BuildSecurityScan
-    displayName: Build and Security Scan
-    dependsOn: []
-    jobs:
-    - template: stage.security.yml
+- ${{ each stageName in parameters.buildStages }}:
+    - stage: ${{ stageName }}
+      displayName: ${{ replace(stageName, '_', ' ') }}
+      dependsOn: []
+      jobs:
+        - template: build.jobs.template.yml
+          parameters:
+            name: ${{ replace(stageName, 'Security_', '') }}
+            ${{ if contains(stageName, 'Security') }}:
+              securityScan: ${{ replace(stageName, 'Security_', '') }}
 
 - stage: Deploy
   displayName: "Deploy on Jenkins server"
