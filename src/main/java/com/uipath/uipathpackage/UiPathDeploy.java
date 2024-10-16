@@ -17,6 +17,7 @@ import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
@@ -43,6 +44,9 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
     private TraceLevel traceLevel;
     private final String entryPointPaths;
     private final boolean createProcess;
+    private Boolean ignoreLibraryDeployConflict;
+    private String processName;
+    private String processNames;
 
     /**
      * Data bound constructor which is responsible for setting/saving of the values
@@ -77,6 +81,7 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         this.traceLevel = traceLevel;
         this.entryPointPaths = entryPointPaths;
         this.createProcess = createProcess;
+        this.ignoreLibraryDeployConflict = null;
     }
 
     /**
@@ -220,6 +225,21 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
                 deployOptions.setCliGetFlow(cliDetails.getGetFlow());
             }
 
+            if (ignoreLibraryDeployConflict != null && ignoreLibraryDeployConflict) {
+                deployOptions.setIgnoreLibraryDeployConflict(ignoreLibraryDeployConflict);
+            }
+
+            if (processName != null && !processName.isEmpty()) {
+                deployOptions.setProcessName(processName);
+            }
+
+            if (processNames != null && !processNames.isEmpty()) {
+                FilePath expandedprocessNamesPath = processNames.contains("${WORKSPACE}") ?
+                        new FilePath(launcher.getChannel(), envVars.expand(processNames)) :
+                        workspace.child(envVars.expand(processNames));
+                deployOptions.setProcessNames(expandedprocessNamesPath.getRemote());
+            }
+
             deployOptions.setPackagesPath(expandedPackagePath.getRemote());
             deployOptions.setOrchestratorUrl(orchestratorAddress);
             deployOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
@@ -284,6 +304,33 @@ public class UiPathDeploy extends Recorder implements SimpleBuildStep {
         if (packagePath.toUpperCase().contains("${JENKINS_HOME}")) {
             throw new AbortException(com.uipath.uipathpackage.Messages.ValidationErrors_InvalidPath());
         }
+    }
+
+    @DataBoundSetter
+    public void setIgnoreLibraryDeployConflict(Boolean ignoreLibraryDeployConflict) {
+        this.ignoreLibraryDeployConflict = ignoreLibraryDeployConflict;
+    }
+
+    public Boolean getIgnoreLibraryDeployConflict() {
+        return ignoreLibraryDeployConflict;
+    }
+
+    @DataBoundSetter
+    public void setProcessName(String processName) {
+        this.processName = processName;
+    }
+
+    public String getProcessName() {
+        return processName;
+    }
+
+    @DataBoundSetter
+    public void setProcessNames(String processNames) {
+        this.processNames = processNames;
+    }
+
+    public String getProcessNames() {
+        return processNames;
     }
 
     /**

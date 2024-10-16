@@ -2,11 +2,12 @@ package com.uipath.uipathpackage.models;
 
 public class AnalyzeOptions extends CommonOptions {
     private String projectPath;
-    private String analyzerTraceLevel = "Verbose";
+    private String analyzerTraceLevel;
     private boolean stopOnRuleViolation = true;
     private boolean treatWarningsAsErrors = false;
     private String ignoredRules = "";
     private Boolean disableBuiltInNugetFeeds;
+    private String governanceFilePath;
 
     public boolean isDisableBuiltInNugetFeeds() {
         return disableBuiltInNugetFeeds;
@@ -54,5 +55,13 @@ public class AnalyzeOptions extends CommonOptions {
 
     public void setIgnoredRules(String ignoredRules) {
         this.ignoredRules = ignoredRules;
+    }
+
+    public String getGovernanceFilePath() {
+        return governanceFilePath;
+    }
+
+    public void setGovernanceFilePath(String governanceFilePath) {
+        this.governanceFilePath = governanceFilePath;
     }
 }
