@@ -58,7 +58,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private final TraceLevel traceLevel;
     private boolean attachRobotLogs;
     private Boolean disableBuiltInNugetFeeds;
-    
+
     private static int TimeoutDefault = 7200;
 
     /**
@@ -91,7 +91,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         this.credentials = credentials;
         this.timeout = timeout;
         this.testResultsOutputPath = testResultsOutputPath;
-		this.parametersFilePath = parametersFilePath;
+        this.parametersFilePath = parametersFilePath;
         this.disableBuiltInNugetFeeds = null;
         this.repositoryUrl = null;
         this.repositoryCommit = null;
@@ -181,7 +181,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             testOptions.setTestReportType("junit");
 
             String resultsOutputPath = testResultsOutputPath != null && !testResultsOutputPath.trim().isEmpty()
-                                       ? testResultsOutputPath : "UiPathResults.xml";
+                    ? testResultsOutputPath : "UiPathResults.xml";
 
             FilePath expandedTestResultsOutputPath = resultsOutputPath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(resultsOutputPath)) :
@@ -208,7 +208,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
                 testOptions.setParametersFilePath(parametersPath.getRemote());
             }
-            
+
             testOptions.setAttachRobotLogs(attachRobotLogs);
 
             testOptions.setRepositoryUrl(repositoryUrl);
@@ -529,6 +529,11 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     }
 
     @Override
+    public boolean isKeepTestNames() {
+        return false;
+    }
+
+    @Override
     public boolean isAllowEmptyResults() {
         return true;
     }
@@ -669,7 +674,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
             return FormValidation.ok();
         }
-        
+
         /**
          * Validates that the timeout is specified
          *
