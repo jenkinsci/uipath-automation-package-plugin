@@ -1,0 +1,2 @@
+_extends: .github
+tag-template: uipath-automation-package-$NEXT_PATCH_VERSION
