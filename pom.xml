@@ -9,10 +9,13 @@
     </parent>
 
     <artifactId>uipath-automation-package</artifactId>
-    <version>4.0-SNAPSHOT</version>
+    <version>${revision}.${changelist}</version>
     <packaging>hpi</packaging>
 
     <properties>
+        <revision>4.0</revision>
+        <changelist>999999-SNAPSHOT</changelist>
+        <gitHubRepo>jenkinsci/uipath-automation-package-plugin</gitHubRepo>
         <jenkins.version>2.414.3</jenkins.version>
         <powershell.version>1.7</powershell.version>
         <envinject.version>2.4.0</envinject.version>
@@ -212,10 +215,10 @@
         </license>
     </licenses>
     <scm>
-        <connection>scm:git:ssh://git@github.com/jenkinsci/uipath-automation-package-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/uipath-automation-package-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/uipath-automation-package-plugin</url>
-        <tag>HEAD</tag>
+        <connection>scm:git:ssh://git@github.com/${gitHubRepo}.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/${gitHubRepo}.git</developerConnection>
+        <url>https://github.com/${gitHubRepo}</url>
+        <tag>${scmTag}</tag>
     </scm>
     <!-- List of dependencies of the project. -->
     <dependencies>
