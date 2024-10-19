@@ -25,7 +25,7 @@
         <credentials.version>1319.v7eb_51b_3a_c97b_</credentials.version>
         <org.jenkins-ci.plugins.junit.version>1304.vc85a_b_ca_96613</org.jenkins-ci.plugins.junit.version>
         <JUnitParams.version>1.1.1</JUnitParams.version>
-        <native2ascii-maven-plugin.version>2.0.1</native2ascii-maven-plugin.version>
+        <native2ascii-maven-plugin.version>2.1.1</native2ascii-maven-plugin.version>
         <properties-maven-plugin.version>1.1.0</properties-maven-plugin.version>
         <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
         <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
