@@ -45,7 +45,7 @@
         <checks-api.version>2.0.2</checks-api.version>
         <jquery3-api.version>3.7.1-1</jquery3-api.version>
         <echarts-api.version>5.4.0-7</echarts-api.version>
-        <matrix-project.version>789.v57a_725b_63c79</matrix-project.version>
+        <matrix-project.version>822.824.v14451b_c0fd42</matrix-project.version>
     </properties>
 
     <name>UiPath Plugin</name>
