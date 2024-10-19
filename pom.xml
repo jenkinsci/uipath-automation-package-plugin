@@ -40,7 +40,7 @@
         <plugin-util-api.version>3.8.0</plugin-util-api.version>
         <commons-text-api.version>1.10.0-78.v3e7b_ea_d5a_fe1</commons-text-api.version>
         <workflow-support.version>865.v43e78cc44e0d</workflow-support.version>
-        <font-awesome-api.version>6.4.2-1</font-awesome-api.version>
+        <font-awesome-api.version>6.6.0-2</font-awesome-api.version>
         <bootstrap5-api.version>5.3.2-3</bootstrap5-api.version>
         <checks-api.version>2.0.2</checks-api.version>
         <jquery3-api.version>3.7.1-1</jquery3-api.version>
