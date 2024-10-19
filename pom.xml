@@ -122,8 +122,8 @@
                         </goals>
                         <configuration>
                             <target>
-                                <exec executable="powershell.exe">
-                                    <arg value=".\GenerateHelpFiles.ps1 " />
+                                <exec executable="pwsh">
+                                    <arg value=".\GenerateHelpFiles.ps1 "/>
                                 </exec>
                             </target>
                         </configuration>
