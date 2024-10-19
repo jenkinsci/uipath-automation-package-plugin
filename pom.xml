@@ -22,7 +22,7 @@
         <mockito-core.version>4.8.0</mockito-core.version>
         <plain-credentials.version>179.vc5cb_98f6db_38</plain-credentials.version>
         <json.version>20231013</json.version>
-        <credentials.version>1319.v7eb_51b_3a_c97b_</credentials.version>
+        <credentials.version>1371.1373.v4eb_fa_b_7161e9</credentials.version>
         <org.jenkins-ci.plugins.junit.version>1304.vc85a_b_ca_96613</org.jenkins-ci.plugins.junit.version>
         <JUnitParams.version>1.1.1</JUnitParams.version>
         <native2ascii-maven-plugin.version>2.0.1</native2ascii-maven-plugin.version>
