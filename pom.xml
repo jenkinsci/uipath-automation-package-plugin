@@ -37,15 +37,6 @@
         <structs.version>325.vcb_307d2a_2782</structs.version>
         <caffeine-api.version>3.1.8-133.v17b_1ff2e0599</caffeine-api.version>
         <instance-identity.version>201.vd2a_b_5a_468a_a_6</instance-identity.version>
-        <plugin-util-api.version>3.8.0</plugin-util-api.version>
-        <commons-text-api.version>1.10.0-78.v3e7b_ea_d5a_fe1</commons-text-api.version>
-        <workflow-support.version>865.v43e78cc44e0d</workflow-support.version>
-        <font-awesome-api.version>6.4.2-1</font-awesome-api.version>
-        <bootstrap5-api.version>5.3.2-3</bootstrap5-api.version>
-        <checks-api.version>2.0.2</checks-api.version>
-        <jquery3-api.version>3.7.1-1</jquery3-api.version>
-        <echarts-api.version>5.4.0-7</echarts-api.version>
-        <matrix-project.version>789.v57a_725b_63c79</matrix-project.version>
     </properties>
 
     <name>UiPath Plugin</name>
@@ -311,51 +302,6 @@
             <artifactId>caffeine-api</artifactId>
             <version>${caffeine-api.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.jenkins.plugins</groupId>
-            <artifactId>plugin-util-api</artifactId>
-            <version>${plugin-util-api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jenkins.plugins</groupId>
-            <artifactId>commons-text-api</artifactId>
-            <version>${commons-text-api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins.workflow</groupId>
-            <artifactId>workflow-support</artifactId>
-            <version>${workflow-support.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jenkins.plugins</groupId>
-            <artifactId>font-awesome-api</artifactId>
-            <version>${font-awesome-api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jenkins.plugins</groupId>
-            <artifactId>bootstrap5-api</artifactId>
-            <version>${bootstrap5-api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jenkins.plugins</groupId>
-            <artifactId>checks-api</artifactId>
-            <version>${checks-api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jenkins.plugins</groupId>
-            <artifactId>jquery3-api</artifactId>
-            <version>${jquery3-api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.jenkins.plugins</groupId>
-            <artifactId>echarts-api</artifactId>
-            <version>${echarts-api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>matrix-project</artifactId>
-            <version>${matrix-project.version}</version>
-        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
@@ -363,6 +309,14 @@
                 <groupId>org.jenkins-ci</groupId>
                 <artifactId>symbol-annotation</artifactId>
                 <version>${symbol-annotation.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jenkins.tools.bom</groupId>
+                <artifactId>bom-2.440.x</artifactId>
+                <!-- Latest version goes here -->
+                <version>3532.v8059503f6b_23</version>
+                <scope>import</scope>
+                <type>pom</type>
             </dependency>
         </dependencies>
     </dependencyManagement>
