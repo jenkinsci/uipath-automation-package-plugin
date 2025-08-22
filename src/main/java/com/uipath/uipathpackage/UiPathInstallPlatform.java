@@ -23,6 +23,9 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.annotation.Nonnull;
 import java.io.PrintStream;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
 
@@ -184,11 +187,17 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
 
             ListBoxModel result= new ListBoxModel();
 
-            for (Map.Entry<String, UiPathCliConfiguration.Configuration> v: cliConfiguration.getConfiguration().entrySet()) {
-                result.add(v.getValue().getDisplayName(), v.getKey());
-            }
+            List<Map.Entry<String, UiPathCliConfiguration.Configuration>> entries =
+                    new ArrayList<>(cliConfiguration.getConfiguration().entrySet());
+            entries.sort(Comparator.comparing((Map.Entry<String, UiPathCliConfiguration.Configuration> e)
+                            -> e.getValue().getName())
+                    .thenComparing(e -> e.getValue().getVersion().getComplete(), Comparator.reverseOrder()));
 
-            return result;
+           for (Map.Entry<String, UiPathCliConfiguration.Configuration> v : entries) {
+               result.add(new ListBoxModel.Option(v.getValue().getDisplayName(), v.getKey()));
+           }
+
+           return result;
         }
 
         public ListBoxModel doFillTraceLevelItems(@AncestorInPath Item item) {
