@@ -21,14 +21,16 @@ import hudson.util.StreamTaskListener;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.json.JSONObject;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.web.client.*;
 
 import javax.annotation.Nonnull;
 import java.io.*;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidParameterException;
@@ -179,38 +181,41 @@ public class Utility {
 
     public void downloadCli(String feedUrl,@Nonnull FilePath downloadPath, @Nonnull TaskListener listener) throws AbortException {
         PrintStream logger = listener.getLogger();
+        logger.println("Downloading CLI from "+ feedUrl);
 
-        RestTemplate restTemplate = new RestTemplate();
+        HttpClient client = HttpClient.newBuilder()
+                .followRedirects(HttpClient.Redirect.NORMAL) // auto handle 301/302/303 (no manual retry log)
+                .build();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(feedUrl))
+                .header("Accept", "application/octet-stream, */*")
+                .GET()
+                .build();
+
         try {
-            logger.println("Downloading CLI from "+ feedUrl);
-
-            RequestCallback requestCallback = request -> request.getHeaders()
-                    .setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
-
-            ResponseExtractor<Void> responseExtractor = response -> {
-                try {
-                    downloadPath.copyFrom(response.getBody());
-                } catch (InterruptedException e) {
-                    e.printStackTrace(logger);
-                    throw new AbortException("error while writing nupkg to download directory ");
-                }
-                return null;
-            };
-
-            restTemplate.execute(feedUrl, HttpMethod.GET, requestCallback, responseExtractor);
-
-            logger.println("Downloaded CLI successfully. @"+ downloadPath);
-        }
-        catch (HttpClientErrorException hcre) {
-            if(Arrays.asList(301,302,303).contains(hcre.getRawStatusCode())) {
-                logger.println("Retrying Downloading CLI....");
-                downloadCli(hcre.getResponseHeaders().getLocation().toString(),downloadPath, listener);
+            HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            int status = response.statusCode();
+            byte[] body = response.body();
+            if (status < 200 || status >= 300) {
+                String resp = body != null ? new String(body, StandardCharsets.UTF_8) : "";
+                logger.println("Aborting Task Unable to Download CLI.... HttpStatus " + status + " Response " + resp + " Error HTTP " + status);
+                throw new AbortException("unable to download the CLI from the public feed");
             }
-            logger.println("Aborting Task Unable to Download CLI.... HttpStatus " + hcre.getRawStatusCode()+ " Response " + hcre.getResponseBodyAsString() + " Error " + hcre.getMessage());
+            try (ByteArrayInputStream in = new ByteArrayInputStream(body)) {
+                downloadPath.copyFrom(in);
+            } catch (InterruptedException ie) {
+                ie.printStackTrace(logger);
+                throw new AbortException("Error while writing nupkg to download directory ");
+            }
+            logger.println("Downloaded CLI successfully. @"+ downloadPath);
+        } catch (InterruptedException ie) {
+            ie.printStackTrace(logger);
+            Thread.currentThread().interrupt();
+            logger.println("Aborting Task Unable to Download CLI.... Error "+ ie.getMessage() + " Download Path "+downloadPath.getRemote());
             throw new AbortException("unable to download the CLI from the public feed");
-        }
-        catch (RestClientException rce) {
-            logger.println("Aborting Task Unable to Download CLI.... Error "+ rce.getMessage() + " Download Path "+downloadPath.getRemote());
+        } catch (IOException ioe) {
+            logger.println("Aborting Task Unable to Download CLI.... Error "+ ioe.getMessage() + " Download Path "+downloadPath.getRemote());
             throw new AbortException("unable to download the CLI from the public feed");
         }
     }
