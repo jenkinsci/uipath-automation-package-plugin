@@ -13,7 +13,7 @@ public class ExecutionEnvironmentVariablesContributor extends EnvironmentContrib
     @Override
     public void buildEnvironmentFor(@Nonnull Run run, @Nonnull EnvVars envs, @Nonnull TaskListener listener) {
         AddEnvironmentVariablesAction envAction = run.getAction(AddEnvironmentVariablesAction.class);
-        if (envAction != null) {
+        if (envAction != null && envAction.HasEnvironmentVariablesToAdd()) {
             envs.putAll(envAction.getAddedEnvironmentVariables());
         }
     }

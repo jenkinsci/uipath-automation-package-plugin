@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <f:entry title="${%Version}" field="version">
+        <f:textbox/>
+    </f:entry>
+
+    <f:entry title="${%Workspace Path}" field="workspacePath">
+        <f:textbox/>
+    </f:entry>
+
+    <f:entry title="${%Output Path}" field="outputPath">
+        <f:textbox/>
+    </f:entry>
+
+    <f:entry title="${%DisableBuiltInNugetFeeds}" field="disableBuiltInNugetFeeds">
+        <f:checkbox default="false"/>
+    </f:entry>
+
+    <f:entry title="${%RunWorkflowAnalysis}" field="runWorkflowAnalysis">
+        <f:checkbox default="false"/>
+    </f:entry>
+
+    <f:entry title="${%GovernanceFilePath}" field="governanceFilePath">
+        <f:textbox default=""/>
+    </f:entry>
+
+    <f:optionalBlock title="${%PackageMetadata}" field="showMetadata" checked="${instance.showMetadata}" inline="true">
+        <f:entry field="repositoryUrl" title="${%RepositoryUrl}">
+            <f:textbox/>
+        </f:entry>
+        <f:entry field="repositoryCommit" title="${%RepositoryCommit}">
+            <f:textbox/>
+        </f:entry>
+        <f:entry field="repositoryBranch" title="${%RepositoryBranch}">
+            <f:textbox/>
+        </f:entry>
+        <f:entry field="repositoryType" title="${%RepositoryType}">
+            <f:textbox/>
+        </f:entry>
+        <f:entry field="projectUrl" title="${%ProjectUrl}">
+            <f:textbox/>
+        </f:entry>
+        <f:entry field="releaseNotes" title="${%ReleaseNotes}">
+            <f:textbox/>
+        </f:entry>
+    </f:optionalBlock>
+
+    <f:block>
+        <table>
+            <f:optionalBlock title="${%UseOrchestrator}" field="useOrchestrator" checked="${instance.useOrchestrator}"
+                             inline="true">
+                <f:entry field="orchestratorAddress" title="${%OrchestratorAddress}">
+                    <f:textbox/>
+                </f:entry>
+                <f:entry field="orchestratorTenant" title="${%OrchestratorTenant}">
+                    <f:textbox/>
+                </f:entry>
+                <f:entry field="credentialsEntry" title="${%ChooseAuthenticationMethod}">
+                    <f:hetero-radio field="credentials" descriptors="${descriptor.authenticationDescriptors}"/>
+                </f:entry>
+            </f:optionalBlock>
+        </table>
+    </f:block>
+
+    <f:entry title="${%TraceLevel}" field="traceLevel">
+        <f:select/>
+    </f:entry>
+</j:jelly>
+

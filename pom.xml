@@ -13,7 +13,7 @@
     <packaging>hpi</packaging>
 
     <properties>
-        <revision>4.0</revision>
+        <revision>6.0</revision>
         <changelist>999999-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/uipath-automation-package-plugin</gitHubRepo>
         <jenkins.version>2.414.3</jenkins.version>
@@ -335,6 +335,7 @@
             <groupId>io.jenkins.plugins</groupId>
             <artifactId>bootstrap5-api</artifactId>
             <version>${bootstrap5-api.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.jenkins.plugins</groupId>

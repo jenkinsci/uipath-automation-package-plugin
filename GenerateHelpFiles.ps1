@@ -13,6 +13,14 @@ $ActivitiesFolders = @{"ExternalAppAuthenticationEntry" = "entries\\authenticati
                        "RobotEntry" = "entries\\job\\RobotEntry";
                        "TestProjectEntry" = "entries\\testExecutionTarget\\TestProjectEntry";
                        "TestSetEntry" = "entries\\testExecutionTarget\\TestSetEntry";
+                       "UiPathSolutionDeletePackage" = "solutions\\UiPathSolutionDeletePackage";
+                       "UiPathSolutionDeploy" = "solutions\\UiPathSolutionDeploy";
+                       "UiPathSolutionActivateDeployment" = "solutions\\UiPathSolutionActivateDeployment";
+                       "UiPathSolutionUninstallDeployment" = "solutions\\UiPathSolutionUninstallDeployment";
+                       "UiPathSolutionDownloadConfig" = "solutions\\UiPathSolutionDownloadConfig";
+                       "UiPathSolutionDownloadPackage" = "solutions\\UiPathSolutionDownloadPackage";
+                       "UiPathSolutionUploadPackage" = "solutions\\UiPathSolutionUploadPackage";
+                       "UiPathSolutionPack" = "solutions\\UiPathSolutionPack";
                        "UiPathAssets" = "UiPathAssets";
                        "UiPathDeploy" = "UiPathDeploy";
                        "UiPathPack" = "UiPathPack";
