@@ -62,7 +62,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
      * Data bound constructor responsible for setting the values param values to state
      *
      * @param version         Entry version
-     * @param projectJsonPath Project Json Path
+     * @param projectJsonPath Workspace Path (it can be path to either project or solution)
      * @param outputPath      Output Path
      * @param traceLevel      The trace logging level. One of the following values: None, Critical, Error, Warning, Information, Verbose. (default None)
      */
@@ -125,7 +125,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
                     workspace.child(envVars.expand(outputPath));
             expandedOutputPath.mkdirs();
 
-            FilePath expandedProjectJsonPath = projectJsonPath.contains("${WORKSPACE}") ?
+            FilePath expandedWorkspacePath = projectJsonPath.contains("${WORKSPACE}") ?
                     new FilePath(launcher.getChannel(), envVars.expand(projectJsonPath)) :
                     workspace.child(envVars.expand(projectJsonPath));
 
@@ -146,7 +146,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
                     analyzeOptions.setPipelineCorrelationId(buildTag);
                     analyzeOptions.setCliGetFlow(cliDetails.getGetFlow());
                 }
-                analyzeOptions.setProjectPath(expandedProjectJsonPath.getRemote());
+                analyzeOptions.setProjectPath(expandedWorkspacePath.getRemote());
 
                 if (useOrchestrator) {
                     analyzeOptions.setOrchestratorUrl(orchestratorAddress);
@@ -166,7 +166,7 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             }
 
             packOptions.setDestinationFolder(expandedOutputPath.getRemote());
-            packOptions.setProjectPath(expandedProjectJsonPath.getRemote());
+            packOptions.setProjectPath(expandedWorkspacePath.getRemote());
             packOptions.setOutputType(outputType);
             if (splitOutput != null && splitOutput) {
                 packOptions.setSplitOutput(true);

@@ -1,8 +1,5 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-    <f:entry field="identityUrl" title="${%IdentityUrl}">
-        <f:textbox />
-    </f:entry>
     <f:entry field="accountForApp" title="${%AccountForApp}">
         <f:textbox />
     </f:entry>
@@ -13,6 +10,9 @@
         <f:select/>
     </f:entry>
     <f:entry field="applicationScope" title="${%ApplicationScope}">
+        <f:textbox />
+    </f:entry>
+    <f:entry field="identityUrl" title="${%IdentityUrl}">
         <f:textbox />
     </f:entry>
 </j:jelly>
