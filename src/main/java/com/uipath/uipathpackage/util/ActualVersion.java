@@ -18,6 +18,6 @@ public class ActualVersion {
     }
 
     public boolean supportsNewTelemetry() {
-        return major >= 23 && minor >= 10;
+        return major == 23 ? minor >= 10 : major > 23;
     }
 }
