@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.uipath.uipathpackage.actions.AddEnvironmentVariablesAction;
+import com.uipath.uipathpackage.util.Utility;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -138,13 +139,8 @@ public final class UiPathCliConfiguration {
         PrintStream logger = launcher.getListener().getLogger();
         try {
             FilePath cliCachedPath = getCliRootCachedDirectoryPath(launcher, env, cliVersionKey);
-            Configuration configuration = cliConfigurationMap.get(cliVersionKey);
-            if (configuration.getVersion().getMajor() >= 22) {
-                cliCachedPath = cliCachedPath.child("tools").child("uipcli.dll");
-            } else {
-                /** To Support Backward compatibility cli-21.10.xxx.xxx conventions needs to be followed.*/
-                cliCachedPath = cliCachedPath.child("lib").child("net461").child("uipcli.exe");
-            }
+            cliCachedPath = Utility.getDotnetToolCliPath(cliCachedPath);
+
             if (cliCachedPath.exists()) {
                 return Optional.of(cliCachedPath);
             }

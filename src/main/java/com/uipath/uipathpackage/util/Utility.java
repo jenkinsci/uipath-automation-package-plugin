@@ -88,7 +88,8 @@ public class Utility {
 
         FilePath commandOptionsFile = remoteTempDir.createTextTempFile("uipcliargs", "", new JSONObject(new RunOptions(command, options)).toString());
 
-        int result = launcher.launch().cmds(this.buildCommandLine(cliPath, commandOptionsFile, envVars)).envs(envVars).stdout(listener).pwd(cliPath.getParent()).start().join();
+        String[] commandParams = new String[]{"dotnet", cliPath.getRemote(), "run", commandOptionsFile.getRemote()};
+        int result = launcher.launch().cmds(commandParams).envs(envVars).stdout(listener).pwd(cliPath.getParent()).start().join();
         if (throwExceptionOnFailure && result != 0) {
             throw new AbortException("Failed to run the command, the CLI failed with error code " + result);
         }
@@ -123,7 +124,8 @@ public class Utility {
 
         StreamTaskListener execListener = new StreamTaskListener(commandOutput, run.getCharset());
 
-        launcher.launch().cmds(this.buildVersionArgs(cliPath, envVars)).envs(envVars).stdout(execListener).pwd(cliPath.getParent()).start().join();
+        String [] commandParameters = new String[] {"dotnet", cliPath.getRemote(), "--version" };
+        launcher.launch().cmds(commandParameters).envs(envVars).stdout(execListener).pwd(cliPath.getParent()).start().join();
 
         String stdoutText = commandOutput.toString(run.getCharset().name());
 
@@ -160,8 +162,8 @@ public class Utility {
 
     public FilePath extractCliApp(@Nonnull FilePath targetRootCacheDir, @Nonnull TaskListener listener, @Nonnull EnvVars env) throws IOException, InterruptedException, URISyntaxException {
         PrintStream logger = listener.getLogger();
-        ResourceBundle rb = ResourceBundle.getBundle("config");
-        FilePath targetCliPath = targetRootCacheDir.child("tools").child("uipcli.dll");
+        FilePath targetCliPath = getDotnetToolCliPath(targetRootCacheDir);
+
         if (targetCliPath.exists())
         {
             logger.println("Using previously extracted UiPath CLI from " + targetCliPath);
@@ -181,6 +183,29 @@ public class Utility {
         // Copy relevant files to temp directory
         copyPluginFilesToTempDir(listener, targetRootCacheDir, pluginJarPath);
         return targetCliPath;
+    }
+
+    // With support for .NET tool structure, look for uipcli.dll in tools/netX.X/any/uipcli.dll. Maintain also backward compatibility.
+    public static FilePath getDotnetToolCliPath(FilePath targetPath) throws IOException, InterruptedException {
+        FilePath uipcliToolPath;
+
+        FilePath toolsDir = targetPath.child("tools");
+        uipcliToolPath = toolsDir.child("uipcli.dll");
+
+        if(uipcliToolPath.exists()) {
+            return uipcliToolPath;
+        }
+
+        if (toolsDir.exists()) {
+            for (FilePath child : toolsDir.listDirectories()) {
+                String dirName = child.getName();
+                if (dirName.startsWith("net")) {
+                    uipcliToolPath = child.child("any").child("uipcli.dll");
+                    break;
+                }
+            }
+        }
+        return uipcliToolPath;
     }
 
     public void downloadCli(String feedUrl,@Nonnull FilePath downloadPath, @Nonnull TaskListener listener) throws AbortException {
@@ -296,40 +321,6 @@ public class Utility {
         }else if (strategy instanceof TestAutomationJobTypeEntry){
         	options.setJobType(JobType.TestAutomation);
         }
-    }
-
-    private String[] buildCommandLine(FilePath cliPath, FilePath commandOptionsFile, @Nonnull EnvVars envVars) throws JsonProcessingException {
-        UiPathCliConfiguration configuration = UiPathCliConfiguration.getInstance();
-        String selectedCliVersionKey = envVars.get(UiPathCliConfiguration.SELECTED_CLI_VERSION_KEY);
-
-        if(StringUtils.isBlank(selectedCliVersionKey)) {
-            selectedCliVersionKey = configuration.getDefaultCliVersionKey();
-        }
-
-        UiPathCliConfiguration.Configuration cliConfig = configuration.getConfiguration().get(selectedCliVersionKey);
-
-        if(cliConfig.getVersion().getMajor() >= 22) {
-            return new String[] {"dotnet", cliPath.getRemote(), "run", commandOptionsFile.getRemote() };
-        }
-
-        return new String[] { cliPath.getRemote(), "run", commandOptionsFile.getRemote() };
-    }
-
-    private String[] buildVersionArgs(FilePath cliPath, @Nonnull EnvVars envVars) throws JsonProcessingException {
-        UiPathCliConfiguration configuration = UiPathCliConfiguration.getInstance();
-        String selectedCliVersionKey = envVars.get(UiPathCliConfiguration.SELECTED_CLI_VERSION_KEY);
-
-        if(StringUtils.isBlank(selectedCliVersionKey)) {
-            selectedCliVersionKey = configuration.getDefaultCliVersionKey();
-        }
-
-        UiPathCliConfiguration.Configuration cliConfig = configuration.getConfiguration().get(selectedCliVersionKey);
-
-        if(cliConfig.getVersion().getMajor() >= 22) {
-            return new String[] {"dotnet", cliPath.getRemote(), "--version" };
-        }
-
-        return new String[] { cliPath.getRemote(), "--version" };
     }
 
     private void extractResourcesToTempFolder(FilePath tempDir, File jarfile, TaskListener listener) throws IOException, InterruptedException {
