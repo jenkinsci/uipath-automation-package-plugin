@@ -13,6 +13,9 @@ public class SolutionPackOptions extends CommonOptions {
     private String projectUrl;
     private String releaseNotes;
     private String version;
+    private String certificatePath;
+    private String certificatePassword;
+    private String timestampServerUrl;
 
     public String getProjectPath() {
         return projectPath;
@@ -92,5 +95,29 @@ public class SolutionPackOptions extends CommonOptions {
 
     public void setReleaseNotes(String releaseNotes) {
         this.releaseNotes = releaseNotes;
+    }
+
+    public String getCertificatePath() {
+        return certificatePath;
+    }
+
+    public void setCertificatePath(String certificatePath) {
+        this.certificatePath = certificatePath;
+    }
+
+    public String getCertificatePassword() {
+        return certificatePassword;
+    }
+
+    public void setCertificatePassword(String certificatePassword) {
+        this.certificatePassword = certificatePassword;
+    }
+
+    public String getTimestampServerUrl() {
+        return timestampServerUrl;
+    }
+
+    public void setTimestampServerUrl(String timestampServerUrl) {
+        this.timestampServerUrl = timestampServerUrl;
     }
 }

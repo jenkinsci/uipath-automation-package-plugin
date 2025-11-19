@@ -14,6 +14,9 @@ public class PackOptions extends CommonOptions {
     private String releaseNotes;
     private String version;
     private boolean autoVersion;
+    private String certificatePath;
+    private String certificatePassword;
+    private String timestampServerUrl;
 
     public boolean getAutoVersion() {
         return autoVersion;
@@ -117,5 +120,29 @@ public class PackOptions extends CommonOptions {
 
     public void setReleaseNotes(String releaseNotes) {
         this.releaseNotes = releaseNotes;
+    }
+
+    public String getCertificatePath() {
+        return certificatePath;
+    }
+
+    public void setCertificatePath(String certificatePath) {
+        this.certificatePath = certificatePath;
+    }
+
+    public String getCertificatePassword() {
+        return certificatePassword;
+    }
+
+    public void setCertificatePassword(String certificatePassword) {
+        this.certificatePassword = certificatePassword;
+    }
+
+    public String getTimestampServerUrl() {
+        return timestampServerUrl;
+    }
+
+    public void setTimestampServerUrl(String timestampServerUrl) {
+        this.timestampServerUrl = timestampServerUrl;
     }
 }
