@@ -16,6 +16,8 @@ public class TestOptions extends CommonOptions {
     private String projectUrl;
     private String releaseNotes;
     private Boolean disableBuiltInNugetFeeds;
+    private String projectKey;
+    private String testSetKey;
 
     public String getEnvironment() {
         return environment;
@@ -135,5 +137,21 @@ public class TestOptions extends CommonOptions {
 
     public void setReleaseNotes(String releaseNotes) {
         this.releaseNotes = releaseNotes;
+    }
+
+    public String getProjectKey() {
+        return projectKey;
+    }
+
+    public void setProjectKey(String projectKey) {
+        this.projectKey = projectKey;
+    }
+
+    public String getTestSetKey() {
+        return testSetKey;
+    }
+
+    public void setTestSetKey(String testSetKey) {
+        this.testSetKey = testSetKey;
     }
 }

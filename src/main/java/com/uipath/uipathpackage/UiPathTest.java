@@ -58,6 +58,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     private final TraceLevel traceLevel;
     private boolean attachRobotLogs;
     private Boolean disableBuiltInNugetFeeds;
+    private String projectKey;
 
     private static int TimeoutDefault = 7200;
 
@@ -147,6 +148,15 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
                 testOptions.setCliGetFlow(cliDetails.getGetFlow());
             }
 
+            if (!StringUtils.isBlank(projectKey)) {
+                testOptions.setProjectKey(projectKey.trim());
+            } else {
+                listener.getLogger().println("Testing module in Orchestrator will be deprecated soon. Consider migrating to UiPath Test Manager. " +
+                        "For more information, visit: " +
+                        "Migration FAQ: https://docs.uipath.com/orchestrator/automation-cloud/latest/user-guide/faq-migrating-test-artifacts-to-test-manager " +
+                        "Deprecation FAQ: https://docs.uipath.com/orchestrator/automation-cloud/latest/user-guide/faq---deprecating-the-testing-module");
+            }
+
             if (testTarget instanceof TestProjectEntry)
             {
                 String environments = envVars.expand(((TestProjectEntry) testTarget).getEnvironments());
@@ -171,7 +181,10 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
                 }
             }
             else {
-                testOptions.setTestSet(((TestSetEntry)testTarget).getTestSet());
+                if(!StringUtils.isBlank(projectKey))
+                    testOptions.setTestSetKey(((TestSetEntry)testTarget).getTestSet());
+                else
+                    testOptions.setTestSet(((TestSetEntry)testTarget).getTestSet());
             }
 
             String orchestratorTenantFormatted = envVars.expand(orchestratorTenant.trim()).isEmpty() ? util.getConfigValue(rb, "UiPath.DefaultTenant") : envVars.expand(orchestratorTenant.trim());
@@ -452,6 +465,15 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         this.releaseNotes = releaseNotes;
     }
 
+    public String getProjectKey() {
+        return projectKey;
+    }
+
+    @DataBoundSetter
+    public void setProjectKey(String projectKey) {
+        this.projectKey = projectKey;
+    }
+
 	private void validateParameters() throws AbortException {
         if (testTarget == null) {
             throw new InvalidParameterException(com.uipath.uipathpackage.Messages.GenericErrors_MissingTestSetOrProjectPath());
@@ -552,6 +574,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
     public boolean isSkipOldReports() {
         return false;
     }
+
 
     /**
      * {@link Descriptor} for {@link Builder}

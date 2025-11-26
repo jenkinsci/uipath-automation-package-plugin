@@ -11,7 +11,7 @@ jobs:
     variables:
       MavenPOMFile: '$(Build.SourcesDirectory)/pom.xml'
     pool:
-      vmImage: windows-latest
+      vmImage: windows-2022
       demands:
         - maven
     steps:

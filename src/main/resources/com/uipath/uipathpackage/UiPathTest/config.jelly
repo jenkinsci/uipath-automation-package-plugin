@@ -36,6 +36,9 @@
             }
         </style>
     </f:block>
+    <f:entry field="projectKey" title="${%ProjectKey}">
+        <f:textbox/>
+    </f:entry>
     <f:entry field="testTargetEntry" title="${%TestTarget}">
         <f:hetero-radio field="testTarget" descriptors="${descriptor.entryDescriptors}" />
     </f:entry>

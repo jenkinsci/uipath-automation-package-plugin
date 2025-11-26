@@ -8,7 +8,7 @@ jobs:
     dependsOn: "${{ configuration.dependsOnJob }}"
     timeoutInMinutes: 90
     pool:
-      vmImage: windows-latest
+      vmImage: windows-2022
     steps:
     - task: JenkinsQueueJob@2
       displayName: 'Queue project Jenkins job and wait for completion'

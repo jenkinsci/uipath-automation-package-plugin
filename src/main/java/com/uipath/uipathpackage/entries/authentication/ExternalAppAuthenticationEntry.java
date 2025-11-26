@@ -93,7 +93,6 @@ public class ExternalAppAuthenticationEntry extends SelectEntry {
         Utility util = new Utility();
         util.validateParams(applicationId, Messages.ExternalAppAuthenticationEntry_DescriptorImpl_Errors_MissingApplicationId());
         util.validateParams(applicationSecret, Messages.ExternalAppAuthenticationEntry_DescriptorImpl_Errors_MissingApplicationSecret());
-        util.validateParams(applicationScope, Messages.ExternalAppAuthenticationEntry_DescriptorImpl_Errors_MissingApplicationScope());
         return true;
     }
 
