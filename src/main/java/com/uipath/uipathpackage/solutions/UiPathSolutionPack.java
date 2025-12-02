@@ -1,5 +1,7 @@
 package com.uipath.uipathpackage.solutions;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.google.common.collect.ImmutableList;
 import com.uipath.uipathpackage.entries.SelectEntry;
 import com.uipath.uipathpackage.entries.authentication.ExternalAppAuthenticationEntry;
@@ -10,6 +12,7 @@ import com.uipath.uipathpackage.models.solutions.SolutionAnalyzeOptions;
 import com.uipath.uipathpackage.util.*;
 import hudson.*;
 import hudson.model.*;
+import hudson.security.ACL;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
@@ -17,6 +20,7 @@ import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -27,6 +31,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.InvalidParameterException;
 import java.util.*;
+
+import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials;
 
 import static hudson.slaves.WorkspaceList.tempDir;
 
@@ -46,6 +52,12 @@ public class UiPathSolutionPack extends Builder implements SimpleBuildStep {
     private String repositoryType;
     private String projectUrl;
     private String releaseNotes;
+    private boolean showMetadata;
+    private boolean showPackageSigning;
+    private String certificatePath;
+    private String password;
+    private String timestampServerUrl;
+    private boolean showMoreSettings;
     private boolean useOrchestrator;
     private String orchestratorAddress;
     private String orchestratorTenant;
@@ -74,6 +86,12 @@ public class UiPathSolutionPack extends Builder implements SimpleBuildStep {
         this.repositoryType = null;
         this.projectUrl = null;
         this.releaseNotes = null;
+        this.showMetadata = false;
+        this.showPackageSigning = false;
+        this.certificatePath = null;
+        this.password = null;
+        this.timestampServerUrl = null;
+        this.showMoreSettings = false;
 
         this.orchestratorAddress = "";
         this.orchestratorTenant = "";
@@ -113,21 +131,15 @@ public class UiPathSolutionPack extends Builder implements SimpleBuildStep {
             CliDetails cliDetails = util.getCliDetails(run, listener, envVars, launcher);
             String buildTag = envVars.get(EnvironmentVariablesConsts.BUILD_TAG);
 
-            FilePath expandedOutputPath = outputPath.contains("${WORKSPACE}") ?
-                    new FilePath(launcher.getChannel(), envVars.expand(outputPath)) :
-                    workspace.child(envVars.expand(outputPath));
+            FilePath expandedOutputPath = outputPath.contains("${WORKSPACE}") ? new FilePath(launcher.getChannel(), envVars.expand(outputPath)) : workspace.child(envVars.expand(outputPath));
             expandedOutputPath.mkdirs();
 
-            FilePath expandedWorkspacePath = workspacePath.contains("${WORKSPACE}") ?
-                    new FilePath(launcher.getChannel(), envVars.expand(workspacePath)) :
-                    workspace.child(envVars.expand(workspacePath));
+            FilePath expandedWorkspacePath = workspacePath.contains("${WORKSPACE}") ? new FilePath(launcher.getChannel(), envVars.expand(workspacePath)) : workspace.child(envVars.expand(workspacePath));
 
             if (runWorkflowAnalysis) {
                 SolutionAnalyzeOptions solutionAnalyzeOptions = new SolutionAnalyzeOptions();
                 if (governanceFilePath != null && !governanceFilePath.isEmpty()) {
-                    FilePath expandedGovernanceFilePath = governanceFilePath.contains("${WORKSPACE}") ?
-                            new FilePath(launcher.getChannel(), envVars.expand(governanceFilePath)) :
-                            workspace.child(envVars.expand(governanceFilePath));
+                    FilePath expandedGovernanceFilePath = governanceFilePath.contains("${WORKSPACE}") ? new FilePath(launcher.getChannel(), envVars.expand(governanceFilePath)) : workspace.child(envVars.expand(governanceFilePath));
                     solutionAnalyzeOptions.setGovernanceFilePath(expandedGovernanceFilePath.getRemote());
                 }
                 if (disableBuiltInNugetFeeds != null && disableBuiltInNugetFeeds) {
@@ -171,6 +183,26 @@ public class UiPathSolutionPack extends Builder implements SimpleBuildStep {
             solutionPackOptions.setRepositoryType(repositoryType);
             solutionPackOptions.setProjectUrl(projectUrl);
             solutionPackOptions.setReleaseNotes(releaseNotes);
+
+            // Package signing options
+            if (certificatePath != null && !certificatePath.trim().isEmpty()) {
+                FilePath expandedSignPath = certificatePath.contains("${WORKSPACE}") ? new FilePath(launcher.getChannel(), envVars.expand(certificatePath)) : workspace.child(envVars.expand(certificatePath));
+                solutionPackOptions.setCertificatePath(expandedSignPath.getRemote());
+
+                if (password != null && !password.trim().isEmpty()) {
+                    StringCredentials passwordCredentials = CredentialsMatchers.firstOrNull(
+                            lookupCredentials(StringCredentials.class, run.getParent(), ACL.SYSTEM, Collections.emptyList()),
+                            CredentialsMatchers.withId(password)
+                    );
+                    if (passwordCredentials != null) {
+                        solutionPackOptions.setCertificatePassword(passwordCredentials.getSecret().getPlainText());
+                    }
+                }
+
+                if (timestampServerUrl != null && !timestampServerUrl.trim().isEmpty()) {
+                    solutionPackOptions.setTimestampServerUrl(timestampServerUrl);
+                }
+            }
 
             // Version is now a simple string, expanded from environment variables
             solutionPackOptions.setVersion(envVars.expand(version.trim()));
@@ -273,8 +305,37 @@ public class UiPathSolutionPack extends Builder implements SimpleBuildStep {
         this.credentials = credentials;
     }
 
+    @DataBoundSetter
+    public void setShowMetadata(boolean showMetadata) {
+        this.showMetadata = showMetadata;
+    }
+
+    @DataBoundSetter
+    public void setShowPackageSigning(boolean showPackageSigning) {
+        this.showPackageSigning = showPackageSigning;
+    }
+
+    @DataBoundSetter
+    public void setCertificatePath(String certificatePath) {
+        this.certificatePath = certificatePath;
+    }
+
+    @DataBoundSetter
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @DataBoundSetter
+    public void setTimestampServerUrl(String timestampServerUrl) {
+        this.timestampServerUrl = timestampServerUrl;
+    }
+
+    @DataBoundSetter
+    public void setShowMoreSettings(boolean showMoreSettings) {
+        this.showMoreSettings = showMoreSettings;
+    }
+
     /**
-     * Provide the version
      *
      * @return String version
      */
@@ -403,6 +464,60 @@ public class UiPathSolutionPack extends Builder implements SimpleBuildStep {
     }
 
     /**
+     * Show metadata optional block
+     *
+     * @return boolean showMetadata
+     */
+    public boolean getShowMetadata() {
+        return showMetadata;
+    }
+
+    /**
+     * Show package signing optional block
+     *
+     * @return boolean showPackageSigning
+     */
+    public boolean getShowPackageSigning() {
+        return showPackageSigning;
+    }
+
+    /**
+     * Certificate file path
+     *
+     * @return String sign
+     */
+    public String getCertificatePath() {
+        return certificatePath;
+    }
+
+    /**
+     * Certificate password
+     *
+     * @return String password
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * Timestamp server URL
+     *
+     * @return String timestamp
+     */
+    public String getTimestampServerUrl() {
+        return timestampServerUrl;
+    }
+
+    /**
+     * Show more settings optional block
+     *
+     * @return boolean showMoreSettings
+     */
+    public boolean getShowMoreSettings() {
+        return showMoreSettings;
+    }
+
+    /**
      * traceLevel
      *
      * @return TraceLevel traceLevel
@@ -525,6 +640,19 @@ public class UiPathSolutionPack extends Builder implements SimpleBuildStep {
             }
 
             return result;
+        }
+
+        /**
+         * Populates the password dropdown with available Jenkins credentials
+         *
+         * @param item Basic configuration unit in Hudson
+         * @return ListBoxModel list of credentials
+         */
+        public ListBoxModel doFillPasswordItems(@AncestorInPath Item item) {
+            if (item == null || !item.hasPermission(Item.CONFIGURE)) {
+                return new ListBoxModel();
+            }
+            return CredentialsProvider.listCredentials(StringCredentials.class, item, ACL.SYSTEM, Collections.emptyList(), CredentialsMatchers.always());
         }
 
         /**

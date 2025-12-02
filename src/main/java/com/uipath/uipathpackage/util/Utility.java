@@ -276,7 +276,9 @@ public class Utility {
             options.setAccountForApp(cred.getAccountForApp());
             options.setApplicationId(cred.getApplicationId());
             options.setApplicationSecret(secret.getSecret().getPlainText());
-            options.setApplicationScope(cred.getApplicationScope());
+            if (StringUtils.isNotBlank(cred.getApplicationScope())) {
+                options.setApplicationScope(cred.getApplicationScope());
+            }
             if (StringUtils.isNotBlank(cred.getIdentityUrl())) {
             	options.setAuthorizationUrl(cred.getIdentityUrl());
             }

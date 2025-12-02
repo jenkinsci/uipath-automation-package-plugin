@@ -57,6 +57,9 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     private SelectEntry credentials;
     private final TraceLevel traceLevel;
     private String governanceFilePath;
+    private String certificatePath;
+    private String password;
+    private String timestampServerUrl;
 
     /**
      * Data bound constructor responsible for setting the values param values to state
@@ -87,6 +90,9 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
         this.credentials = null;
         this.runWorkflowAnalysis = false;
         this.governanceFilePath = null;
+        this.certificatePath = null;
+        this.password = null;
+        this.timestampServerUrl = null;
     }
 
     /**
@@ -182,6 +188,27 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
             packOptions.setRepositoryType(repositoryType);
             packOptions.setProjectUrl(projectUrl);
             packOptions.setReleaseNotes(releaseNotes);
+
+            if (certificatePath != null && !certificatePath.trim().isEmpty()) {
+                FilePath expandedSignPath = certificatePath.contains("${WORKSPACE}") ?
+                        new FilePath(launcher.getChannel(), envVars.expand(certificatePath)) :
+                        workspace.child(envVars.expand(certificatePath));
+                packOptions.setCertificatePath(expandedSignPath.getRemote());
+
+                if (password != null && !password.trim().isEmpty()) {
+                    org.jenkinsci.plugins.plaincredentials.StringCredentials passwordCredentials = com.cloudbees.plugins.credentials.CredentialsMatchers.firstOrNull(
+                            com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials(org.jenkinsci.plugins.plaincredentials.StringCredentials.class, run.getParent(), hudson.security.ACL.SYSTEM, java.util.Collections.emptyList()),
+                            com.cloudbees.plugins.credentials.CredentialsMatchers.withId(password)
+                    );
+                    if (passwordCredentials != null) {
+                        packOptions.setCertificatePassword(passwordCredentials.getSecret().getPlainText());
+                    }
+                }
+
+                if (timestampServerUrl != null && !timestampServerUrl.trim().isEmpty()) {
+                    packOptions.setTimestampServerUrl(timestampServerUrl);
+                }
+            }
 
             if (version instanceof ManualVersionEntry) {
                 packOptions.setVersion(envVars.expand(((ManualVersionEntry) version).getVersion().trim()));
@@ -281,6 +308,21 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
     @DataBoundSetter
     public void setReleaseNotes(String releaseNotes) {
         this.releaseNotes = releaseNotes;
+    }
+
+    @DataBoundSetter
+    public void setCertificatePath(String certificatePath) {
+        this.certificatePath = certificatePath;
+    }
+
+    @DataBoundSetter
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @DataBoundSetter
+    public void setTimestampServerUrl(String timestampServerUrl) {
+        this.timestampServerUrl = timestampServerUrl;
     }
 
     @DataBoundSetter
@@ -443,6 +485,18 @@ public class UiPathPack extends Builder implements SimpleBuildStep {
 
     public String getReleaseNotes() {
         return releaseNotes;
+    }
+
+    public String getCertificatePath() {
+        return certificatePath;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getTimestampServerUrl() {
+        return timestampServerUrl;
     }
 
     /**
