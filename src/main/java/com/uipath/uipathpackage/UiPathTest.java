@@ -151,6 +151,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             if (!StringUtils.isBlank(projectKey)) {
                 testOptions.setProjectKey(projectKey.trim());
             } else {
+                testOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
                 listener.getLogger().println("Testing module in Orchestrator will be deprecated soon. Consider migrating to UiPath Test Manager. " +
                         "For more information, visit: " +
                         "Migration FAQ: https://docs.uipath.com/orchestrator/automation-cloud/latest/user-guide/faq-migrating-test-artifacts-to-test-manager " +
@@ -181,16 +182,18 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
                 }
             }
             else {
-                if(!StringUtils.isBlank(projectKey))
-                    testOptions.setTestSetKey(((TestSetEntry)testTarget).getTestSet());
-                else
-                    testOptions.setTestSet(((TestSetEntry)testTarget).getTestSet());
+                if(!StringUtils.isBlank(projectKey)) {
+                    testOptions.setTestSetKey(((TestSetEntry) testTarget).getTestSet());
+                }
+                else {
+                    testOptions.setTestSet(((TestSetEntry) testTarget).getTestSet());
+                }
             }
 
             String orchestratorTenantFormatted = envVars.expand(orchestratorTenant.trim()).isEmpty() ? util.getConfigValue(rb, "UiPath.DefaultTenant") : envVars.expand(orchestratorTenant.trim());
             testOptions.setOrchestratorUrl(orchestratorAddress);
             testOptions.setOrchestratorTenant(orchestratorTenantFormatted);
-            testOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
+
             testOptions.setTestReportType("junit");
 
             String resultsOutputPath = testResultsOutputPath != null && !testResultsOutputPath.trim().isEmpty()
@@ -483,7 +486,9 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
 
         Utility util = new Utility();
         util.validateParams(this.orchestratorAddress, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchAddress());
-        util.validateParams(this.folderName, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchFolder());
+
+        if(StringUtils.isBlank(projectKey))
+            util.validateParams(this.folderName, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchFolder());
 
         if (credentials == null) {
             throw new InvalidParameterException(com.uipath.uipathpackage.Messages.GenericErrors_MissingAuthenticationMethod());
@@ -667,19 +672,6 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         public FormValidation doCheckOrchestratorAddress(@QueryParameter String value) {
             if (value.trim().isEmpty()) {
                 return FormValidation.error(com.uipath.uipathpackage.Messages.GenericErrors_MissingOrchestratorAddress());
-            }
-            return FormValidation.ok();
-        }
-
-        /**
-         * Validates Orchestrator Folder
-         *
-         * @param value value of orchestrator folder
-         * @return FormValidation
-         */
-        public FormValidation doCheckFolderName(@QueryParameter String value) {
-            if (value.trim().isEmpty()) {
-                return FormValidation.error(com.uipath.uipathpackage.Messages.GenericErrors_MissingFolder());
             }
             return FormValidation.ok();
         }

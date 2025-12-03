@@ -22,6 +22,8 @@ stages:
           configurationName: 'JenkinsE2ETests/UiPathSolution/SolutionUploadPackageAndDeploySuccess'
         - jobName: 'SolutionPackUploadAndDeploySuccess'
           configurationName: 'JenkinsE2ETests/UiPathSolution/SolutionPackUploadAndDeploySuccess'
+        - jobName: 'SolutionPackWithCertificateSigning'
+          configurationName: 'JenkinsE2ETests/UiPathSolution/SolutionPackWithCertificateSigning'
         #### CLIVersion E2E tests ###
         - jobName: 'UiPathTasksExtractPrepackagedCLI'
           configurationName: 'JenkinsE2ETests/CLIVersion/UiPathTasksExtractPrepackagedCLI'
@@ -68,10 +70,13 @@ stages:
           configurationName: 'JenkinsE2ETests/UiPathPack/PackWithOrchestratorDependencies'
         - jobName: 'PackWithRepositoryMetadata'
           configurationName: 'JenkinsE2ETests/UiPathPack/PackWithRepositoryMetadata'
-        - jobName: 'PackShouldNotLookUpInBuiltInFeeds'
-          configurationName: 'JenkinsE2ETests/UiPathPack/PackShouldNotLookUpInBuiltInFeeds'
+#       This test clears uipath.activities.runtimegovernance, but since other tests might pack as well in parallel, assembly's folder is restored (opened STUD-78424)
+#        - jobName: 'PackShouldNotLookUpInBuiltInFeeds'
+#          configurationName: 'JenkinsE2ETests/UiPathPack/PackShouldNotLookUpInBuiltInFeeds'
         - jobName: 'AnalyzeShouldUseGovernanceFile'
           configurationName: 'JenkinsE2ETests/UiPathPack/AnalyzeShouldUseGovernanceFile'
+        - jobName: 'PackWithCertificateSigning'
+          configurationName: 'JenkinsE2ETests/UiPathPack/PackWithCertificateSigning'
         #### UiPathRunJob E2E tests ###
         - jobName: 'RunJobFailsWhenORJobFails'
           configurationName: 'JenkinsE2ETests/UiPathRunJob/RunJobFailsWhenORJobFails'
@@ -104,6 +109,8 @@ stages:
           configurationName: 'JenkinsE2ETests/UiPathTest/RunTransientTestPackagedWithRepositoryMetadata'
         - jobName: 'RunTestShouldNotLookUpInBuiltInFeeds'
           configurationName: 'JenkinsE2ETests/UiPathTest/RunTestShouldNotLookUpInBuiltInFeeds'
+        - jobName: 'RunTestSetFromTestManager'
+          configurationName: 'JenkinsE2ETests/UiPathTest/RunTestSetFromTestManager'
         #### JenkinsPipelineTypes E2E tests ###
 #        - jobName: 'FreestylePipeline'
 #          configurationName: 'JenkinsE2ETests/JenkinsPipelineTypes/FreestylePipeline'

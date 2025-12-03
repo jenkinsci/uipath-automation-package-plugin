@@ -13,7 +13,7 @@
     <packaging>hpi</packaging>
 
     <properties>
-        <revision>6.0</revision>
+        <revision>6.1</revision>
         <changelist>999999-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/uipath-automation-package-plugin</gitHubRepo>
         <jenkins.version>2.414.3</jenkins.version>
