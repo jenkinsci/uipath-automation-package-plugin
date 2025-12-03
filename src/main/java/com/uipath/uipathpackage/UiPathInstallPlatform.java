@@ -75,7 +75,7 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
             FilePath actualCliNupkgPath = null;
 
             if (scopedVersion.contains("CustomVersion")) {
-                if(StringUtils.isBlank(cliNupkgPath)){
+                if (StringUtils.isBlank(cliNupkgPath)) {
                     throw new AbortException("CustomVersion is selected, but path to local nupkg is not provided.");
                 }
                 try {
@@ -90,8 +90,7 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
                     logger.println("Exception: " + e.getMessage());
                     throw new AbortException("Failed to parse custom CLI version from path: " + cliNupkgPath + ". Make sure you didn't change default nupkg name downloaded from feed");
                 }
-            }
-            else {
+            } else {
                 versionConfiguration = cliConfiguration.getConfiguration(scopedVersion);
             }
 
@@ -102,20 +101,20 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
 
             logger.println(isSelectedCliAlreadyCached ? "cli " + scopedVersion + " is already cached.." : "cli " + scopedVersion + " is not found in cache..");
 
-            if(this.forceInstall || !isSelectedCliAlreadyCached) {
-                if(forceInstall) {
+            if (this.forceInstall || !isSelectedCliAlreadyCached) {
+                if (forceInstall) {
                     logger.println("force installing the cli , any previous cache for version " + scopedVersion + " will be invalidated..");
                 }
 
                 FilePath cliRootCacheDirPath = cliConfiguration.getCliRootCachedDirectoryPath(launcher, envVars, scopedVersion);
 
-                if(scopedVersion.equals(cliConfiguration.getDefaultCliVersionKey())) {
+                if (scopedVersion.equals(cliConfiguration.getDefaultCliVersionKey())) {
                     logger.print("(caching) extracting the pre-packaged cli...");
                     util.extractCliApp(cliRootCacheDirPath, listener, envVars);
 
-                } else if(cliVersion.contains("CustomVersion") && StringUtils.isNotBlank(cliNupkgPath)) {
-                    if(!actualCliNupkgPath.exists()){
-                        logger.println("CliNupkgPath provided doesn't exists "+actualCliNupkgPath.getRemote());
+                } else if (cliVersion.contains("CustomVersion") && StringUtils.isNotBlank(cliNupkgPath)) {
+                    if (!actualCliNupkgPath.exists()) {
+                        logger.println("CliNupkgPath provided doesn't exists " + actualCliNupkgPath.getRemote());
                         throw new AbortException(Messages.UiPathInstallPlatform_DescriptorImpl_Error_CliNupkgPath());
                     }
                     logger.println("(caching) extracting provided cli-nuget from path " + actualCliNupkgPath.getRemote());
@@ -137,10 +136,10 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
 
             cliConfiguration.updateSelectedCliVersionKey(run, scopedVersion);
         } catch (Exception e) {
-            if(traceLevel.equals(TraceLevel.Verbose) || traceLevel.equals(TraceLevel.Error)) {
+            if (traceLevel.equals(TraceLevel.Verbose) || traceLevel.equals(TraceLevel.Error)) {
                 e.printStackTrace(logger);
             }
-            throw new AbortException("unable to install the cli "+ e.getMessage());
+            throw new AbortException("unable to install the cli " + e.getMessage());
         }
     }
 
@@ -168,6 +167,10 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
         } else if (osName.contains("linux")) {
             if (cliSelectedVersion.getPlatform() != UiPathCliConfiguration.CliPlatform.Linux) {
                 throw new AbortException("Selected UiPath CLI version '" + cliSelectedVersion.getDisplayName() + "' cannot be executed on Linux agent.");
+            }
+        } else if (osName.contains("darwin") || osName.contains("mac")) {
+            if (cliSelectedVersion.getPlatform() != UiPathCliConfiguration.CliPlatform.macOS) {
+                throw new AbortException("Selected UiPath CLI version '" + cliSelectedVersion.getDisplayName() + "' cannot be executed on macOS agent.");
             }
         } else {
             throw new AbortException("Running on incompatible operating system");
@@ -239,7 +242,7 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
                 return new ListBoxModel();
             }
 
-            ListBoxModel result= new ListBoxModel();
+            ListBoxModel result = new ListBoxModel();
 
             List<Map.Entry<String, UiPathCliConfiguration.Configuration>> entries =
                     new ArrayList<>(cliConfiguration.getConfiguration().entrySet());
@@ -247,11 +250,11 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
                             -> e.getValue().getName())
                     .thenComparing(e -> e.getValue().getVersion().getComplete(), Comparator.reverseOrder()));
 
-           for (Map.Entry<String, UiPathCliConfiguration.Configuration> v : entries) {
-               result.add(new ListBoxModel.Option(v.getValue().getDisplayName(), v.getKey()));
-           }
+            for (Map.Entry<String, UiPathCliConfiguration.Configuration> v : entries) {
+                result.add(new ListBoxModel.Option(v.getValue().getDisplayName(), v.getKey()));
+            }
 
-           return result;
+            return result;
         }
 
         public ListBoxModel doFillTraceLevelItems(@AncestorInPath Item item) {
@@ -259,8 +262,8 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
                 return new ListBoxModel();
             }
 
-            ListBoxModel result= new ListBoxModel();
-            for (TraceLevel v: TraceLevel.values()) {
+            ListBoxModel result = new ListBoxModel();
+            for (TraceLevel v : TraceLevel.values()) {
                 result.add(v.toString(), v.toString());
             }
 
