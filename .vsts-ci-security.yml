@@ -21,12 +21,12 @@ stages:
           - maven 
       steps:
       - task: BuildProcessCleaner@0
-      - task: Maven@3
-        displayName: 'Build plugin package (Java 11)'
+      - task: Maven@4
+        displayName: 'Build plugin package (Java 21)'
         inputs:
           mavenPomFile: $(MavenPOMFile)
           javaHomeOption: 'JDKVersion'
-          jdkVersionOption: '1.11'
+          jdkVersionOption: '21'
           sqMavenPluginVersionChoice: 'latest'
           options: '-DskipTests -Dsonar.projectKey=jenkins-plugin -Duser.name=UiPath --no-transfer-progress -Dmaven.artifact.threads=16 -T 4 -DrerunFailingTestsCount=0'
       - template: Security/security.yml@common
