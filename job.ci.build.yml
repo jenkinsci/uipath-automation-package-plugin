@@ -27,11 +27,11 @@ steps:
     organization: ui
     scannerMode: Other
 
-- task: Maven@3
-  displayName: 'Build plugin package (Java 11)'
+- task: Maven@4
+  displayName: 'Build plugin package (Java 21)'
   inputs:
     javaHomeOption: 'JDKVersion'
-    jdkVersionOption: 1.11
+    jdkVersionOption: '21'
     mavenPomFile: $(MavenPOMFile)
     testResultsFiles: '**/TEST-*.xml'
     sonarQubeRunAnalysis: false
