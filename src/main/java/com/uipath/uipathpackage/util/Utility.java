@@ -170,19 +170,47 @@ public class Utility {
             return targetCliPath;
         }
 
-        String pluginJarPath;
-
-        if (isServerOSWindows()) {
-            pluginJarPath = env.expand("${JENKINS_HOME}\\plugins\\uipath-automation-package\\WEB-INF\\lib\\uipath-automation-package.jar");
-        } else {
-            pluginJarPath = env.expand("${JENKINS_HOME}/plugins/uipath-automation-package/WEB-INF/lib/uipath-automation-package.jar");
-        }
+        String pluginJarPath = getPluginJarPath();
 
         logger.println("Expected plugin jar path on Jenkins master: " + pluginJarPath + ", extracting...");
 
         // Copy relevant files to temp directory
         copyPluginFilesToTempDir(listener, targetRootCacheDir, pluginJarPath);
         return targetCliPath;
+    }
+
+    /**
+     * Gets the plugin jar path using Jenkins PluginManager API, which respects custom workDir configuration.
+     * The baseResourceURL automatically uses workDir when configured via hudson.PluginManager.workDir.
+     *
+     * @return The absolute path to the plugin jar file
+     * @throws IOException if the plugin or jar file cannot be found
+     */
+    private String getPluginJarPath() throws IOException {
+        jenkins.model.Jenkins jenkinsInstance = jenkins.model.Jenkins.get();
+        hudson.PluginWrapper pluginWrapper = jenkinsInstance.getPluginManager().getPlugin("uipath-automation-package");
+
+        if (pluginWrapper == null) {
+            throw new IOException("Could not find uipath-automation-package plugin in Jenkins PluginManager");
+        }
+
+        if (pluginWrapper.baseResourceURL == null) {
+            throw new IOException("Plugin baseResourceURL is null - plugin may not be properly initialized");
+        }
+
+        File pluginBaseDir;
+        try {
+            pluginBaseDir = new File(pluginWrapper.baseResourceURL.toURI());
+        } catch (URISyntaxException e) {
+            throw new IOException("Failed to convert plugin baseResourceURL to URI: " + e.getMessage(), e);
+        }
+
+        File jarFile = new File(pluginBaseDir, "WEB-INF/lib/uipath-automation-package.jar");
+        if (!jarFile.exists()) {
+            throw new IOException("Plugin jar file not found at expected location: " + jarFile.getAbsolutePath());
+        }
+
+        return jarFile.getAbsolutePath();
     }
 
     // With support for .NET tool structure, look for uipcli.dll in tools/netX.X/any/uipcli.dll. Maintain also backward compatibility.
