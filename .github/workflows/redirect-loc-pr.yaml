@@ -1,0 +1,67 @@
+name: Redirect localization PRs to upstream
+
+on:
+  pull_request:
+    types: [opened]
+    branches: [develop]
+
+jobs:
+  redirect-to-upstream:
+    if: startsWith(github.head_ref, 'localization_sync/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create branch from upstream develop
+        id: branch
+        run: |
+          git remote add upstream https://github.com/jenkinsci/uipath-automation-package-plugin.git
+          git fetch upstream develop
+          git fetch origin "${{ github.head_ref }}"
+
+          BRANCH="chore/sync_loc_$(date +%s)"
+          echo "name=$BRANCH" >> "$GITHUB_OUTPUT"
+
+          git checkout -b "$BRANCH" upstream/develop
+          git merge "origin/${{ github.head_ref }}" --no-edit
+
+      - name: Push branch to fork
+        run: git push origin "${{ steps.branch.outputs.name }}"
+
+      - name: Create PR on upstream
+        id: upstream-pr
+        env:
+          GH_TOKEN: ${{ secrets.JENKINS_UPSTREAM_PR_TOKEN }}
+        run: |
+          PR_URL=$(gh pr create \
+            --repo jenkinsci/uipath-automation-package-plugin \
+            --head "${{ github.repository_owner }}:${{ steps.branch.outputs.name }}" \
+            --base develop \
+            --title "${{ github.event.pull_request.title }}" \
+            --body "$(cat <<'EOF'
+          ## Summary
+          Automated localization sync redirected from fork.
+
+          - Original PR: ${{ github.event.pull_request.html_url }}
+          - Source branch: `${{ github.head_ref }}`
+          EOF
+          )")
+          echo "url=$PR_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Close original PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr close "${{ github.event.pull_request.number }}" \
+            --comment "Redirected to upstream: ${{ steps.upstream-pr.outputs.url }}"
