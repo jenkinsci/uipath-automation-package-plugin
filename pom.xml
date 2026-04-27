@@ -44,7 +44,7 @@
         <bootstrap5-api.version>5.3.2-3</bootstrap5-api.version>
         <checks-api.version>2.0.2</checks-api.version>
         <jquery3-api.version>3.7.1-1</jquery3-api.version>
-        <echarts-api.version>5.4.0-7</echarts-api.version>
+        <echarts-api.version>6.0.0-1165.vd1283a_3e37d4</echarts-api.version>
         <matrix-project.version>822.824.v14451b_c0fd42</matrix-project.version>
         <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
     </properties>
