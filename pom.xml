@@ -19,7 +19,7 @@
         <jenkins.version>2.414.3</jenkins.version>
         <powershell.version>1.7</powershell.version>
         <envinject.version>2.4.0</envinject.version>
-        <mockito-core.version>4.8.0</mockito-core.version>
+        <mockito-core.version>5.21.0</mockito-core.version>
         <plain-credentials.version>179.vc5cb_98f6db_38</plain-credentials.version>
         <json.version>20231013</json.version>
         <credentials.version>1319.v7eb_51b_3a_c97b_</credentials.version>
