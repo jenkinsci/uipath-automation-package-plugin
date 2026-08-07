@@ -13,7 +13,6 @@ import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.tasks.SimpleBuildStep;
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -27,6 +26,7 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import hudson.Util;
 
 public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
 
@@ -75,7 +75,7 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
             FilePath actualCliNupkgPath = null;
 
             if (scopedVersion.contains("CustomVersion")) {
-                if (StringUtils.isBlank(cliNupkgPath)) {
+                if (Util.fixEmptyAndTrim(cliNupkgPath) == null) {
                     throw new AbortException("CustomVersion is selected, but path to local nupkg is not provided.");
                 }
                 try {
@@ -112,7 +112,7 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
                     logger.print("(caching) extracting the pre-packaged cli...");
                     util.extractCliApp(cliRootCacheDirPath, listener, envVars);
 
-                } else if (cliVersion.contains("CustomVersion") && StringUtils.isNotBlank(cliNupkgPath)) {
+                } else if (cliVersion.contains("CustomVersion") && Util.fixEmptyAndTrim(cliNupkgPath) != null) {
                     if (!actualCliNupkgPath.exists()) {
                         logger.println("CliNupkgPath provided doesn't exists " + actualCliNupkgPath.getRemote());
                         throw new AbortException(Messages.UiPathInstallPlatform_DescriptorImpl_Error_CliNupkgPath());
@@ -230,7 +230,7 @@ public class UiPathInstallPlatform extends Builder implements SimpleBuildStep {
         }
 
         public FormValidation doCheckCliNupkgPath(@QueryParameter String value) {
-            if (StringUtils.isNotBlank(value) && value.trim().toUpperCase().contains("${JENKINS_HOME}")) {
+            if (Util.fixEmptyAndTrim(value) != null && value.trim().toUpperCase().contains("${JENKINS_HOME}")) {
                 return FormValidation.error(com.uipath.uipathpackage.Messages.GenericErrors_MustUseSlavePaths());
             }
 

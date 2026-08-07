@@ -20,7 +20,6 @@ import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -34,6 +33,7 @@ import java.security.InvalidParameterException;
 import java.util.*;
 
 import static hudson.slaves.WorkspaceList.tempDir;
+import hudson.Util;
 
 /**
  * Runs a test set or test package on the Orchestrator and outputs the result.
@@ -148,7 +148,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
                 testOptions.setCliGetFlow(cliDetails.getGetFlow());
             }
 
-            if (!StringUtils.isBlank(projectKey)) {
+            if (Util.fixEmptyAndTrim(projectKey) != null) {
                 testOptions.setProjectKey(projectKey.trim());
             } else {
                 testOptions.setOrganizationUnit(envVars.expand(folderName.trim()));
@@ -182,7 +182,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
                 }
             }
             else {
-                if(!StringUtils.isBlank(projectKey)) {
+                if(Util.fixEmptyAndTrim(projectKey) != null) {
                     testOptions.setTestSetKey(((TestSetEntry) testTarget).getTestSet());
                 }
                 else {
@@ -487,7 +487,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
         Utility util = new Utility();
         util.validateParams(this.orchestratorAddress, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchAddress());
 
-        if(StringUtils.isBlank(projectKey))
+        if(Util.fixEmptyAndTrim(projectKey) == null)
             util.validateParams(this.folderName, com.uipath.uipathpackage.Messages.ValidationErrors_InvalidOrchFolder());
 
         if (credentials == null) {
@@ -506,7 +506,7 @@ public class UiPathTest extends Recorder implements SimpleBuildStep, JUnitTask {
             TestResultSummary resultSummary = JUnitResultArchiver.parseAndSummarize(this, null, run, workspace, launcher, listener);
             if (resultSummary != null) {
                 TestResultAction action = run.getAction(TestResultAction.class);
-                if(action != null && StringUtils.isNotEmpty(action.getResult().getStdout())) {
+                if(action != null && Util.fixEmpty(action.getResult().getStdout()) != null) {
                     String stdOut = action.getResult().getStdout();
                     listener.getLogger().println(Messages.UiPathTest_DescriptorImpl_TestRunUrl()+stdOut.substring(stdOut.indexOf("ms.")+3,stdOut.length()));
                 }

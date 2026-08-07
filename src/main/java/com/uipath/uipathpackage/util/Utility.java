@@ -18,7 +18,6 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 
 import hudson.util.StreamTaskListener;
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.json.JSONObject;
 
@@ -43,6 +42,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.uipath.uipathpackage.configuration.UiPathCliConfiguration.DEFAULT_CLI_VERSION_KEY;
+import hudson.Util;
 
 /**
  * Utility Class used by UiPathDeploy and UiPathPack
@@ -304,10 +304,10 @@ public class Utility {
             options.setAccountForApp(cred.getAccountForApp());
             options.setApplicationId(cred.getApplicationId());
             options.setApplicationSecret(secret.getSecret().getPlainText());
-            if (StringUtils.isNotBlank(cred.getApplicationScope())) {
+            if (Util.fixEmptyAndTrim(cred.getApplicationScope()) != null) {
                 options.setApplicationScope(cred.getApplicationScope());
             }
-            if (StringUtils.isNotBlank(cred.getIdentityUrl())) {
+            if (Util.fixEmptyAndTrim(cred.getIdentityUrl()) != null) {
             	options.setAuthorizationUrl(cred.getIdentityUrl());
             }
         }
