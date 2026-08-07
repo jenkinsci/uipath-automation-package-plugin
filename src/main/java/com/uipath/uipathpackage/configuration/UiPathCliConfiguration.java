@@ -11,7 +11,6 @@ import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import javax.annotation.Nonnull;
@@ -22,6 +21,7 @@ import java.util.*;
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import hudson.Util;
 
 public final class UiPathCliConfiguration {
 
@@ -82,7 +82,7 @@ public final class UiPathCliConfiguration {
 
     public String getSelectedOrDefaultCliVersionKey(@Nonnull EnvVars envVars) {
         String selectedCliVersionKey = envVars.get(SELECTED_CLI_VERSION_KEY);
-        return  StringUtils.isNotBlank(selectedCliVersionKey) ? selectedCliVersionKey : getDefaultCliVersionKey();
+        return  Util.fixEmptyAndTrim(selectedCliVersionKey) != null ? selectedCliVersionKey : getDefaultCliVersionKey();
     }
 
     public void updateSelectedCliVersionKey(@NonNull Run<?, ?> run, @Nonnull String cliVersionKey) throws AbortException {
